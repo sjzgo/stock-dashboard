@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑寶站長股票看板</title>
+    <title>喵喵站長股票看板</title>
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
@@ -99,9 +99,9 @@
         </div>
         <input type="file" id="file-upload" style="display:none;" accept="image/*" onchange="app.uploadLogo(this)">
         <div class="header-text">
-            <h2>📊 黑寶站長股票看板</h2>
+            <h2>📊 喵喵站長股票看板</h2>
             <div class="sub-info">
-                首席分析師:喵喵喵 | <span id="countdown-text">25</span>秒後自動更新
+                首席分析師：黑寶 | <span id="countdown-text">25</span>秒後自動更新
             </div>
         </div>
     </div>
@@ -361,11 +361,9 @@
     }
 
     // --- 股票核心 ---
-    // 修改 1: 更新預設股票清單
     var myStocks = ['2330', '0050', '0056', '00878', '00919'];
     var timerId = null;
     
-    // 時間維持 25 秒
     var timeLeft = 25;
     var UPDATE_INTERVAL = 25;
     
