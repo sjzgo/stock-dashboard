@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑貓站長股票看板 (精簡介面版)</title>
+    <title>黑寶站長股票看板</title>
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
 
         /* --- 頭部區域 --- */
@@ -59,21 +58,12 @@
             .news-column:last-child { border-bottom: none; margin-bottom: 0; }
         }
 
-        /* --- 輸入區 (優化版) --- */
+        /* --- 輸入區 --- */
         .input-area { 
             margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee; 
-            display: flex; align-items: center; gap: 5px; 
-            /* 讓內容靠左，不要撐開 */
-            justify-content: flex-start; 
+            display: flex; align-items: center; gap: 5px; justify-content: flex-start; 
         }
-        
-        #stock-input { 
-            /* 固定寬度，不再是 flex: 1 */
-            width: 120px; 
-            flex: none;
-            padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; 
-        }
-        
+        #stock-input { width: 120px; flex: none; padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
         #add-btn { 
             padding: 5px 12px; cursor: pointer; border: none; border-radius: 4px; 
             font-weight: bold; font-size: 13px; background: #2ecc71; color: white; 
@@ -85,7 +75,6 @@
         th { padding: 3px 2px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* 欄位寬度設定 (總和 100%) */
         th:nth-child(1), td:nth-child(1) { width: 12%; text-align: left; }
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; color: #666; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; font-weight: bold; }
@@ -106,7 +95,7 @@
 <div class="container">
     <div class="header-area">
         <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
-            <img id="mascot-img" class="mascot-img" src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
+            <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
         </div>
         <input type="file" id="file-upload" style="display:none;" accept="image/*" onchange="app.uploadLogo(this)">
         <div class="header-text">
@@ -195,13 +184,16 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('mascot-img').src = e.target.result;
+                    // 本地暫存，如果使用者手動換圖，會優先顯示這張
                     try { localStorage.setItem('my_mascot_img_60', e.target.result); } catch(err) {}
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         },
         loadLogo: function() {
+            // 檢查有沒有手動換過圖
             var saved = localStorage.getItem('my_mascot_img_60');
+            // 如果有手動換過，就用手動的；如果沒有，就保持 HTML 裡的 cat.jpg
             if(saved) document.getElementById('mascot-img').src = saved;
         }
     };
@@ -389,7 +381,6 @@
         }, 1000);
     }
     
-    // 移除手動刷新函數，因為按鈕已刪除
     function addStock() {
         var inp = document.getElementById('stock-input'); var code = inp.value.trim().toUpperCase(); if(!code) return;
         myStocks.push(code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
