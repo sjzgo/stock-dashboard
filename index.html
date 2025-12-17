@@ -10,8 +10,10 @@
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
 
-        /* --- 頭部區域 --- */
-        .header-area { display: flex; align-items: flex-end; margin-bottom: 8px; gap: 10px; }
+        /* --- 頭部區域 (修改重點) --- */
+        /* 改為 center，讓圖片與文字垂直置中對齊 */
+        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
+        
         .mascot-container {
             width: 60px; height: 60px; border-radius: 50%; border: 3px solid #3498db; 
             overflow: hidden; cursor: pointer; position: relative; background: #f0f0f0; flex-shrink: 0;
@@ -19,7 +21,10 @@
         }
         .mascot-container:hover { transform: scale(1.05); border-color: #e74c3c; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+        
+        /* 改為 center，確保文字區塊內容也是置中 */
+        .header-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        
         .header-text h2 { margin: 0 0 2px 0; font-size: 1.4rem; line-height: 1.2; }
         
         .sub-info { 
@@ -98,32 +103,20 @@
         }
         #add-btn:hover { background: #27ae60; }
         
-        /* --- 股票表格 (修改重點：重新分配寬度) --- */
+        /* --- 股票表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* 總和 100% 分配 */
-        /* 代號/名稱 */
-        th:nth-child(1), td:nth-child(1) { width: 12%; text-align: left; }
-        
-        /* 昨收: 16% (稍微加寬) */
-        th:nth-child(2), td:nth-child(2) { width: 16%; text-align: right; color: #666; }
-        
-        /* 現價: 20% (大幅加寬! 這是拉開距離的關鍵) */
-        th:nth-child(3), td:nth-child(3) { width: 20%; text-align: right; font-weight: bold; }
-        
-        /* 漲跌: 15% */
+        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; line-height: 1.1; }
+        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; color: #666; }
+        th:nth-child(3), td:nth-child(3) { width: 17%; text-align: right; font-weight: bold; }
         th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; }
-        
-        /* 幅度: 15% */
         th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
-        
-        /* 資訊: 15% (縮小，讓按鈕緊湊一點) */
         th:nth-child(6), td:nth-child(6) { width: 15%; text-align: center; }
-        
-        /* 刪除: 7% (縮小) */
         th:nth-child(7), td:nth-child(7) { width: 7%; text-align: center; }
+
+        .stock-code-sub { font-size: 10px; color: #888; display: block; margin-top: 1px; }
 
         .links a { text-decoration: none; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 1px; display: inline-block; }
         .news { background: #e67e22; } .div { background: #2c3e50; } 
@@ -218,6 +211,16 @@
 </div>
 
 <script>
+    const stockMap = {
+        '2330': '台積電', '0050': '元大台灣50', '0056': '元大高股息', 
+        '00878': '國泰永續高股息', '00919': '群益台灣精選高息', '00929': '復華台灣科技優息',
+        '2317': '鴻海', '2454': '聯發科', '2303': '聯電', '2308': '台達電',
+        '2603': '長榮', '2609': '陽明', '2615': '萬海', '2881': '富邦金',
+        '2882': '國泰金', '2891': '中信金', '1101': '台泥', '1102': '亞泥',
+        '2002': '中鋼', '2412': '中華電', '2382': '廣達', '3231': '緯創',
+        '6669': '緯穎', '2357': '華碩', '2376': '技嘉'
+    };
+
     const backupNews = [
         { sourceName: 'Google', title: 'Google 新聞焦點', link: 'https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant' },
         { sourceName: 'Yahoo', title: 'Yahoo 財經新聞', link: 'https://tw.stock.yahoo.com/news/' }
@@ -407,7 +410,6 @@
     // --- 股票核心 ---
     var myStocks = ['2330', '0050', '0056', '00878', '00919'];
     var timerId = null;
-    
     var timeLeft = 25;
     var UPDATE_INTERVAL = 25;
     
@@ -416,11 +418,18 @@
     function renderTable() {
         var tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         for(var i=0; i<myStocks.length; i++) {
-            var c = myStocks[i]; var tr = document.createElement('tr');
+            var c = myStocks[i]; 
+            var name = stockMap[c] || c; 
+            
+            var tr = document.createElement('tr');
             var yahooLink = `https://tw.stock.yahoo.com/quote/${c}/news`;
             var wantgooLink = `https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend`;
+            
             tr.innerHTML = `
-                <td><b>${c}</b></td>
+                <td>
+                    <b>${name}</b>
+                    <span class="stock-code-sub">(${c})</span>
+                </td>
                 <td id='prev-${c}'>...</td>
                 <td id='p-${c}'>...</td>
                 <td id='c-${c}'>...</td>
