@@ -103,19 +103,27 @@
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* 總和 100% */
+        /* 總和 100% 分配 */
+        /* 代號/名稱 */
         th:nth-child(1), td:nth-child(1) { width: 12%; text-align: left; }
-        /* 昨收: 15% -> 14% (微縮) */
-        th:nth-child(2), td:nth-child(2) { width: 14%; text-align: right; color: #666; }
-        /* 現價: 15% -> 16% (加大) */
-        th:nth-child(3), td:nth-child(3) { width: 16%; text-align: right; font-weight: bold; }
-        /* 漲跌: 13% -> 15% (加大，避免重疊) */
+        
+        /* 昨收: 16% (稍微加寬) */
+        th:nth-child(2), td:nth-child(2) { width: 16%; text-align: right; color: #666; }
+        
+        /* 現價: 20% (大幅加寬! 這是拉開距離的關鍵) */
+        th:nth-child(3), td:nth-child(3) { width: 20%; text-align: right; font-weight: bold; }
+        
+        /* 漲跌: 15% */
         th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; }
-        /* 幅度: 14% -> 15% (加大，避免被擠到) */
+        
+        /* 幅度: 15% */
         th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
-        /* 資訊: 21% -> 18% (縮小，夠用就好) */
-        th:nth-child(6), td:nth-child(6) { width: 18%; text-align: center; }
-        th:nth-child(7), td:nth-child(7) { width: 10%; text-align: center; }
+        
+        /* 資訊: 15% (縮小，讓按鈕緊湊一點) */
+        th:nth-child(6), td:nth-child(6) { width: 15%; text-align: center; }
+        
+        /* 刪除: 7% (縮小) */
+        th:nth-child(7), td:nth-child(7) { width: 7%; text-align: center; }
 
         .links a { text-decoration: none; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 1px; display: inline-block; }
         .news { background: #e67e22; } .div { background: #2c3e50; } 
@@ -187,7 +195,7 @@
     <table>
         <thead>
             <tr>
-                <th>代號</th>
+                <th>名稱</th>
                 <th>昨收</th>
                 <th>現價</th>
                 <th>漲跌</th>
