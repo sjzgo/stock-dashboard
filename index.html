@@ -34,7 +34,7 @@
             gap: 20px;
         }
 
-        /* 頂部資訊列 (標題 + 天氣) */
+        /* 頂部資訊列 */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -126,16 +126,18 @@
 
         .news-grid {
             display: grid;
-            /* 修改點 1: 改為兩欄佈局 */
+            /* 自動適應：寬度夠時會自動變兩欄 (2x2) */
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 30px; /* 增加間距讓四大區塊更分明 */
         }
 
         .news-category h4 {
             color: var(--accent);
             margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-size: 1.15rem;
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
         }
 
         .news-list {
@@ -145,9 +147,11 @@
         }
 
         .news-list li {
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #333;
+            display: flex; /* 讓時間和標題更好對齊 */
+            align-items: baseline;
         }
 
         .news-list li:last-child {
@@ -157,7 +161,8 @@
         .news-time {
             font-size: 0.8rem;
             color: var(--text-sub);
-            margin-right: 8px;
+            margin-right: 10px;
+            min-width: 40px; /* 固定時間寬度 */
         }
 
         .news-link {
@@ -165,6 +170,7 @@
             color: var(--text-main);
             font-size: 0.95rem;
             transition: color 0.2s;
+            line-height: 1.4;
         }
 
         .news-link:hover {
@@ -201,7 +207,7 @@
 
         <div class="news-section">
             <div class="news-header">
-                <h3>📰 市場快訊</h3>
+                <h3>📰 綜合新聞快訊</h3>
                 <span style="font-size: 0.85rem; color: var(--text-sub);">最後更新: <span id="update-time"></span></span>
             </div>
             <div class="news-grid" id="news-container">
@@ -242,14 +248,14 @@
             container.innerHTML = html;
         }
 
-        // --- 2. 新聞數據 (修改點 1: 兩區共六條) ---
+        // --- 2. 新聞數據 (更新為 4 大類) ---
         const newsData = [
             {
                 category: "國際財經",
                 items: [
                     { time: "14:30", title: "聯準會暗示降息訊號，美股期貨盤前走揚" },
-                    { time: "14:15", title: "AI 晶片需求強勁，NVIDIA 股價再創新高" },
-                    { time: "13:50", title: "歐洲央行維持利率不變，關注通膨數據" }
+                    { time: "13:50", title: "比特幣突破新高點，加密貨幣市場熱絡" },
+                    { time: "12:15", title: "日圓匯率持續震盪，日本央行密切關注" }
                 ]
             },
             {
@@ -257,7 +263,23 @@
                 items: [
                     { time: "14:45", title: "台積電尾盤爆量，大盤站穩 23000 點" },
                     { time: "14:10", title: "外資今日買超 150 億，三大法人同步做多" },
-                    { time: "13:30", title: "航運股表現強勢，長榮、陽明漲幅逾 3%" }
+                    { time: "13:30", title: "AI 供應鏈續強，廣達、緯創漲幅亮眼" }
+                ]
+            },
+            {
+                category: "社會焦點",
+                items: [
+                    { time: "11:20", title: "捷運新線年底有望通車，交通部進行履勘" },
+                    { time: "10:45", title: "流感疫苗開打，疾管署呼籲民眾踴躍接種" },
+                    { time: "09:30", title: "基本工資審議結果出爐，明年調漲 4.5%" }
+                ]
+            },
+            {
+                category: "生活消費",
+                items: [
+                    { time: "12:00", title: "週末鋒面接近，全台轉雨氣溫驟降" },
+                    { time: "11:30", title: "連鎖咖啡買一送一，民眾排隊搶優惠" },
+                    { time: "10:15", title: "東京旅遊攻略：2025 必去新景點懶人包" }
                 ]
             }
         ];
@@ -294,7 +316,7 @@
                 `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         }
 
-        // --- 3. 自動定位與天氣 (修改點 2: 自動執行) ---
+        // --- 3. 自動定位與天氣 ---
         function initWeather() {
             const weatherBox = document.getElementById('weather-box');
             
@@ -303,25 +325,19 @@
                 return;
             }
 
-            // 直接請求定位，不需要按鈕觸發
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    // 成功獲取經緯度 (這裡模擬天氣數據)
-                    // const lat = position.coords.latitude;
-                    // const lon = position.coords.longitude;
-                    
                     // 模擬 API 回傳
-                    const temp = Math.floor(Math.random() * (32 - 24) + 24); // 隨機 24-32度
+                    const temp = Math.floor(Math.random() * (32 - 24) + 24); 
                     const conditions = ['☀️ 晴朗', '☁️ 多雲', '🌧️ 短暫雨'];
                     const cond = conditions[Math.floor(Math.random() * conditions.length)];
                     
                     weatherBox.innerHTML = `<span>${cond} ${temp}°C (已定位)</span>`;
                 },
                 (error) => {
-                    // 失敗處理
                     console.error("定位失敗:", error);
                     let msg = '無法取得位置';
-                    if (error.code === 1) msg = '📍 需允許定位權限'; // 使用者拒絕
+                    if (error.code === 1) msg = '📍 需允許定位權限'; 
                     weatherBox.innerHTML = `<span>${msg}</span>`;
                 }
             );
@@ -331,7 +347,7 @@
         window.onload = function() {
             renderStocks();
             renderNews();
-            initWeather(); // 頁面載入即執行定位
+            initWeather();
         };
 
     </script>
