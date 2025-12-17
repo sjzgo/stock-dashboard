@@ -21,21 +21,27 @@
         .mascot-container:hover { transform: scale(1.05); border-color: #e74c3c; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 修改重點 1: 移除 flex:1，改為 width: fit-content */
         .header-text { 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
-            width: fit-content; /* 關鍵：寬度只包覆內容(標題) */
+            width: fit-content; 
         }
         
         .header-text h2 { margin: 0 0 2px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
         
-        /* 修改重點 2: 寬度100% 撐滿標題寬度，space-between 讓左右對齊邊緣 */
         .sub-info { 
-            font-size: 12px; color: #aaa; line-height: 1.2; 
+            /* 修改: 整體字體稍大一點 */
+            font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; justify-content: space-between; align-items: center; 
             width: 100%; 
+        }
+
+        /* 修改: 針對分析師名字特別放大並加粗 */
+        .analyst-highlight {
+            font-size: 15px; /* 放大字體 */
+            font-weight: bold;
+            color: #555; /* 稍微深一點的灰色 */
         }
         
         #countdown-text { color: #e74c3c; font-weight: bold; margin-left: 0px; min-width: 15px; display:inline-block; text-align:center;}
@@ -109,18 +115,33 @@
         }
         #add-btn:hover { background: #27ae60; }
         
-        /* --- 股票表格 --- */
+        /* --- 股票表格 (修改重點：再次最佳化寬度) --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; line-height: 1.1; }
-        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; color: #666; }
-        th:nth-child(3), td:nth-child(3) { width: 17%; text-align: right; font-weight: bold; }
+        /* 總和 100% */
+        
+        /* 1. 名稱: 縮小至 15% (名稱太長會換行，這樣沒問題) */
+        th:nth-child(1), td:nth-child(1) { width: 15%; text-align: left; line-height: 1.1; }
+        
+        /* 2. 昨收: 加大至 17% (讓數字有空間) */
+        th:nth-child(2), td:nth-child(2) { width: 17%; text-align: right; color: #666; }
+        
+        /* 3. 現價: 加大至 19% (重點數據，給最大空間) */
+        th:nth-child(3), td:nth-child(3) { width: 19%; text-align: right; font-weight: bold; }
+        
+        /* 4. 漲跌: 15% (往右推) */
         th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; }
+        
+        /* 5. 幅度: 15% (往右推) */
         th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
-        th:nth-child(6), td:nth-child(6) { width: 15%; text-align: center; }
-        th:nth-child(7), td:nth-child(7) { width: 7%; text-align: center; }
+        
+        /* 6. 資訊: 縮小至 13% (按鈕夠放就好) */
+        th:nth-child(6), td:nth-child(6) { width: 13%; text-align: center; }
+        
+        /* 7. 刪除: 縮小至 6% */
+        th:nth-child(7), td:nth-child(7) { width: 6%; text-align: center; }
 
         .stock-code-sub { font-size: 10px; color: #888; display: block; margin-top: 1px; }
 
@@ -143,7 +164,7 @@
         <div class="header-text">
             <h2>📊 喵喵站長股票看板</h2>
             <div class="sub-info">
-                <span>首席分析師：黑寶</span>
+                <span class="analyst-highlight">首席分析師：黑寶</span>
                 <span><span id="countdown-text">25</span>秒後自動更新</span>
             </div>
         </div>
