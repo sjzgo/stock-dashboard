@@ -8,7 +8,6 @@
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         
-        /* 修改: 加入 position: relative 以便讓內部的絕對定位元素(右上角時間)參考 */
         .container { 
             max-width: 900px; 
             margin: 0 auto; 
@@ -16,26 +15,36 @@
             padding: 12px; 
             border-radius: 8px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-            position: relative; /* 關鍵 */
+            position: relative; /* 讓右上角計時器可以定位 */
         }
         
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
 
-        /* --- 新增: 右上角倒數計時器樣式 --- */
+        /* --- 修改重點: 右上角倒數計時器 --- */
         .top-right-timer {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 12px;          /* 距離頂部 */
+            right: 15px;        /* 緊貼右邊 */
             font-size: 12px;
-            color: #aaa;
+            color: #888;
             background-color: #f9f9f9;
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 15px;
             border: 1px solid #eee;
+            z-index: 10;        /* 確保浮在最上層 */
         }
 
+        #countdown-text { color: #e74c3c; font-weight: bold; margin-left: 2px; margin-right: 2px;}
+
         /* --- 頭部區域 --- */
-        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
+        .header-area { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 8px; 
+            gap: 10px;
+            /* 修改: 增加上方間距，讓標題往下移，避免跟右上角計時器打架 */
+            margin-top: 25px; 
+        }
         
         .mascot-container {
             width: 60px; height: 60px; border-radius: 50%; border: 3px solid #3498db; 
@@ -52,24 +61,22 @@
             width: fit-content; 
         }
         
-        .header-text h2 { margin: 0 0 2px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
+        .header-text h2 { margin: 0 0 4px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
         
-        /* 修改: 使用 flex-end 讓文字靠右，達成「寶」切齊「板」的效果 */
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; 
-            justify-content: flex-end; /* 靠右對齊 */
+            /* 修改: 讓分析師文字靠右對齊，切齊標題 */
+            justify-content: flex-end; 
             width: 100%; 
         }
 
         .analyst-highlight {
-            font-size: 15px; 
+            font-size: 15px; /* 字體放大 */
             font-weight: bold;
             color: #555; 
         }
         
-        #countdown-text { color: #e74c3c; font-weight: bold; margin-left: 0px; min-width: 15px; display:inline-block; text-align:center;}
-
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-bottom: 8px; }
         .card { background: #f8f9fa; padding: 4px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
@@ -144,7 +151,7 @@
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* 總和 100% */
+        /* 欄位寬度分配 */
         th:nth-child(1), td:nth-child(1) { width: 15%; text-align: left; line-height: 1.1; }
         th:nth-child(2), td:nth-child(2) { width: 17%; text-align: right; color: #666; }
         th:nth-child(3), td:nth-child(3) { width: 19%; text-align: right; font-weight: bold; }
@@ -252,14 +259,28 @@
 </div>
 
 <script>
+    // --- 內建股票代號與名稱對照表 (已擴充熱門股) ---
     const stockMap = {
-        '2330': '台積電', '0050': '元大台灣50', '0056': '元大高股息', 
-        '00878': '國泰永續高股息', '00919': '群益台灣精選高息', '00929': '復華台灣科技優息',
-        '2317': '鴻海', '2454': '聯發科', '2303': '聯電', '2308': '台達電',
-        '2603': '長榮', '2609': '陽明', '2615': '萬海', '2881': '富邦金',
-        '2882': '國泰金', '2891': '中信金', '1101': '台泥', '1102': '亞泥',
-        '2002': '中鋼', '2412': '中華電', '2382': '廣達', '3231': '緯創',
-        '6669': '緯穎', '2357': '華碩', '2376': '技嘉'
+        // --- ETF ---
+        '0050': '元大台灣50', '0056': '元大高股息', '00878': '國泰永續高股息', 
+        '00919': '群益台灣精選高息', '00929': '復華台灣科技優息', '00940': '元大台灣價值高息',
+        '006208': '富邦台50', '00713': '元大台灣高息低波',
+        
+        // --- 電子/半導體 ---
+        '2330': '台積電', '2317': '鴻海', '2454': '聯發科', '2303': '聯電', 
+        '2308': '台達電', '2382': '廣達', '3231': '緯創', '6669': '緯穎', 
+        '2357': '華碩', '2376': '技嘉', '3711': '日月光投控', '3008': '大立光',
+        '3034': '聯詠', '2379': '瑞昱', '3037': '欣興', '2344': '華邦電',
+        
+        // --- 金融 ---
+        '2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2886': '兆豐金', 
+        '2884': '玉山金', '2885': '元大金', '2892': '第一金', '2880': '華南金', 
+        '2883': '開發金', '5880': '合庫金',
+        
+        // --- 傳產/航運/其他 ---
+        '2603': '長榮', '2609': '陽明', '2615': '萬海', '2618': '長榮航', '2610': '華航',
+        '2002': '中鋼', '1101': '台泥', '1102': '亞泥', '1605': '華新',
+        '2412': '中華電', '3045': '台灣大', '4904': '遠傳', '2912': '統一超'
     };
 
     const backupNews = [
