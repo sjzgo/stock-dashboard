@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黑寶站長股票看板</title>
+    <title>黑貓站長股票看板 (智慧定位版)</title>
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
@@ -99,7 +99,7 @@
         </div>
         <input type="file" id="file-upload" style="display:none;" accept="image/*" onchange="app.uploadLogo(this)">
         <div class="header-text">
-            <h2>📊 黑寶站長股票看板</h2>
+            <h2>📊 黑寶站長看板</h2>
             <div class="sub-info">
                 Google + Yahoo 雙引擎 | 更新：<span id="countdown-text">30</span>
             </div>
@@ -122,7 +122,7 @@
             <h4>天氣</h4>
             <div class="val" id="weather-val">--°C</div>
             <select id="city-select" onchange="changeCity()">
-                <option value="auto" selected>📍 自動定位</option>
+                <option value="auto" selected>📍 點我自動定位</option>
                 <option value="25.0330,121.5654,台北市">台北市</option>
                 <option value="25.0117,121.4608,新北市">新北市</option>
                 <option value="24.1477,120.6736,台中市">台中市</option>
@@ -256,7 +256,7 @@
         cols.forEach(c => gridBox.appendChild(c));
     }
 
-    // --- 時鐘 & 天氣 (含自動定位) ---
+    // --- 時鐘 & 天氣 ---
     function startClock() {
         var tEl = document.getElementById('clock-time');
         var dEl = document.getElementById('clock-date');
@@ -280,18 +280,13 @@
         }, 1000);
     }
     
-    // 初始化天氣：優先使用 savedVal，如果是 auto 或是新的訪客，則執行定位
     function initWeather() {
         var saved = localStorage.getItem('my_city_setting');
         var select = document.getElementById('city-select');
         if(saved) select.value = saved;
-        
-        // 如果是自動定位模式 (預設或使用者選擇)
-        if(select.value === 'auto') {
-            getGeoLocation();
-        } else {
-            fetchWeatherBySelect();
-        }
+        // 如果預設是 auto，就執行定位
+        if(select.value === 'auto') getGeoLocation();
+        else fetchWeatherBySelect();
     }
 
     function changeCity() {
@@ -301,39 +296,71 @@
         else fetchWeatherBySelect();
     }
 
-    // 新增：取得瀏覽器定位
+    // 新增：取得瀏覽器定位並尋找最近城市
     function getGeoLocation() {
         document.getElementById('weather-val').innerText = "定位...";
         if(!navigator.geolocation) {
-            alert("您的裝置不支援定位");
+            alert("不支援定位");
+            fallbackCity();
             return;
         }
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                // 成功取得：直接抓該座標天氣
                 var lat = position.coords.latitude;
                 var lon = position.coords.longitude;
+                // 1. 抓該座標天氣
                 fetchWeather(lat, lon);
+                // 2. 算出最近的城市並切換選單
+                findClosestCity(lat, lon);
             },
             function(error) {
-                // 失敗或拒絕：切回台北市
-                document.getElementById('weather-val').innerText = "N/A";
-                // 這裡可以選擇是否要跳回去台北市，或者維持 N/A
-                var select = document.getElementById('city-select');
-                select.value = "25.0330,121.5654,台北市"; // Fallback
-                fetchWeatherBySelect();
+                fallbackCity(); // 失敗就切回台北
             }
         );
     }
 
+    // 計算最近的城市
+    function findClosestCity(userLat, userLon) {
+        var select = document.getElementById('city-select');
+        var minDistance = 9999;
+        var closestValue = "";
+
+        // 遍歷所有選項 (跳過第一個 auto)
+        for (var i = 1; i < select.options.length; i++) {
+            var parts = select.options[i].value.split(',');
+            var cityLat = parseFloat(parts[0]);
+            var cityLon = parseFloat(parts[1]);
+
+            // 簡單計算距離 (歐幾里得距離平方，夠用了)
+            var dist = Math.pow(userLat - cityLat, 2) + Math.pow(userLon - cityLon, 2);
+            
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestValue = select.options[i].value;
+            }
+        }
+
+        // 自動切換到最近的城市，並存起來
+        if (closestValue !== "") {
+            select.value = closestValue;
+            localStorage.setItem('my_city_setting', closestValue);
+        }
+    }
+
+    function fallbackCity() {
+        document.getElementById('weather-val').innerText = "N/A";
+        var select = document.getElementById('city-select');
+        select.value = "25.0330,121.5654,台北市"; // 預設回台北
+        fetchWeatherBySelect();
+    }
+
     function fetchWeatherBySelect() {
         var val = document.getElementById('city-select').value;
-        if(val === 'auto') return; // Should be handled by getGeo
+        if(val === 'auto') return; 
         var parts = val.split(',');
         fetchWeather(parts[0], parts[1]);
     }
 
-    // 核心抓天氣函數
     function fetchWeather(lat, lon) {
         document.getElementById('weather-val').innerText = "...";
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
@@ -435,4 +462,3 @@
 
 </body>
 </html>
-
