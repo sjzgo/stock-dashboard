@@ -34,7 +34,7 @@
             z-index: 10;
         }
 
-        /* --- 新增: 左上角天氣區塊 --- */
+        /* --- 左上角天氣區塊 --- */
         .top-left-weather {
             position: absolute;
             top: 12px;
@@ -51,7 +51,6 @@
             gap: 6px;
         }
 
-        /* 修改: 讓天氣選單變得很簡潔，融入標籤 */
         #city-select { 
             border: none;
             background: transparent;
@@ -77,11 +76,14 @@
             align-items: center; 
             margin-bottom: 8px; 
             gap: 10px;
-            margin-top: 35px; /* 增加上方距離，避開左上/右上浮動元素 */
+            /* 修改重點 2: 增加間距，拉開與上方天氣的距離 (原35px -> 45px) */
+            margin-top: 45px; 
         }
         
         .mascot-container {
-            width: 60px; height: 60px; border-radius: 50%; border: 3px solid #3498db; 
+            /* 修改重點 1: 縮小貓貓圖 (原60px -> 50px) */
+            width: 50px; height: 50px; 
+            border-radius: 50%; border: 3px solid #3498db; 
             overflow: hidden; cursor: pointer; position: relative; background: #f0f0f0; flex-shrink: 0;
             transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -100,7 +102,8 @@
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; 
-            justify-content: flex-end; 
+            /* 修改重點 3: 改回靠左對齊 */
+            justify-content: flex-start; 
             width: 100%; 
         }
 
@@ -110,10 +113,10 @@
             color: #555; 
         }
         
-        /* --- 儀表板 (改回3欄) --- */
+        /* --- 儀表板 --- */
         .dashboard { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; /* 改回 3 欄 */
+            grid-template-columns: 1fr 1fr 1fr; /* 3 欄 */
             gap: 2px; 
             margin-bottom: 8px; 
         }
@@ -143,7 +146,7 @@
             .news-grid { grid-template-columns: 1fr; gap: 0; }
             .news-column { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px; }
             .news-column:last-child { border-bottom: none; margin-bottom: 0; }
-            .dashboard { grid-template-columns: 1fr 1fr 1fr; } /* 手機版也維持3欄較好，因為項目少 */
+            .dashboard { grid-template-columns: 1fr 1fr 1fr; } 
         }
 
         /* --- 輸入區 --- */
