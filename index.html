@@ -214,12 +214,11 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 強化版新聞抓取：國際/財經補償機制 ---
+    // --- 強化補償機制新聞抓取：暴力補齊 9 條 ---
     async function fetchNews() {
         const ts = new Date().getTime();
         const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
         
-        // 加入國際財經來源：Bloomberg, Reuters, 經濟日報
         const urls = [
             `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
@@ -227,30 +226,28 @@
             `https://api.rss2json.com/v1/api.json?rss_url=https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money&t=${ts}`
         ];
 
-        let pool = [];
+        let allPotentialItems = [];
+        const results = await Promise.allSettled(urls.map(url => fetch(url).then(res => res.json())));
+
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value.items) {
+                allPotentialItems = allPotentialItems.concat(result.value.items);
+            }
+        });
+
         const uniqueTitles = new Set();
         const finalNews = [];
 
-        for (let url of urls) {
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.items) {
-                    const filtered = data.items.filter(item => {
-                        const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
-                        return !blacklist.some(b => txt.includes(b.toLowerCase()));
-                    });
-
-                    for (let item of filtered) {
-                        if (!uniqueTitles.has(item.title)) {
-                            uniqueTitles.add(item.title);
-                            finalNews.push(item);
-                        }
-                        if (finalNews.length >= 9) break;
-                    }
-                }
-                if (finalNews.length >= 9) break; 
-            } catch (e) { console.warn("來源加載失敗"); }
+        for (let item of allPotentialItems) {
+            const title = item.title;
+            const textToSearch = (title + (item.author || "") + (item.description || "")).toLowerCase();
+            const isBlacklisted = blacklist.some(b => textToSearch.includes(b.toLowerCase()));
+            
+            if (!isBlacklisted && !uniqueTitles.has(title)) {
+                uniqueTitles.add(title);
+                finalNews.push(item);
+            }
+            if (finalNews.length >= 9) break;
         }
 
         const container = document.getElementById('news-list-container'); 
@@ -291,4 +288,3 @@
 </script>
 </body>
 </html>
-
