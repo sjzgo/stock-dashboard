@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 - 權威雙新聞源版</title>
+    <title>📊 喵喵站長股票看板 - 權威淨化整合版</title>
     <style>
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
@@ -93,7 +93,7 @@
     <div style="text-align:center; margin:10px 0;"><button style="background:#3498db;color:white;border:none;padding:5px 15px;border-radius:15px;cursor:pointer;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 權威新聞整合 (雙來源)</div>
+        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 純淨新聞整合 (已過濾所有指定媒體)</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -187,9 +187,7 @@
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString();
         const marketTimer = document.getElementById('market-timer');
-        const day = now.getDay();
-        const hour = now.getHours();
-        const min = now.getMinutes();
+        const day = now.getDay(); const hour = now.getHours(); const min = now.getMinutes();
         if (day === 0 || day === 6) { marketTimer.innerText = "休市"; marketTimer.className = "val"; }
         else if (hour < 9) { marketTimer.innerText = "未開盤"; marketTimer.className = "val"; }
         else if (hour > 13 || (hour === 13 && min >= 30)) { marketTimer.innerText = "已收盤"; marketTimer.className = "val"; }
@@ -216,49 +214,50 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 強化版新聞抓取：雙來源 + 媒體過濾 ---
+    // --- 強化黑名單新聞抓取：雙來源 + 深度過濾 ---
     async function fetchNews() {
         const timestamp = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN"]; // 您不想看到的來源
+        // 更新後的深度黑名單
+        const blacklist = [
+            "三立", "民視", "自由時報", "SETN", "FTV", "LTN", 
+            "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", 
+            "鏡新聞", "Mirror", "上報", "Up Media", "芋傳媒", "TaroNews"
+        ];
         
-        // 來源 1: Google News RSS
         const gUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
-        // 來源 2: Yahoo News RSS (透過轉換)
         const yUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${timestamp}`;
 
         try {
             const [gRes, yRes] = await Promise.all([fetch(gUrl), fetch(yUrl)]);
             const gData = await gRes.json();
             const yData = await yRes.json();
+            let combined = (gData.items || []).concat(yData.items || []);
 
-            let combinedItems = [];
-            if (gData.items) combinedItems = combinedItems.concat(gData.items);
-            if (yData.items) combinedItems = combinedItems.concat(yData.items);
-
-            // 隨機交錯排序並過濾黑名單
-            const filteredItems = combinedItems.filter(item => {
-                const title = item.title;
-                const source = item.author || "";
-                return !blacklist.some(b => title.includes(b) || source.includes(b));
+            const filtered = combined.filter(item => {
+                const text = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
+                return !blacklist.some(b => text.includes(b.toLowerCase()));
             });
 
-            // 移除重複標題
-            const uniqueItems = Array.from(new Set(filteredItems.map(a => a.title)))
-                .map(title => filteredItems.find(a => a.title === title));
+            const unique = Array.from(new Set(filtered.map(a => a.title))).map(t => filtered.find(a => a.title === t));
 
             const container = document.getElementById('news-list-container'); 
             container.innerHTML = '';
-            // 顯示 9 條最新新聞
-            uniqueItems.slice(0, 9).forEach(n => { 
+            unique.slice(0, 9).forEach(n => { 
                 container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
             });
-        } catch (e) { console.error("新聞抓取失敗"); }
+        } catch (e) { console.error("新聞更新失敗"); }
     }
 
     function getAutoWeather() {
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
         } else { fetchWeather(25.03, 121.56); }
+    }
+
+    function changeCityManually() {
+        const val = document.getElementById('city-select').value;
+        if(val === 'auto') getAutoWeather();
+        else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
     }
 
     function fetchWeather(lat, lon) {
@@ -273,12 +272,7 @@
 
     function manualUpdate() { updateAll(); timeLeft = 25; }
     function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
-    
-    function updateAll() { 
-        myStocks.forEach(fetchPrice); 
-        fetchNews(); 
-        document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
-    }
+    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
 
     window.onload = async () => { app.loadLogo(); await initOfficialList(); renderTable(); updateAll(); getAutoWeather(); };
     document.addEventListener('click', (e) => { if (!e.target.closest('.input-area')) document.getElementById('search-results').style.display = 'none'; });
