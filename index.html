@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>喵喵站長股票看板</title>
     <style>
+        /* 完全保留基礎原始版 CSS */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         .top-right-timer { position: absolute; top: 12px; right: 15px; font-size: 12px; color: #888; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; }
@@ -64,7 +65,7 @@
         <div class="card"><h4>美股開盤</h4><div class="val" id="us-market-timer">--:--:--</div></div>
     </div>
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入代號/名稱 (如: 十)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入代碼/名稱 (如: 十)" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button id="add-btn" onclick="addStock()">＋ 新增</button>
     </div>
@@ -81,51 +82,50 @@
 </div>
 
 <script>
-    // 內建台股核心清單 (解決「十」搜尋不到的問題)
-    const twStockList = [
-        {c:"4967", n:"十銓"}, {c:"2943", n:"十全"}, {c:"2330", n:"台積電"}, {c:"2317", n:"鴻海"}, {c:"2454", n:"聯發科"}, {c:"2303", n:"聯電"}, {c:"2382", n:"廣達"}, {c:"3231", n:"緯創"}, {c:"2603", n:"長榮"}, {c:"2618", n:"長榮航"}, {c:"1101", n:"台泥"}, {c:"2308", n:"台達電"}, {c:"2881", n:"富邦金"}, {c:"2882", n:"國泰金"}, {c:"2891", n:"中信金"}, {c:"0050", n:"元大台灣50"}, {c:"0056", n:"元大高股息"}, {c:"00878", n:"國泰永續高股息"}, {c:"00919", n:"群益台灣精選高息"}, {c:"00929", n:"復華台灣科技優息"}, {c:"2357", n:"華碩"}, {c:"2353", n:"宏碁"}, {c:"2409", n:"友達"}, {c:"3481", n:"群創"}
-    ];
-
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let debounceTimer;
 
+    // --- 修改後的搜尋邏輯：第一個字就彈出，全 Yahoo 抓取 ---
     function unifiedSearch(val) {
         clearTimeout(debounceTimer);
         const resDiv = document.getElementById('search-results');
         if (!val || val.trim().length === 0) { resDiv.style.display = 'none'; return; }
         
-        let html = '';
-        const query = val.toLowerCase();
-
-        // 1. 先從本地核心清單抓 (第一時間反應)
-        twStockList.forEach(s => {
-            if (s.c.includes(query) || s.n.includes(query)) {
-                html += `<div class="search-item" onclick="selectStock('${s.c}', '${s.n}')"><span style="font-weight:bold;">${s.n}</span><span style="color:#007bff; font-size:11px;">${s.c}</span></div>`;
-            }
-        });
-
-        // 顯示初步結果
-        if (html) { resDiv.innerHTML = html; resDiv.style.display = 'block'; }
-
-        // 2. 延遲去 Yahoo API 抓更多 (補充清單)
         debounceTimer = setTimeout(() => {
-            const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${val}&lang=zh-Hant-TW&quotesCount=20`)}`;
+            const query = encodeURIComponent(val);
+            // 抓取 25 筆結果確保「味全」與「十銓」這類冷門關鍵字能排進去
+            const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${query}&lang=zh-Hant-TW&quotesCount=25`)}`;
+            
             fetch(url).then(r => r.json()).then(data => {
                 const quotes = data.quotes || [];
+                let html = '';
+                
+                // 將台股與其他結果分開排序，優先顯示台股
+                let twList = [];
+                let otherList = [];
+
                 quotes.forEach(q => {
-                    if (q.quoteType === 'EQUITY' || q.quoteType === 'ETF') {
-                        const symbol = q.symbol;
-                        const code = symbol.split('.')[0];
-                        const name = q.shortname || q.longname || code;
-                        // 避免重複
-                        if (!html.includes(code)) {
-                            html += `<div class="search-item" onclick="selectStock('${symbol}', '${name}')"><span style="font-weight:bold;">${name}</span><span style="color:#007bff; font-size:11px;">${symbol}</span></div>`;
-                        }
-                    }
+                    const symbol = q.symbol;
+                    const code = symbol.split('.')[0];
+                    const name = q.shortname || q.longname || code;
+                    const isTW = symbol.includes('.TW') || symbol.includes('.TWO');
+                    
+                    const itemHtml = `<div class="search-item" onclick="selectStock('${symbol}', '${name}')"><span style="font-weight:bold;">${name}</span><span style="color:#007bff; font-size:11px;">${symbol}</span></div>`;
+                    
+                    if (isTW) twList.push(itemHtml);
+                    else if (q.quoteType === 'EQUITY' || q.quoteType === 'ETF') otherList.push(itemHtml);
                 });
-                if (html) { resDiv.innerHTML = html; resDiv.style.display = 'block'; }
-            });
-        }, 300);
+
+                html = twList.join('') + otherList.join('');
+
+                if (html) { 
+                    resDiv.innerHTML = html; 
+                    resDiv.style.display = 'block'; 
+                } else { 
+                    resDiv.style.display = 'none'; 
+                }
+            }).catch(() => { resDiv.style.display = 'none'; });
+        }, 200); // 縮短至 200 毫秒延遲，反應更快
     }
 
     function selectStock(symbol, name) {
@@ -133,13 +133,12 @@
         document.getElementById('stock-input').value = cleanCode;
         dynamicStockMap[cleanCode] = name;
         localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
-        addStock(symbol.includes('.') ? symbol : cleanCode);
+        addStock(symbol);
     }
 
-    function addStock(code) {
-        if (!code) code = document.getElementById('stock-input').value.trim().toUpperCase();
+    function addStock(symbol) {
+        let code = symbol || document.getElementById('stock-input').value.trim().toUpperCase();
         if (!code) return;
-        // 處理手動輸入沒帶後綴的情況
         if (!code.includes('.')) code = code + ".TW"; 
 
         if (!myStocks.includes(code)) { 
@@ -152,6 +151,7 @@
         document.getElementById('search-results').style.display = 'none';
     }
 
+    // 完全還原您的基礎原始版表格與股利連結邏輯
     function renderTable() {
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
@@ -173,9 +173,7 @@
         const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}?interval=1d`)}`;
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart.result) updateRow(code, d.chart.result[0].meta);
-            else throw 'err';
         }).catch(() => {
-            // 如果 .TW 失敗，嘗試 .TWO (上櫃)
             const otcCode = code.replace('.TW', '.TWO');
             const url2 = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${otcCode}?interval=1d`)}`;
             fetch(url2).then(r => r.json()).then(d => {
@@ -195,7 +193,7 @@
 
     function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
     function manualUpdate() { updateAll(); timeLeft = 25; }
-    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
+    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); }
 
     const app = {
         uploadLogo: (input) => { if (input.files && input.files[0]) { let r = new FileReader(); r.onload = (e) => { document.getElementById('mascot-img').src = e.target.result; localStorage.setItem('my_mascot_img_60', e.target.result); }; r.readAsDataURL(input.files[0]); } },
