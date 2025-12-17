@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 - 終極穩定版</title>
+    <title>📊 喵喵站長股票看板 - 完整修復版</title>
     <style>
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
@@ -26,7 +26,7 @@
         .search-item:hover { background-color: #ebf5ff; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; border-spacing: 0; }
         th, td { padding: 6px 0; border-bottom: 1px solid #eee; vertical-align: middle; }
-        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; white-space: normal; line-height: 1.1; overflow: visible; }
+        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; white-space: normal; line-height: 1.1; }
         th:nth-child(2), td:nth-child(2) { width: 14%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 16%; text-align: right; font-weight: bold; }
         th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
@@ -40,6 +40,7 @@
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
         .news-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
+        .red { color: #e74c3c; } .green { color: #27ae60; }
     </style>
 </head>
 <body>
@@ -52,6 +53,7 @@
             <option value="25.03,121.56">台北市</option>
             <option value="24.14,120.67">台中市</option>
             <option value="22.62,120.30">高雄市</option>
+            <option value="24.81,120.96">新竹市</option>
         </select>
     </div>
     <div class="top-right-timer"><span id="countdown-text">25</span>秒後自動更新</div>
@@ -71,7 +73,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入代碼/名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button onclick="addStock()">＋ 新增</button>
     </div>
@@ -93,7 +95,6 @@
 <script>
     let twStockData = []; 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
-    // 修改處 1: 預設代號改為純數字，確保匹配證交所名稱
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
 
     async function initOfficialList() {
@@ -102,8 +103,7 @@
             const res = await fetch(url);
             const data = await res.json();
             twStockData = data.map(s => ({ c: s.Code, n: s.Name }));
-            console.log("證交所名單同步成功");
-        } catch (e) { console.warn("證交所 API 連線失敗"); }
+        } catch (e) { twStockData = [{c:"1201", n:"味全"}]; }
     }
 
     function unifiedSearch(val) {
@@ -130,7 +130,6 @@
     function addStock(code) {
         if (!code) code = document.getElementById('stock-input').value.trim().toUpperCase();
         if (!code) return;
-        // 修改處 2: 儲存時剔除 .TW，統一存純數字
         let finalCode = code.split('.')[0]; 
         if (!myStocks.includes(finalCode)) {
             myStocks.push(finalCode);
@@ -157,13 +156,11 @@
     }
 
     function fetchPrice(code) {
-        // 修改處 3: 請求時自動補上後綴
         let yahooCode = code.includes('.') ? code : code + ".TW";
         const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooCode}?interval=1d`)}`;
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart.result) updateRow(code, d.chart.result[0].meta);
         }).catch(() => {
-            // 嘗試上櫃後綴
             let otcCode = code + ".TWO";
             fetch(`https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${otcCode}?interval=1d`)}`)
             .then(r => r.json()).then(d => { if(d.chart.result) updateRow(code, d.chart.result[0].meta); });
@@ -173,32 +170,69 @@
     function updateRow(code, m) {
         let p = m.regularMarketPrice, prev = m.chartPreviousClose, chg = p - prev, pct = (chg/prev)*100;
         const color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "black");
-        // 修改處 4: 確保 ID 匹配正確
         if(document.getElementById("prev-"+code)) document.getElementById("prev-"+code).innerText = prev.toFixed(2);
         if(document.getElementById("p-"+code)) { document.getElementById("p-"+code).innerText = p.toFixed(2); document.getElementById("p-"+code).style.color = color; }
         if(document.getElementById("c-"+code)) { document.getElementById("c-"+code).style.color = color; document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2); }
         if(document.getElementById("pct-"+code)) { document.getElementById("pct-"+code).style.color = color; document.getElementById("pct-"+code).innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%"; }
     }
 
-    // --- 其他功能 (計時、新聞、天氣) 保持不變 ---
+    // --- 時間判斷與倒數修正 ---
     setInterval(() => {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString();
+        
+        // 台股收盤判斷
         const marketTimer = document.getElementById('market-timer');
-        const close = new Date(now); close.setHours(13, 30, 0);
-        if (now.getDay() === 0 || now.getDay() === 6) marketTimer.innerText = "休市";
-        else if (now > close) marketTimer.innerText = "已收盤";
-        else { const diff = Math.floor((close-now)/1000); marketTimer.innerText = Math.floor(diff/3600)+":"+String(Math.floor((diff%3600)/60)).padStart(2,'0')+":"+String(diff%60).padStart(2,'0'); marketTimer.className="val red"; }
+        const day = now.getDay();
+        const hour = now.getHours();
+        const min = now.getMinutes();
+        if (day === 0 || day === 6) {
+            marketTimer.innerText = "休市"; marketTimer.classList.remove('red');
+        } else if (hour > 13 || (hour === 13 && min >= 30)) {
+            marketTimer.innerText = "已收盤"; marketTimer.classList.remove('red');
+        } else {
+            const close = new Date(now); close.setHours(13, 30, 0);
+            const diff = Math.floor((close - now)/1000);
+            marketTimer.innerText = Math.floor(diff/3600)+":"+String(Math.floor((diff%3600)/60)).padStart(2,'0')+":"+String(diff%60).padStart(2,'0');
+            marketTimer.classList.add('red');
+        }
+
+        // 美股開盤判斷 (夏令/冬令約略判斷)
+        const usTimer = document.getElementById('us-market-timer');
+        const nyNow = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+        const nyDay = nyNow.getDay();
+        const nyH = nyNow.getHours();
+        if (nyDay === 0 || nyDay === 6) {
+            usTimer.innerText = "休市"; usTimer.className = "val";
+        } else {
+            const openSec = 9*3600+30*60, nowSec = nyH*3600+nyNow.getMinutes()*60+nyNow.getSeconds(), closeSec = 16*3600;
+            if (nowSec < openSec) {
+                const d = openSec - nowSec;
+                usTimer.innerText = Math.floor(d/3600)+":"+String(Math.floor((d%3600)/60)).padStart(2,'0')+":"+String(d%60).padStart(2,'0');
+                usTimer.className = "val red";
+            } else if (nowSec < closeSec) {
+                usTimer.innerText = "開盤中"; usTimer.className = "val green";
+            } else {
+                usTimer.innerText = "已收盤"; usTimer.className = "val";
+            }
+        }
     }, 1000);
 
     let timeLeft = 25;
-    setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
+    setInterval(() => { 
+        if (timeLeft <= 0) { updateAll(); timeLeft = 25; } 
+        document.getElementById('countdown-text').innerText = timeLeft--; 
+    }, 1000);
 
     function fetchNews() {
         fetch('https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
         .then(r => r.json()).then(data => {
-            const grid = document.getElementById('news-grid-box'); grid.innerHTML = '';
-            data.items.slice(0, 9).forEach(n => { grid.innerHTML += `<div style="font-size:12px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${n.link}" target="_blank" style="text-decoration:none;color:#202124;">${n.title}</a></div>`; });
+            const grid = document.getElementById('news-grid-box'); 
+            grid.innerHTML = '';
+            // 恢復顯示 9 條新聞
+            data.items.slice(0, 9).forEach(n => { 
+                grid.innerHTML += `<div style="font-size:12px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${n.link}" target="_blank" style="text-decoration:none;color:#202124;">${n.title}</a></div>`; 
+            });
         });
     }
 
@@ -218,13 +252,15 @@
         loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; }
     };
 
-    function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
     function manualUpdate() { updateAll(); timeLeft = 25; }
-    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
+    function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
+    function updateAll() { 
+        myStocks.forEach(fetchPrice); 
+        fetchNews(); 
+        document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
+    }
 
-    window.onload = async () => { 
-        app.loadLogo(); await initOfficialList(); renderTable(); updateAll(); getAutoWeather();
-    };
+    window.onload = async () => { app.loadLogo(); await initOfficialList(); renderTable(); updateAll(); getAutoWeather(); };
     document.addEventListener('click', (e) => { if (!e.target.closest('.input-area')) document.getElementById('search-results').style.display = 'none'; });
 </script>
 </body>
