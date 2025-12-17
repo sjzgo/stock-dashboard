@@ -214,36 +214,47 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
+    // --- 終極新聞抓取：分離請求 + 海量樣本 + 媒體過濾 ---
     async function fetchNews() {
-        const timestamp = new Date().getTime();
-        // 鎖定黑名單：包含 newtalk 相關
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒"];
+        const ts = new Date().getTime();
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
         
-        // 雙新聞源 + 多元化來源 (中時、東森等)
-        const gUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
-        const yUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${timestamp}`;
+        const urls = [
+            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`
+        ];
 
-        try {
-            const [gRes, yRes] = await Promise.all([fetch(gUrl), fetch(yUrl)]);
-            const gData = await gRes.json();
-            const yData = await yRes.json();
-            // 抓取更大樣本量 (80 則)
-            let combined = (gData.items || []).concat(yData.items || []);
+        let allItems = [];
+        for(let url of urls) {
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if(data.items) allItems = allItems.concat(data.items);
+            } catch(e) { console.error("單一來源失敗"); }
+        }
 
-            const filtered = combined.filter(item => {
-                const text = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
-                return !blacklist.some(b => text.includes(b.toLowerCase()));
-            });
+        // 過濾黑名單
+        const filtered = allItems.filter(item => {
+            const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
+            return !blacklist.some(b => txt.includes(b.toLowerCase()));
+        });
 
-            const unique = Array.from(new Set(filtered.map(a => a.title))).map(t => filtered.find(a => a.title === t));
-            const container = document.getElementById('news-list-container'); 
-            container.innerHTML = '';
-            
-            // 確保塞滿 9 則
-            unique.slice(0, 9).forEach(n => { 
-                container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
-            });
-        } catch (e) { console.error("新聞刷新失敗"); }
+        // 去重與填滿 9 條
+        const uniqueTitles = new Set();
+        const finalNews = [];
+        for(let item of filtered) {
+            if(!uniqueTitles.has(item.title)) {
+                uniqueTitles.add(item.title);
+                finalNews.push(item);
+            }
+            if(finalNews.length >= 9) break;
+        }
+
+        const container = document.getElementById('news-list-container'); 
+        container.innerHTML = '';
+        finalNews.forEach(n => { 
+            container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
+        });
     }
 
     function getAutoWeather() {
