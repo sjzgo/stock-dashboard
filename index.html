@@ -145,16 +145,23 @@
     }
 
     function addStock(code) {
-        if (!code) code = document.getElementById('stock-input').value.trim().toUpperCase();
-        if (!code) return;
-        let finalCode = code.includes('.') ? code : (code.length >= 4 ? code + ".TW" : code);
-        if (!myStocks.includes(finalCode)) {
-            myStocks.push(finalCode);
-            localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
-            renderTable(); fetchPrice(finalCode);
-        }
-        document.getElementById('stock-input').value = '';
+    if (!code) code = document.getElementById('stock-input').value.trim().toUpperCase();
+    if (!code) return;
+    
+    // 關鍵修改：統一用純數字儲存，方便對應證交所官方名稱
+    let finalCode = code.split('.')[0]; 
+
+    if (!myStocks.includes(finalCode)) {
+        myStocks.push(finalCode);
+        localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
+        renderTable(); 
+        fetchPrice(finalCode);
     }
+    document.getElementById('stock-input').value = '';
+    // 隱藏搜尋結果
+    const resDiv = document.getElementById('search-results');
+    if(resDiv) resDiv.style.display = 'none';
+}
 
     function renderTable() {
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
@@ -274,5 +281,6 @@
 </script>
 </body>
 </html>
+
 
 
