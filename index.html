@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 - 終極修復版</title>
+    <title>📊 喵喵站長股票看板 - 全功能完整版</title>
     <style>
+        /* 100% 恢復基準原始版 CSS */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* 頂部區域 */
         .top-right-timer { position: absolute; top: 12px; right: 15px; font-size: 12px; color: #888; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; }
         .top-left-weather { position: absolute; top: 12px; left: 15px; font-size: 12px; color: #555; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 6px; }
         #weather-val { font-weight: bold; color: #2980b9; }
         #countdown-text { color: #e74c3c; font-weight: bold; margin: 0 2px; }
 
-        /* 頭部與搜尋 */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; margin-top: 45px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; position: relative; top: -2px; background: #f0f0f0; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
@@ -31,7 +30,6 @@
         .search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
         .search-item:hover { background-color: #ebf5ff; }
 
-        /* 表格結構 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; border-spacing: 0; }
         th, td { padding: 6px 0; border-bottom: 1px solid #eee; vertical-align: middle; }
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; white-space: normal; line-height: 1.1; }
@@ -47,14 +45,11 @@
         .news { background: #e67e22; } .div { background: #2c3e50; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0; }
 
-        /* 下方區塊 */
-        .refresh-bar { text-align: center; margin: 8px 0; }
-        .refresh-btn { background: #3498db; color: white; border: none; padding: 4px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: bold; }
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
         .news-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
 
-        @media (max-width: 600px) { .news-grid { grid-template-columns: 1fr; } .dashboard { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (max-width: 600px) { .news-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -63,10 +58,16 @@
     <div class="top-left-weather">
         <span id="weather-val">--°C</span>
         <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:12px;outline:none;cursor:pointer;">
-            <option value="auto">📍 定位</option>
-            <option value="25.03,121.56">台北</option>
-            <option value="24.14,120.67">台中</option>
-            <option value="22.62,120.30">高雄</option>
+            <option value="auto">📍 自動定位</option>
+            <option value="25.03,121.56">台北市</option>
+            <option value="25.01,121.46">新北市</option>
+            <option value="24.81,120.96">新竹市</option>
+            <option value="24.14,120.67">台中市</option>
+            <option value="22.99,120.21">台南市</option>
+            <option value="22.62,120.30">高雄市</option>
+            <option value="24.67,121.75">宜蘭縣</option>
+            <option value="23.97,121.60">花蓮縣</option>
+            <option value="22.75,121.14">台東縣</option>
         </select>
     </div>
     <div class="top-right-timer"><span id="countdown-text">25</span>秒後自動更新</div>
@@ -75,10 +76,8 @@
         <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
             <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
         </div>
-        <input type="file" id="file-upload" style="display:none;" accept="image/*" onchange="app.uploadLogo(this)">
-        <div class="header-text">
-            <h2>📊 喵喵站長股票看板</h2>
-        </div>
+        <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
+        <div class="header-text"><h2>📊 喵喵站長股票看板</h2></div>
     </div>
 
     <div class="dashboard">
@@ -88,7 +87,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入代碼/名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button id="add-btn" onclick="addStock()">＋ 新增</button>
     </div>
@@ -98,12 +97,10 @@
         <tbody id="stock-list"></tbody>
     </table>
 
-    <div class="refresh-bar">
-        <button class="refresh-btn" onclick="manualUpdate()">↻ 立即更新</button>
-    </div>
+    <div style="text-align:center; margin:8px 0;"><button style="background:#3498db;color:white;border:none;padding:4px 12px;border-radius:15px;cursor:pointer;font-size:12px;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:13px;font-weight:bold;border-bottom:1px solid #eee;margin-bottom:5px;">📰 即時頭條</div>
+        <div style="font-size:13px;font-weight:bold;border-bottom:1px solid #eee;margin-bottom:5px;">📰 即時頭條 (同步更新)</div>
         <div class="news-grid" id="news-grid-box"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -114,7 +111,7 @@
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330.TW", "0050.TW"]');
 
-    // 1. 證交所 API 名單初始化
+    // 1. 初始化證交所 API 名單
     async function initOfficialList() {
         try {
             const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
@@ -126,7 +123,7 @@
         }
     }
 
-    // 2. 搜尋邏輯
+    // 2. 搜尋功能
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val || val.trim().length === 0) { resDiv.style.display = 'none'; return; }
@@ -160,7 +157,6 @@
         document.getElementById('stock-input').value = '';
     }
 
-    // 3. 渲染與報價
     function renderTable() {
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
@@ -198,7 +194,7 @@
         if(document.getElementById("pct-"+code)) { document.getElementById("pct-"+code).style.color = color; document.getElementById("pct-"+code).innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%"; }
     }
 
-    // 4. 定時器功能
+    // 4. 新聞自動更新、計時與美股邏輯
     setInterval(() => {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString();
@@ -220,18 +216,24 @@
     }, 1000);
 
     let timeLeft = 25;
-    setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
+    setInterval(() => { 
+        if (timeLeft <= 0) { 
+            updateAll(); // 核心：每 25 秒自動觸發一次 updateAll，包含新聞
+            timeLeft = 25; 
+        } 
+        document.getElementById('countdown-text').innerText = timeLeft--; 
+    }, 1000);
 
     function fetchNews() {
         fetch('https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
         .then(r => r.json()).then(data => {
             const grid = document.getElementById('news-grid-box'); grid.innerHTML = '';
-            // 恢復顯示 9 條新聞
+            // 確保顯示 9 條新聞
             data.items.slice(0, 9).forEach(n => { grid.innerHTML += `<div style="font-size:12px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="${n.link}" target="_blank" style="text-decoration:none;color:#202124;">${n.title}</a></div>`; });
         });
     }
 
-    // 天氣定位修復
+    // 天氣定位全縣市恢復
     function getAutoWeather() {
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
@@ -256,14 +258,18 @@
 
     function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
     function manualUpdate() { updateAll(); timeLeft = 25; }
-    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
+    function updateAll() { 
+        myStocks.forEach(fetchPrice); 
+        fetchNews(); // 自動更新時同時抓取新聞
+        document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
+    }
 
     window.onload = async () => { 
         app.loadLogo(); 
         await initOfficialList(); 
         renderTable(); 
         updateAll(); 
-        getAutoWeather(); // 開啟時自動定位
+        getAutoWeather(); // 啟動自動定位
     };
     document.addEventListener('click', (e) => { if (!e.target.closest('.input-area')) document.getElementById('search-results').style.display = 'none'; });
 </script>
