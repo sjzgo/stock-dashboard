@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 - 終極完整版</title>
+    <title>📊 喵喵站長股票看板 - 新聞強化版</title>
     <style>
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
@@ -38,7 +38,6 @@
         .news { background: #e67e22; } .div { background: #2c3e50; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0; }
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; background: white; }
-        /* 新聞區排版固定：一行一則，不縮減標題 */
         .news-item { font-size: 13px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; width: 100%; display: block; }
         .news-item a { text-decoration: none; color: #202124; line-height: 1.4; display: block; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
@@ -184,12 +183,9 @@
         if(document.getElementById("pct-"+code)) { document.getElementById("pct-"+code).style.color = color; document.getElementById("pct-"+code).innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%"; }
     }
 
-    // --- 時間判斷修復 (解決台股跨日倒數與美股狀態) ---
     setInterval(() => {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString();
-        
-        // 台股狀態判斷
         const marketTimer = document.getElementById('market-timer');
         const day = now.getDay();
         const hour = now.getHours();
@@ -207,7 +203,6 @@
             marketTimer.className = "val red";
         }
 
-        // 美股狀態判斷
         const usTimer = document.getElementById('us-market-timer');
         const nyNow = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
         const nyDay = nyNow.getDay();
@@ -233,15 +228,21 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // 新聞排版固定：一行一則，完整標題
+    // --- 強制新聞刷新邏輯 ---
     function fetchNews() {
-        fetch('https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
+        // 加入時間戳記 t=... 防止快取
+        const timestamp = new Date().getTime();
+        const newsUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
+        
+        fetch(newsUrl)
         .then(r => r.json()).then(data => {
-            const container = document.getElementById('news-list-container'); 
-            container.innerHTML = '';
-            data.items.slice(0, 9).forEach(n => { 
-                container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
-            });
+            if (data.status === 'ok') {
+                const container = document.getElementById('news-list-container'); 
+                container.innerHTML = '';
+                data.items.slice(0, 9).forEach(n => { 
+                    container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
+                });
+            }
         });
     }
 
@@ -269,9 +270,10 @@
 
     function manualUpdate() { updateAll(); timeLeft = 25; }
     function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
+    
     function updateAll() { 
         myStocks.forEach(fetchPrice); 
-        fetchNews(); 
+        fetchNews(); // 同步觸發強制刷新新聞
         document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
     }
 
