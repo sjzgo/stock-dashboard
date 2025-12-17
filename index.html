@@ -7,8 +7,32 @@
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        
+        /* 修改: 加入 position: relative 以便讓內部的絕對定位元素(右上角時間)參考 */
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: #fff; 
+            padding: 12px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+            position: relative; /* 關鍵 */
+        }
+        
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
+
+        /* --- 新增: 右上角倒數計時器樣式 --- */
+        .top-right-timer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 12px;
+            color: #aaa;
+            background-color: #f9f9f9;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
 
         /* --- 頭部區域 --- */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
@@ -30,18 +54,18 @@
         
         .header-text h2 { margin: 0 0 2px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
         
+        /* 修改: 使用 flex-end 讓文字靠右，達成「寶」切齊「板」的效果 */
         .sub-info { 
-            /* 修改: 整體字體稍大一點 */
             font-size: 13px; color: #aaa; line-height: 1.2; 
-            display: flex; justify-content: space-between; align-items: center; 
+            display: flex; 
+            justify-content: flex-end; /* 靠右對齊 */
             width: 100%; 
         }
 
-        /* 修改: 針對分析師名字特別放大並加粗 */
         .analyst-highlight {
-            font-size: 15px; /* 放大字體 */
+            font-size: 15px; 
             font-weight: bold;
-            color: #555; /* 稍微深一點的灰色 */
+            color: #555; 
         }
         
         #countdown-text { color: #e74c3c; font-weight: bold; margin-left: 0px; min-width: 15px; display:inline-block; text-align:center;}
@@ -115,32 +139,18 @@
         }
         #add-btn:hover { background: #27ae60; }
         
-        /* --- 股票表格 (修改重點：再次最佳化寬度) --- */
+        /* --- 股票表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
         /* 總和 100% */
-        
-        /* 1. 名稱: 縮小至 15% (名稱太長會換行，這樣沒問題) */
         th:nth-child(1), td:nth-child(1) { width: 15%; text-align: left; line-height: 1.1; }
-        
-        /* 2. 昨收: 加大至 17% (讓數字有空間) */
         th:nth-child(2), td:nth-child(2) { width: 17%; text-align: right; color: #666; }
-        
-        /* 3. 現價: 加大至 19% (重點數據，給最大空間) */
         th:nth-child(3), td:nth-child(3) { width: 19%; text-align: right; font-weight: bold; }
-        
-        /* 4. 漲跌: 15% (往右推) */
         th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; }
-        
-        /* 5. 幅度: 15% (往右推) */
         th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
-        
-        /* 6. 資訊: 縮小至 13% (按鈕夠放就好) */
         th:nth-child(6), td:nth-child(6) { width: 13%; text-align: center; }
-        
-        /* 7. 刪除: 縮小至 6% */
         th:nth-child(7), td:nth-child(7) { width: 6%; text-align: center; }
 
         .stock-code-sub { font-size: 10px; color: #888; display: block; margin-top: 1px; }
@@ -155,6 +165,10 @@
 <body>
 
 <div class="container">
+    <div class="top-right-timer">
+        <span id="countdown-text">25</span>秒後自動更新
+    </div>
+
     <div class="header-area">
         <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
             <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
@@ -165,7 +179,6 @@
             <h2>📊 喵喵站長股票看板</h2>
             <div class="sub-info">
                 <span class="analyst-highlight">首席分析師：黑寶</span>
-                <span><span id="countdown-text">25</span>秒後自動更新</span>
             </div>
         </div>
     </div>
