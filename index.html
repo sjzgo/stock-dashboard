@@ -83,9 +83,9 @@
             width: 50px; height: 50px; 
             border-radius: 50%; border: 3px solid #3498db; 
             overflow: hidden; cursor: pointer; 
-            /* 修改重點: 利用 relative 和 top 負值，將貓圖向上微調 */
             position: relative; 
-            top: -4px; 
+            /* 修改重點: 從 -4px 改為 -2px，稍微往下回來一點 */
+            top: -2px; 
             background: #f0f0f0; flex-shrink: 0;
             transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -104,7 +104,6 @@
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; 
-            /* 這裡維持靠左對齊，確保「首」切齊「喵」 */
             justify-content: flex-start; 
             width: 100%; 
         }
