@@ -6,55 +6,55 @@
     <title>喵喵站長股票看板</title>
     <style>
         /* 全局設定 */
-        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
+        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 5px; color: #333; margin: 0; font-size: 14px; }
         
         .container { 
             max-width: 900px; 
             margin: 0 auto; 
             background: #fff; 
-            padding: 12px; 
+            padding: 10px; 
             border-radius: 8px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-            position: relative; /* 讓右上/左上定位 */
+            position: relative; 
         }
         
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
 
-        /* --- 右上角倒數計時器 --- */
+        /* --- 修改重點: 緊貼右上角 --- */
         .top-right-timer {
             position: absolute;
-            top: 12px;          
-            right: 15px;        
-            font-size: 12px;
+            top: 5px;           /* 緊貼上方 */
+            right: 5px;         /* 緊貼右方 */
+            font-size: 11px;    /* 字體微調小一點 */
             color: #888;
             background-color: #f9f9f9;
-            padding: 4px 10px;
-            border-radius: 15px;
+            padding: 2px 8px;
+            border-radius: 12px;
             border: 1px solid #eee;
             z-index: 10;
         }
 
-        /* --- 左上角天氣區塊 --- */
+        /* --- 修改重點: 緊貼左上角 --- */
         .top-left-weather {
             position: absolute;
-            top: 12px;
-            left: 15px;
-            font-size: 12px;
+            top: 5px;           /* 緊貼上方 */
+            left: 5px;          /* 緊貼左方 */
+            font-size: 11px;    /* 字體微調小一點 */
             color: #555;
             background-color: #f9f9f9;
-            padding: 4px 10px;
-            border-radius: 15px;
+            padding: 2px 8px;
+            border-radius: 12px;
             border: 1px solid #eee;
             z-index: 10;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         #city-select { 
             border: none;
             background: transparent;
-            font-size: 12px;
+            font-size: 11px;
             color: #555;
             cursor: pointer;
             padding: 0;
@@ -74,9 +74,11 @@
         .header-area { 
             display: flex; 
             align-items: center; 
+            /* 修改重點: 移除上方的大間距，讓它往上縮 */
+            margin-top: 15px; 
             margin-bottom: 8px; 
             gap: 10px;
-            margin-top: 45px; 
+            justify-content: center; /* 讓整體標題區塊置中 */
         }
         
         .mascot-container {
@@ -84,7 +86,6 @@
             border-radius: 50%; border: 3px solid #3498db; 
             overflow: hidden; cursor: pointer; 
             position: relative; 
-            /* 修改重點: 從 -4px 改為 -2px，稍微往下回來一點 */
             top: -2px; 
             background: #f0f0f0; flex-shrink: 0;
             transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -99,7 +100,7 @@
             width: fit-content; 
         }
         
-        .header-text h2 { margin: 0 0 4px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
+        .header-text h2 { margin: 0 0 2px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
         
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
@@ -117,7 +118,7 @@
         /* --- 儀表板 --- */
         .dashboard { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; /* 3 欄 */
+            grid-template-columns: 1fr 1fr 1fr; 
             gap: 2px; 
             margin-bottom: 8px; 
         }
@@ -153,10 +154,11 @@
         /* --- 輸入區 --- */
         .input-area { 
             background-color: #f1f3f4; 
-            padding: 10px 15px; 
+            padding: 8px 12px; 
             border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 15px;
+            /* 修改: 縮小間距 */
+            margin-top: 10px;
+            margin-bottom: 10px;
             display: flex; 
             align-items: center; 
             gap: 10px; 
@@ -166,14 +168,14 @@
         #stock-input { 
             width: 140px; 
             flex: none; 
-            padding: 6px 10px; 
+            padding: 5px 10px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
             font-size: 13px; 
         }
         
         #add-btn { 
-            padding: 6px 15px; 
+            padding: 5px 15px; 
             cursor: pointer; 
             border: none; 
             border-radius: 4px; 
@@ -272,7 +274,8 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入股票代號/名稱">
+        <input type="text" id="stock-input" list="stock-suggestions" placeholder="輸入股票代號/名稱">
+        <datalist id="stock-suggestions"></datalist>
         <button id="add-btn" onclick="addStock()">＋ 新增</button>
     </div>
 
@@ -368,6 +371,19 @@
     };
 
     window.onerror = function(msg, url, line) { return false; };
+
+    // --- 修改: 初始化自動建議功能 ---
+    function initAutoSuggest() {
+        const datalist = document.getElementById('stock-suggestions');
+        datalist.innerHTML = '';
+        
+        for (const [code, name] of Object.entries(stockMap)) {
+            const option = document.createElement('option');
+            option.value = code; 
+            option.label = name; 
+            datalist.appendChild(option);
+        }
+    }
 
     // --- 新聞 ---
     function fetchNews() {
@@ -663,7 +679,7 @@
         myStocks = temp; localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable();
     }
 
-    try { startClock(); initWeather(); app.loadLogo(); renderTable(); updateAll(); startTimer(); } catch(e) { console.error(e); }
+    try { startClock(); initWeather(); app.loadLogo(); renderTable(); updateAll(); startTimer(); initAutoSuggest(); } catch(e) { console.error(e); }
 </script>
 
 </body>
