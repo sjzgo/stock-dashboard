@@ -76,15 +76,17 @@
             align-items: center; 
             margin-bottom: 8px; 
             gap: 10px;
-            /* 修改重點 2: 增加間距，拉開與上方天氣的距離 (原35px -> 45px) */
             margin-top: 45px; 
         }
         
         .mascot-container {
-            /* 修改重點 1: 縮小貓貓圖 (原60px -> 50px) */
             width: 50px; height: 50px; 
             border-radius: 50%; border: 3px solid #3498db; 
-            overflow: hidden; cursor: pointer; position: relative; background: #f0f0f0; flex-shrink: 0;
+            overflow: hidden; cursor: pointer; 
+            /* 修改重點: 利用 relative 和 top 負值，將貓圖向上微調 */
+            position: relative; 
+            top: -4px; 
+            background: #f0f0f0; flex-shrink: 0;
             transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .mascot-container:hover { transform: scale(1.05); border-color: #e74c3c; }
@@ -102,7 +104,7 @@
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; 
-            /* 修改重點 3: 改回靠左對齊 */
+            /* 這裡維持靠左對齊，確保「首」切齊「喵」 */
             justify-content: flex-start; 
             width: 100%; 
         }
