@@ -34,7 +34,7 @@
 
         .red { color: #e74c3c; } .green { color: #27ae60; }
 
-        /* 搜尋建議框 (優化建議框 UI) */
+        /* 搜尋建議框 */
         .input-area { background-color: #f1f3f4; padding: 10px 15px; border-radius: 8px; margin: 20px 0 15px; display: flex; align-items: center; gap: 10px; position: relative; }
         #stock-input { width: 180px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; }
         #search-results { position: absolute; top: 45px; left: 15px; width: 240px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; max-height: 250px; overflow-y: auto; }
@@ -47,24 +47,39 @@
         .refresh-bar { text-align: center; margin: 8px 0; }
         .refresh-btn { background-color: #3498db; color: white; border: none; padding: 4px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* 表格與新聞 */
+        /* --- 修正後的表格寬度分配 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th { padding: 3px 4px; background: #f8f9fa; color: #888; border-bottom: 1px solid #ddd; font-size: 12px; }
-        td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; }
-        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
-        th:nth-child(3), td:nth-child(3) { width: 17%; text-align: right; font-weight: bold; }
+        th, td { padding: 4px 2px; border-bottom: 1px solid #eee; vertical-align: middle; white-space: nowrap; overflow: hidden; }
+        
+        th:nth-child(1), td:nth-child(1) { width: 22%; text-align: left; } /* 名稱 */
+        th:nth-child(2), td:nth-child(2) { width: 12%; text-align: right; } /* 昨收 */
+        th:nth-child(3), td:nth-child(3) { width: 12%; text-align: right; font-weight: bold; } /* 現價 */
+        th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; } /* 漲跌 */
+        th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; } /* 幅度% */
+        th:nth-child(6), td:nth-child(6) { width: 18%; text-align: center; } /* 資訊(按鈕) */
+        th:nth-child(7), td:nth-child(7) { width: 6%; text-align: center; } /* 刪除 */
+
         .stock-code-sub { font-size: 10px; color: #888; display: block; }
-        .links a { text-decoration: none; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 2px; }
+        
+        /* 縮小資訊按鈕以避免重疊 */
+        .links { display: flex; justify-content: center; gap: 2px; }
+        .links a { text-decoration: none; color: white; padding: 1px 3px; border-radius: 3px; font-size: 10px; flex-shrink: 0; }
         .news { background: #e67e22; } .div { background: #2c3e50; }
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0; }
+
+        /* 新聞區塊 */
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
         .news-header { font-size: 13px; font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 5px; }
         .news-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .news-item { font-size: 12px; margin-bottom: 4px; }
+        .news-item { font-size: 12px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
 
-        @media (max-width: 600px) { .news-grid { grid-template-columns: 1fr; } .dashboard { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (max-width: 600px) { 
+            .news-grid { grid-template-columns: 1fr; } 
+            .dashboard { grid-template-columns: 1fr 1fr 1fr; } 
+            table { font-size: 11px; }
+            .links a { font-size: 9px; padding: 1px 2px; }
+        }
     </style>
 </head>
 <body>
@@ -118,41 +133,33 @@
 </div>
 
 <script>
-    // 1. 常用熱門股對照表 (確保輸入單字如 "台" 也能秒出結果)
     const presetMap = {
         '2330':'台積電','2317':'鴻海','2454':'聯發科','2303':'聯電','2382':'廣達','3231':'緯創','2603':'長榮','2618':'長榮航','1101':'台泥','2308':'台達電','2881':'富邦金','2882':'國泰金','2891':'中信金','0050':'元大台灣50','0056':'元大高股息','00878':'國泰永續高股息','00919':'群益台灣精選高息','00929':'復華台灣科技優息'
     };
 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
-    Object.assign(dynamicStockMap, presetMap); // 合併清單
+    Object.assign(dynamicStockMap, presetMap);
 
-    // --- 核心: 混合搜尋邏輯 ---
     let debounceTimer;
     function unifiedSearch(val) {
         clearTimeout(debounceTimer);
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
-
         const query = val.toLowerCase();
         let items = [];
-
-        // 第一步：從內建清單搜尋 (處理單字最有效)
         for (const [code, name] of Object.entries(dynamicStockMap)) {
             if (code.includes(query) || name.includes(query)) {
-                items.push({ code, name, source: 'local' });
+                items.push({ code, name });
             }
         }
-
         renderSearchResults(items);
-
-        // 第二步：延遲從 Yahoo API 搜尋更完整的資料
         debounceTimer = setTimeout(() => {
             const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${val}&lang=zh-Hant-TW&quotesCount=10`)}`;
             fetch(url).then(r => r.json()).then(data => {
                 (data.quotes || []).forEach(q => {
                     const displayCode = q.symbol.replace('.TW', '').replace('.TWO', '');
                     if (!items.find(i => i.code === displayCode)) {
-                        items.push({ code: displayCode, name: q.shortname || q.longname, source: 'api' });
+                        items.push({ code: displayCode, name: q.shortname || q.longname });
                     }
                 });
                 renderSearchResults(items);
@@ -163,13 +170,7 @@
     function renderSearchResults(items) {
         const resDiv = document.getElementById('search-results');
         if (items.length === 0) { resDiv.style.display = 'none'; return; }
-        
-        resDiv.innerHTML = items.map(i => `
-            <div class="search-item" onclick="selectStock('${i.code}', '${i.name}')">
-                <span class="s-name">${i.name}</span>
-                <span class="s-code">${i.code}</span>
-            </div>
-        `).join('');
+        resDiv.innerHTML = items.map(i => `<div class="search-item" onclick="selectStock('${i.code}', '${i.name}')"><span class="s-name">${i.name}</span><span class="s-code">${i.code}</span></div>`).join('');
         resDiv.style.display = 'block';
     }
 
@@ -218,10 +219,10 @@
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><span class="stock-code-sub">(${c})</span></td>
                 <td id="prev-${c}">...</td><td id="p-${c}">...</td><td id="c-${c}">...</td><td id="pct-${c}">...</td>
-                <td class="links">
+                <td><div class="links">
                     <a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news">新聞</a>
                     <a href="https://www.wantgoo.com/stock/${c}/dividend-policy" target="_blank" class="div">股利</a>
-                </td>
+                </div></td>
                 <td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
             </tr>`;
         });
@@ -255,7 +256,7 @@
     function manualUpdate() { updateAll(); timeLeft = 25; }
     function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
 
-    var timeLeft = 25;
+    let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
     setInterval(() => {
         const now = new Date();
