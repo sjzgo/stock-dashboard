@@ -15,12 +15,12 @@
             padding: 12px; 
             border-radius: 8px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-            position: relative; /* 讓右上/左上定位 */
+            position: relative; 
         }
         
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
 
-        /* --- 右上角倒數計時器 (還原位置) --- */
+        /* --- 右上角倒數計時器 --- */
         .top-right-timer {
             position: absolute;
             top: 12px;          
@@ -34,7 +34,7 @@
             z-index: 10;
         }
 
-        /* --- 左上角天氣區塊 (還原位置) --- */
+        /* --- 左上角天氣區塊 --- */
         .top-left-weather {
             position: absolute;
             top: 12px;
@@ -76,7 +76,6 @@
             align-items: center; 
             margin-bottom: 8px; 
             gap: 10px;
-            /* 還原間距: 45px，避免跟上方浮動元素擠在一起 */
             margin-top: 45px; 
         }
         
@@ -185,19 +184,22 @@
         }
         #add-btn:hover { background: #27ae60; }
 
-        /* --- 立即更新按鈕區塊 --- */
+        /* --- 立即更新按鈕區塊 (修改重點: 縮減間距與按鈕大小) --- */
         .refresh-bar {
             text-align: center;
-            margin: 15px 0 20px 0; 
+            /* 修改: 大幅縮減上下留白 (原 15px 20px -> 8px) */
+            margin: 8px 0; 
         }
         .refresh-btn {
             background-color: #3498db; 
             color: white;
             border: none;
-            padding: 8px 25px;
-            border-radius: 20px;
+            /* 修改: 縮小內距 (原 8px 25px -> 4px 12px) */
+            padding: 4px 12px; 
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 13px;
+            /* 修改: 縮小字體 (原 13px -> 12px) */
+            font-size: 12px; 
             font-weight: bold;
             transition: background 0.2s;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
