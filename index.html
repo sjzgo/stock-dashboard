@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喵喵站長股票看板 (官方證交所版)</title>
+    <style>
+        /* 完全保留您要求的基礎原始版 CSS */
+        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
+        .top-right-timer { position: absolute; top: 12px; right: 15px; font-size: 12px; color: #888; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; }
+        .top-left-weather { position: absolute; top: 12px; left: 15px; font-size: 12px; color: #555; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 6px; }
+        #countdown-text { color: #e74c3c; font-weight: bold; margin: 0 2px; }
+        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; margin-top: 45px; }
+        .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
+        .mascot-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .header-text h2 { margin: 0 0 4px 0; font-size: 1.4rem; line-height: 1.2; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-bottom: 8px; }
+        .card { background: #f8f9fa; padding: 4px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
+        .card h4 { margin: 0 0 1px; color: #888; font-size: 11px; }
+        .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
+        .input-area { background-color: #f1f3f4; padding: 10px 15px; border-radius: 8px; margin: 20px 0 15px; display: flex; align-items: center; gap: 10px; position: relative; }
+        #stock-input { width: 180px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+        #search-results { position: absolute; top: 45px; left: 15px; width: 260px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; max-height: 250px; overflow-y: auto; }
+        .search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
+        .search-item:hover { background-color: #ebf5ff; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        th, td { padding: 6px 0; border-bottom: 1px solid #eee; vertical-align: middle; }
+        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; }
+        th:nth-child(2), td:nth-child(2) { width: 14%; text-align: right; }
+        th:nth-child(3), td:nth-child(3) { width: 16%; text-align: right; font-weight: bold; }
+        th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
+        th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
+        th:nth-child(6), td:nth-child(6) { width: 19%; text-align: center; }
+        th:nth-child(7), td:nth-child(7) { width: 5%; text-align: center; }
+        .links { display: flex; justify-content: center; gap: 1px; }
+        .links a { text-decoration: none; color: white; padding: 2px 3px; border-radius: 3px; font-size: 10px; cursor: pointer; }
+        .news { background: #e67e22; } .div { background: #2c3e50; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-right-timer"><span id="countdown-text">25</span>秒後自動更新</div>
+    <div class="header-area">
+        <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
+            <img id="mascot-img" class="mascot-img" src="https://cdn-icons-png.flaticon.com/512/616/616430.png">
+        </div>
+        <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
+        <div class="header-text"><h2>📊 喵喵站長官方看板</h2></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--:--:--</div></div>
+        <div class="card"><h4>收盤倒數</h4><div class="val" id="market-timer">--:--:--</div></div>
+        <div class="card"><h4>美股開盤</h4><div class="val" id="us-market-timer">--:--:--</div></div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="stock-input" placeholder="輸入代碼/名稱 (如: 味)" autocomplete="off" oninput="twseSearch(this.value)">
+        <div id="search-results"></div>
+        <button onclick="addStock()">＋ 新增</button>
+    </div>
+
+    <table>
+        <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th>刪</th></tr></thead>
+        <tbody id="stock-list"></tbody>
+    </table>
+
+    <div style="text-align:center; margin:8px 0;"><button style="background:#3498db;color:white;border:none;padding:4px 12px;border-radius:15px;" onclick="updateAll()">↻ 立即更新</button></div>
+</div>
+
+<script>
+    let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
+    let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330", "1201"]');
+    let allStockList = [];
+
+    // --- 1. 從證交所官網同步所有股票清單 ---
+    async function fetchTwseList() {
+        try {
+            // 使用證交所開放資料 API
+            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            allStockList = data.map(item => ({ c: item.Code, n: item.Name }));
+            console.log("證交所清單同步成功");
+        } catch (e) {
+            allStockList = [{c:"1201", n:"味全"}, {c:"4967", n:"十銓"}]; // 保底
+        }
+    }
+
+    // --- 2. 搜尋功能：第一個字就彈出且「全部是證交所資料」 ---
+    function twseSearch(val) {
+        const resDiv = document.getElementById('search-results');
+        if (!val) { resDiv.style.display = 'none'; return; }
+        
+        const query = val.toLowerCase();
+        const filtered = allStockList.filter(s => s.c.includes(query) || s.n.includes(query)).slice(0, 15);
+        
+        resDiv.innerHTML = filtered.map(s => `
+            <div class="search-item" onclick="selectStock('${s.c}', '${s.n}')">
+                <span style="font-weight:bold;">${s.n}</span>
+                <span style="color:#007bff; font-size:11px;">${s.c}</span>
+            </div>
+        `).join('');
+        resDiv.style.display = filtered.length ? 'block' : 'none';
+    }
+
+    function selectStock(code, name) {
+        document.getElementById('stock-input').value = code;
+        dynamicStockMap[code] = name;
+        localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
+        addStock(code);
+        document.getElementById('search-results').style.display = 'none';
+    }
+
+    function addStock(code) {
+        if (!code) code = document.getElementById('stock-input').value.trim();
+        if (!code) return;
+        if (!myStocks.includes(code)) {
+            myStocks.push(code);
+            localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
+            renderTable(); fetchPrice(code);
+        }
+        document.getElementById('stock-input').value = '';
+    }
+
+    // --- 3. 股利連結：完全還原原始邏輯 ---
+    function renderTable() {
+        const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
+        myStocks.forEach(c => {
+            const name = dynamicStockMap[c] || c; 
+            tbody.innerHTML += `<tr>
+                <td><b>${name}</b><br><span style="font-size:10px;color:#888;">${c}</span></td>
+                <td id="prev-${c}">...</td><td id="p-${c}">...</td><td id="c-${c}">...</td><td id="pct-${c}">...</td>
+                <td><div class="links">
+                    <a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news">新聞</a>
+                    <a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="div">股利</a>
+                </div></td>
+                <td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
+            </tr>`;
+        });
+    }
+
+    // --- 4. 報價功能：改用證交所官方資料匯總 API ---
+    async function fetchPrice(code) {
+        try {
+            // 這裡使用證交所當日收盤行情 API (openapi)
+            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL')}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const stock = data.find(item => item.Code === code);
+            if (stock) {
+                const p = parseFloat(stock.ClosingPrice);
+                const prev = parseFloat(stock.ClosingPrice) - parseFloat(stock.Change);
+                updateRow(code, p, prev);
+            }
+        } catch (e) { console.log("報價抓取失敗"); }
+    }
+
+    function updateRow(code, p, prev) {
+        const chg = p - prev;
+        const pct = (chg / prev) * 100;
+        const color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "black");
+        document.getElementById("prev-"+code).innerText = prev.toFixed(2);
+        const pEl = document.getElementById("p-"+code);
+        pEl.innerText = p.toFixed(2); pEl.style.color = color;
+        const cEl = document.getElementById("c-"+code);
+        cEl.innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2); cEl.style.color = color;
+        const pctEl = document.getElementById("pct-"+code);
+        pctEl.innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%"; pctEl.style.color = color;
+    }
+
+    function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
+    function updateAll() { myStocks.forEach(fetchPrice); }
+
+    // --- 時間邏輯與初始化 ---
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock-time').innerText = now.toLocaleTimeString();
+        const marketTimer = document.getElementById('market-timer');
+        const close = new Date(now); close.setHours(13, 30, 0);
+        if (now.getDay() === 0 || now.getDay() === 6) marketTimer.innerText = "休市";
+        else if (now > close) marketTimer.innerText = "已收盤";
+        else { const diff = Math.floor((close-now)/1000); marketTimer.innerText = Math.floor(diff/3600)+":"+String(Math.floor((diff%3600)/60)).padStart(2,'0')+":"+String(diff%60).padStart(2,'0'); marketTimer.className="val red"; }
+    }, 1000);
+
+    let timeLeft = 25;
+    setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
+
+    const app = {
+        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
+        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; }
+    };
+
+    window.onload = async () => { 
+        app.loadLogo(); 
+        await fetchTwseList(); // 一開網頁先從證交所抓完整名單
+        renderTable(); 
+        updateAll(); 
+    };
+</script>
+</body>
+</html>
