@@ -80,7 +80,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入名稱/代號" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button onclick="addStock()">＋ 新增</button>
     </div>
@@ -93,7 +93,7 @@
     <div style="text-align:center; margin:10px 0;"><button style="background:#3498db;color:white;border:none;padding:5px 15px;border-radius:15px;cursor:pointer;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞 (財經/國際/頭條)</div>
+        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -291,3 +291,4 @@
 </script>
 </body>
 </html>
+
