@@ -93,7 +93,7 @@
     <div style="text-align:center; margin:10px 0;"><button style="background:#3498db;color:white;border:none;padding:5px 15px;border-radius:15px;cursor:pointer;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞</div>
+        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞 (財經/國際/頭條)</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -214,18 +214,23 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
+    // --- 強化版新聞抓取：國際/財經補償機制 ---
     async function fetchNews() {
         const ts = new Date().getTime();
         const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
+        
+        // 加入國際財經來源：Bloomberg, Reuters, 經濟日報
         const urls = [
             `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://www.reutersagency.com/feed/?best-topics=business&p=1&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money&t=${ts}`
         ];
+
         let pool = [];
         const uniqueTitles = new Set();
         const finalNews = [];
+
         for (let url of urls) {
             try {
                 const res = await fetch(url);
@@ -235,6 +240,54 @@
                         const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
                         return !blacklist.some(b => txt.includes(b.toLowerCase()));
                     });
+
                     for (let item of filtered) {
                         if (!uniqueTitles.has(item.title)) {
                             uniqueTitles.add(item.title);
+                            finalNews.push(item);
+                        }
+                        if (finalNews.length >= 9) break;
+                    }
+                }
+                if (finalNews.length >= 9) break; 
+            } catch (e) { console.warn("來源加載失敗"); }
+        }
+
+        const container = document.getElementById('news-list-container'); 
+        container.innerHTML = '';
+        finalNews.forEach(n => { 
+            container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
+        });
+    }
+
+    function getAutoWeather() {
+        if(navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
+        } else { fetchWeather(25.03, 121.56); }
+    }
+
+    function changeCityManually() {
+        const val = document.getElementById('city-select').value;
+        if(val === 'auto') getAutoWeather();
+        else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
+    }
+
+    function fetchWeather(lat, lon) {
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C");
+    }
+
+    const app = {
+        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
+        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; }
+    };
+
+    function manualUpdate() { updateAll(); timeLeft = 25; }
+    function removeStock(code) { if(confirm("刪除?")) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable(); } }
+    function updateAll() { myStocks.forEach(fetchPrice); fetchNews(); document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); }
+
+    window.onload = async () => { app.loadLogo(); await initOfficialList(); renderTable(); updateAll(); getAutoWeather(); };
+    document.addEventListener('click', (e) => { if (!e.target.closest('.input-area')) document.getElementById('search-results').style.display = 'none'; });
+</script>
+</body>
+</html>
