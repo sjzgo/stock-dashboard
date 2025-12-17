@@ -122,7 +122,8 @@
             <h4>天氣</h4>
             <div class="val" id="weather-val">--°C</div>
             <select id="city-select" onchange="changeCity()">
-                <option value="25.0330,121.5654,台北市" selected>台北市</option>
+                <option value="auto" selected>📍 自動定位</option>
+                <option value="25.0330,121.5654,台北市">台北市</option>
                 <option value="25.0117,121.4608,新北市">新北市</option>
                 <option value="24.1477,120.6736,台中市">台中市</option>
                 <option value="22.6273,120.3014,高雄市">高雄市</option>
@@ -184,16 +185,13 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('mascot-img').src = e.target.result;
-                    // 本地暫存，如果使用者手動換圖，會優先顯示這張
                     try { localStorage.setItem('my_mascot_img_60', e.target.result); } catch(err) {}
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         },
         loadLogo: function() {
-            // 檢查有沒有手動換過圖
             var saved = localStorage.getItem('my_mascot_img_60');
-            // 如果有手動換過，就用手動的；如果沒有，就保持 HTML 裡的 cat.jpg
             if(saved) document.getElementById('mascot-img').src = saved;
         }
     };
@@ -258,7 +256,7 @@
         cols.forEach(c => gridBox.appendChild(c));
     }
 
-    // --- 時鐘 & 天氣 ---
+    // --- 時鐘 & 天氣 (含自動定位) ---
     function startClock() {
         var tEl = document.getElementById('clock-time');
         var dEl = document.getElementById('clock-date');
@@ -281,27 +279,67 @@
             }
         }, 1000);
     }
+    
+    // 初始化天氣：優先使用 savedVal，如果是 auto 或是新的訪客，則執行定位
     function initWeather() {
-        var savedVal = localStorage.getItem('my_city_setting');
+        var saved = localStorage.getItem('my_city_setting');
         var select = document.getElementById('city-select');
-        if(savedVal) select.value = savedVal;
-        fetchWeatherBySelect();
+        if(saved) select.value = saved;
+        
+        // 如果是自動定位模式 (預設或使用者選擇)
+        if(select.value === 'auto') {
+            getGeoLocation();
+        } else {
+            fetchWeatherBySelect();
+        }
     }
+
     function changeCity() {
         var select = document.getElementById('city-select');
         localStorage.setItem('my_city_setting', select.value);
-        fetchWeatherBySelect();
+        if(select.value === 'auto') getGeoLocation();
+        else fetchWeatherBySelect();
     }
+
+    // 新增：取得瀏覽器定位
+    function getGeoLocation() {
+        document.getElementById('weather-val').innerText = "定位...";
+        if(!navigator.geolocation) {
+            alert("您的裝置不支援定位");
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // 成功取得：直接抓該座標天氣
+                var lat = position.coords.latitude;
+                var lon = position.coords.longitude;
+                fetchWeather(lat, lon);
+            },
+            function(error) {
+                // 失敗或拒絕：切回台北市
+                document.getElementById('weather-val').innerText = "N/A";
+                // 這裡可以選擇是否要跳回去台北市，或者維持 N/A
+                var select = document.getElementById('city-select');
+                select.value = "25.0330,121.5654,台北市"; // Fallback
+                fetchWeatherBySelect();
+            }
+        );
+    }
+
     function fetchWeatherBySelect() {
-        var select = document.getElementById('city-select');
-        var val = select.value; var parts = val.split(',');
+        var val = document.getElementById('city-select').value;
+        if(val === 'auto') return; // Should be handled by getGeo
+        var parts = val.split(',');
+        fetchWeather(parts[0], parts[1]);
+    }
+
+    // 核心抓天氣函數
+    function fetchWeather(lat, lon) {
         document.getElementById('weather-val').innerText = "...";
-        try {
-            fetch("https://api.open-meteo.com/v1/forecast?latitude="+parts[0]+"&longitude="+parts[1]+"&current_weather=true")
-                .then(r => r.json())
-                .then(d => { document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C"; })
-                .catch(() => { document.getElementById('weather-val').innerText = "N/A"; });
-        } catch(e) { document.getElementById('weather-val').innerText = "Err"; }
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+            .then(r => r.json())
+            .then(d => { document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C"; })
+            .catch(() => { document.getElementById('weather-val').innerText = "N/A"; });
     }
 
     // --- 股票核心 ---
