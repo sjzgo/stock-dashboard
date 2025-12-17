@@ -110,7 +110,6 @@
     let twStockData = []; 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
-
     // 1. 初始化證交所 API 名單
     async function initOfficialList() {
         try {
@@ -275,4 +274,5 @@
 </script>
 </body>
 </html>
+
 
