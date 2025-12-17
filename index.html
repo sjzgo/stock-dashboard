@@ -51,7 +51,7 @@
             gap: 6px;
         }
 
-        #city-select { 
+        #city-select-top { 
             border: none;
             background: transparent;
             font-size: 12px;
@@ -88,7 +88,6 @@
             background: #f0f0f0; flex-shrink: 0;
             transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .mascot-container:hover { transform: scale(1.05); border-color: #e74c3c; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
         .header-text { 
@@ -116,7 +115,7 @@
         /* --- 儀表板 --- */
         .dashboard { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; /* 3 欄 */
+            grid-template-columns: 1fr 1fr 1fr; 
             gap: 2px; 
             margin-bottom: 8px; 
         }
@@ -128,28 +127,7 @@
 
         .red { color: #e74c3c; } .green { color: #27ae60; }
 
-        /* --- 新聞區塊 --- */
-        .news-section { margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
-        .news-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 2px; }
-        .news-title { font-size: 13px; font-weight: bold; color: #202124; }
-        .news-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .news-column { display: flex; flex-direction: column; gap: 4px; }
-        .news-item { display: flex; align-items: flex-start; padding-bottom: 4px; border-bottom: 1px dashed #f5f5f5; min-height: 22px; }
-        .news-item:last-child { border-bottom: none; }
-        .news-source { font-size: 10px; color: #fff; background: #999; padding: 1px 4px; border-radius: 3px; margin-right: 4px; white-space: nowrap; font-weight: bold; margin-top: 2px; }
-        .src-yahoo { background: #7e22ce; } .src-google { background: #db4437; }
-        .news-link { text-decoration: none; color: #202124; font-size: 13px; line-height: 1.3; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .news-link:hover { color: #1a73e8; text-decoration: underline; }
-        .backup-link { color: #666; font-style: italic; }
-        
-        @media (max-width: 600px) {
-            .news-grid { grid-template-columns: 1fr; gap: 0; }
-            .news-column { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px; }
-            .news-column:last-child { border-bottom: none; margin-bottom: 0; }
-            .dashboard { grid-template-columns: 1fr 1fr 1fr; } 
-        }
-
-        /* --- 輸入區 --- */
+        /* --- 輸入區 (修改重點: 變成下拉選單形式) --- */
         .input-area { 
             background-color: #f1f3f4; 
             padding: 10px 15px; 
@@ -162,13 +140,16 @@
             justify-content: flex-start; 
         }
 
-        #stock-input { 
-            width: 140px; 
+        /* 改為選單樣式 */
+        #stock-select-input { 
+            width: 220px; 
             flex: none; 
             padding: 6px 10px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
             font-size: 13px; 
+            background-color: white;
+            font-family: '微軟正黑體';
         }
         
         #add-btn { 
@@ -184,31 +165,12 @@
         }
         #add-btn:hover { background: #27ae60; }
 
-        /* --- 立即更新按鈕區塊 (修改重點: 縮減間距與按鈕大小) --- */
-        .refresh-bar {
-            text-align: center;
-            /* 修改: 大幅縮減上下留白 (原 15px 20px -> 8px) */
-            margin: 8px 0; 
-        }
+        .refresh-bar { text-align: center; margin: 8px 0; }
         .refresh-btn {
-            background-color: #3498db; 
-            color: white;
-            border: none;
-            /* 修改: 縮小內距 (原 8px 25px -> 4px 12px) */
-            padding: 4px 12px; 
-            border-radius: 15px;
-            cursor: pointer;
-            /* 修改: 縮小字體 (原 13px -> 12px) */
-            font-size: 12px; 
-            font-weight: bold;
-            transition: background 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            background-color: #3498db; color: white; border: none; padding: 4px 12px; border-radius: 15px;
+            cursor: pointer; font-size: 12px; font-weight: bold; transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 5px;
         }
-        .refresh-btn:hover { background-color: #2980b9; }
-        .refresh-btn:active { transform: translateY(1px); box-shadow: none; }
         
         /* --- 股票表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
@@ -224,12 +186,26 @@
         th:nth-child(7), td:nth-child(7) { width: 6%; text-align: center; }
 
         .stock-code-sub { font-size: 10px; color: #888; display: block; margin-top: 1px; }
-
         .links a { text-decoration: none; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 1px; display: inline-block; }
         .news { background: #e67e22; } .div { background: #2c3e50; } 
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; }
-        .del-btn:hover { color: red; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
+
+        /* --- 新聞區塊 --- */
+        .news-section { margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
+        .news-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 2px; }
+        .news-title { font-size: 13px; font-weight: bold; color: #202124; }
+        .news-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .news-column { display: flex; flex-direction: column; gap: 4px; }
+        .news-item { display: flex; align-items: flex-start; padding-bottom: 4px; border-bottom: 1px dashed #f5f5f5; min-height: 22px; }
+        .news-source { font-size: 10px; color: #fff; background: #999; padding: 1px 4px; border-radius: 3px; margin-right: 4px; white-space: nowrap; font-weight: bold; margin-top: 2px; }
+        .news-link { text-decoration: none; color: #202124; font-size: 13px; line-height: 1.3; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        @media (max-width: 600px) {
+            .news-grid { grid-template-columns: 1fr; gap: 0; }
+            .news-column { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px; }
+            .dashboard { grid-template-columns: 1fr 1fr 1fr; } 
+        }
     </style>
 </head>
 <body>
@@ -237,25 +213,14 @@
 <div class="container">
     <div class="top-left-weather">
         <span id="weather-val">--°C</span>
-        <select id="city-select" onchange="changeCity()">
+        <select id="city-select-top" onchange="changeCity()">
             <option value="auto" selected>📍 定位</option>
             <option value="25.0330,121.5654,台北市">台北</option>
             <option value="25.0117,121.4608,新北市">新北</option>
             <option value="24.1477,120.6736,台中市">台中</option>
             <option value="22.6273,120.3014,高雄市">高雄</option>
             <option value="24.8066,120.9686,新竹市">新竹</option>
-            <option value="24.8397,121.0113,新竹縣">竹縣</option>
-            <option value="24.5650,120.8207,苗栗縣">苗栗</option>
-            <option value="24.0756,120.5445,彰化縣">彰化</option>
-            <option value="23.9037,120.6865,南投縣">南投</option>
-            <option value="23.7092,120.4313,雲林縣">雲林</option>
-            <option value="23.4801,120.4491,嘉義市">嘉義</option>
-            <option value="23.4518,120.2555,嘉義縣">嘉義縣</option>
             <option value="22.9997,120.2270,台南市">台南</option>
-            <option value="22.6761,120.4936,屏東縣">屏東</option>
-            <option value="24.7570,121.7530,宜蘭縣">宜蘭</option>
-            <option value="23.9922,121.6011,花蓮縣">花蓮</option>
-            <option value="22.7567,121.1444,台東縣">台東</option>
         </select>
     </div>
 
@@ -276,13 +241,12 @@
             </div>
         </div>
     </div>
-    <div id="error-console"></div>
 
     <div class="dashboard">
         <div class="card">
             <h4>現在時間</h4>
             <div class="val" id="clock-time">00:00:00</div>
-            <div class="sub" id="clock-date">202X/XX/XX</div>
+            <div class="sub" id="clock-date">--</div>
         </div>
         <div class="card">
             <h4>收盤倒數</h4>
@@ -297,9 +261,12 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" list="stock-suggestions" placeholder="輸入股票代號/名稱">
-        <datalist id="stock-suggestions"></datalist>
-        <button id="add-btn" onclick="addStock()">＋ 新增</button>
+        <select id="stock-select-input">
+            <option value="" disabled selected>🔍 請選擇股票名稱...</option>
+            <option value="CUSTOM">➕ 手動輸入代號</option>
+            <optgroup label="熱門股票建議" id="suggested-group"></optgroup>
+        </select>
+        <button id="add-btn" onclick="addStockFromSelect()">＋ 新增</button>
     </div>
 
     <table>
@@ -333,52 +300,11 @@
 
 <script>
     const stockMap = {
-        // === 熱門 ETF ===
-        '0050': '元大台灣50', '0056': '元大高股息', '00878': '國泰永續高股息', 
-        '00919': '群益台灣精選高息', '00929': '復華台灣科技優息', '00940': '元大台灣價值高息',
-        '006208': '富邦台50', '00713': '元大台灣高息低波', '00939': '統一台灣高息動能',
-        '00679B': '元大美債20年', '00687B': '國泰20年美債',
-
-        // === 半導體 / IC設計 ===
-        '2330': '台積電', '2303': '聯電', '5347': '世界先進', '6770': '力積電',
-        '2454': '聯發科', '3034': '聯詠', '2379': '瑞昱', '3035': '智原',
-        '3443': '創意', '3661': '世芯-KY', '3711': '日月光投控', '2344': '華邦電',
-        '2408': '南亞科', '3008': '大立光', '3529': '力旺', '5274': '信驊',
-
-        // === AI / 電腦 / 組裝代工 ===
-        '2317': '鴻海', '2382': '廣達', '3231': '緯創', '6669': '緯穎',
-        '2357': '華碩', '2376': '技嘉', '2301': '光寶科', '2324': '仁寶',
-        '2356': '英業達', '2449': '京元電子', '3017': '奇鋐', '3324': '雙鴻',
-        '2308': '台達電',
-
-        // === 金融股 (金控) ===
-        '2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2886': '兆豐金',
-        '2884': '玉山金', '2885': '元大金', '2892': '第一金', '2880': '華南金',
-        '2883': '開發金', '5880': '合庫金', '2890': '永豐金', '2887': '台新金',
-        '2834': '臺企銀', '2801': '彰銀',
-
-        // === 航運 / 航空 ===
-        '2603': '長榮', '2609': '陽明', '2615': '萬海', '2606': '裕民',
-        '2618': '長榮航', '2610': '華航', '2637': '慧洋-KY',
-
-        // === 重電 / 綠能 / 線纜 ===
-        '1513': '中興電', '1519': '華城', '1503': '士電', '1504': '東元',
-        '1605': '華新', '1609': '大亞', '6806': '森崴能源', '9958': '世紀鋼',
-
-        // === 傳產龍頭 (水泥/鋼鐵/塑膠) ===
-        '2002': '中鋼', '2014': '中鴻', '2027': '大成鋼',
-        '1101': '台泥', '1102': '亞泥',
-        '1301': '台塑', '1303': '南亞', '1326': '台化', '6505': '台塑化',
-        
-        // === 其他熱門股 ===
-        '2912': '統一超', '1216': '統一', '2412': '中華電', '3045': '台灣大', 
-        '4904': '遠傳', '9945': '潤泰新', '2542': '興富發', '3702': '大聯大'
+        '0050': '元大台灣50', '0056': '元大高股息', '00878': '國泰永續高股息', '00919': '群益台灣精選高息',
+        '00929': '復華台灣科技優息', '00940': '元大台灣價值高息', '2330': '台積電', '2317': '鴻海',
+        '2454': '聯發科', '2303': '聯電', '2382': '廣達', '3231': '緯創', '2603': '長榮', '2618': '長榮航',
+        '2881': '富邦金', '2882': '國泰金', '2891': '中信金', '2412': '中華電', '1513': '中興電'
     };
-
-    const backupNews = [
-        { sourceName: 'Google', title: 'Google 新聞焦點', link: 'https://news.google.com/home?hl=zh-TW&gl=TW&ceid=TW:zh-Hant' },
-        { sourceName: 'Yahoo', title: 'Yahoo 財經新聞', link: 'https://tw.stock.yahoo.com/news/' }
-    ];
 
     const app = {
         uploadLogo: function(input) {
@@ -386,7 +312,7 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('mascot-img').src = e.target.result;
-                    try { localStorage.setItem('my_mascot_img_60', e.target.result); } catch(err) {}
+                    localStorage.setItem('my_mascot_img_60', e.target.result);
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -397,326 +323,143 @@
         }
     };
 
-    window.onerror = function(msg, url, line) { return false; };
-
-    // --- 修改: 初始化自動建議功能 ---
-    function initAutoSuggest() {
-        const datalist = document.getElementById('stock-suggestions');
-        datalist.innerHTML = '';
-        
+    // 初始化下拉選單
+    function initSelectSuggestions() {
+        const group = document.getElementById('suggested-group');
         for (const [code, name] of Object.entries(stockMap)) {
             const option = document.createElement('option');
-            option.value = code; 
-            option.label = name; 
-            datalist.appendChild(option);
+            option.value = code;
+            option.textContent = `${name} (${code})`;
+            group.appendChild(option);
         }
     }
 
-    // --- 新聞 ---
-    function fetchNews() {
-        const rssUrls = [
-            { name: 'Yahoo', url: 'https://tw.news.yahoo.com/rss/politics' },
-            { name: 'Google', url: 'https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant' }
-        ];
-        const t = new Date().getTime();
-        const promises = rssUrls.map(source => {
-            const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(source.url) + '&_t=' + t;
-            return fetch(apiUrl)
-                .then(r => r.json())
-                .then(data => {
-                    if(data.status !== 'ok') return [];
-                    return data.items.map(item => ({
-                        sourceName: source.name, title: item.title, link: item.link
-                    }));
-                })
-                .catch(e => []);
-        });
+    var myStocks = ['2330', '0050', '0056', '00878', '00919'];
+    try { var s = localStorage.getItem('stocks_final_v5'); if(s) myStocks = JSON.parse(s); } catch(e) {}
 
-        Promise.all(promises).then(results => {
-            let allNews = [].concat.apply([], results);
-            const blockList = ['三立', '民視', '自由', '大紀元', '新唐人'];
-            let valid = allNews.filter(n => !blockList.some(bad => n.title.includes(bad)));
+    function addStockFromSelect() {
+        const select = document.getElementById('stock-select-input');
+        let code = select.value;
+        if (!code) return;
 
-            if (valid.length === 0) {
-                var gridBox = document.getElementById('news-grid-box');
-                if(gridBox.innerHTML.includes('載入中')) renderNewsGrid(backupNews);
-                return;
-            }
-            valid.sort(() => 0.5 - Math.random());
-            renderNewsGrid(valid.slice(0, 9));
-        });
-    }
+        if (code === "CUSTOM") {
+            code = prompt("請輸入股票代號 (例如: 2317):");
+            if (!code) return;
+            code = code.trim().toUpperCase();
+        }
 
-    function renderNewsGrid(newsList) {
-        var gridBox = document.getElementById('news-grid-box');
-        gridBox.innerHTML = '';
-        var cols = [document.createElement('div'), document.createElement('div'), document.createElement('div')];
-        cols.forEach(c => { c.className = 'news-column'; });
-
-        newsList.forEach((n, index) => {
-            let sourceClass = '';
-            if(n.sourceName === 'Yahoo') sourceClass = 'src-yahoo';
-            if(n.sourceName === 'Google') sourceClass = 'src-google';
-            let displayTitle = n.title.length > 35 ? n.title.substring(0, 34) + "..." : n.title;
-            var itemHtml = `
-                <div class="news-item">
-                    <span class="news-source ${sourceClass}">${n.sourceName || '新聞'}</span>
-                    <a href="${n.link}" target="_blank" class="news-link">${displayTitle}</a>
-                </div>`;
-            if(index < 3) cols[0].innerHTML += itemHtml;
-            else if(index < 6) cols[1].innerHTML += itemHtml;
-            else cols[2].innerHTML += itemHtml;
-        });
-        cols.forEach(c => gridBox.appendChild(c));
-    }
-
-    // --- 時鐘 & 天氣 & 美股 ---
-    function startClock() {
-        var tEl = document.getElementById('clock-time');
-        var dEl = document.getElementById('clock-date');
-        var mEl = document.getElementById('market-timer');
-        var usEl = document.getElementById('us-market-timer');
-        
-        var days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-        
-        setInterval(function() {
-            var now = new Date();
-            var h = now.getHours(); var m = now.getMinutes(); var s = now.getSeconds();
-            tEl.innerText = (h<10?'0':'')+h + ":" + (m<10?'0':'')+m + ":" + (s<10?'0':'')+s;
-            dEl.innerText = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate() + " (" + days[now.getDay()] + ")";
-            
-            // --- 台股邏輯 ---
-            var close = new Date(now); close.setHours(13, 30, 0);
-            if (now.getDay() === 0 || now.getDay() === 6) { mEl.innerText = "休市"; }
-            else if (now > close) { mEl.innerText = "已收盤"; mEl.className = "val green"; }
-            else if (h < 9) { mEl.innerText = "盤前"; }
-            else {
-                var diff = Math.floor((close - now) / 1000);
-                var dh = Math.floor(diff / 3600); var dm = Math.floor((diff % 3600) / 60); var ds = diff % 60;
-                mEl.innerText = (dh<10?'0':'')+dh + ":" + (dm<10?'0':'')+dm + ":" + (ds<10?'0':'')+ds;
-                mEl.className = "val red";
-            }
-
-            // --- 美股邏輯 ---
-            var nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-            var nyH = nyTime.getHours();
-            var nyM = nyTime.getMinutes();
-            var nyDay = nyTime.getDay();
-
-            if (nyDay === 0 || nyDay === 6) {
-                usEl.innerText = "休市";
-                usEl.className = "val";
-            } else {
-                var nyTotalMins = nyH * 60 + nyM;
-                var openMins = 9 * 60 + 30; // 570
-                var closeMins = 16 * 60;    // 960
-
-                if (nyTotalMins >= openMins && nyTotalMins < closeMins) {
-                    usEl.innerText = "開盤中";
-                    usEl.className = "val green"; 
-                } else if (nyTotalMins < openMins) {
-                    var diffSec = (openMins * 60) - (nyH * 3600 + nyM * 60 + nyTime.getSeconds());
-                    var uh = Math.floor(diffSec / 3600);
-                    var um = Math.floor((diffSec % 3600) / 60);
-                    var us = diffSec % 60;
-                    usEl.innerText = (uh<10?'0':'')+uh + ":" + (um<10?'0':'')+um + ":" + (us<10?'0':'')+us;
-                    usEl.className = "val red"; 
-                } else {
-                    usEl.innerText = "已收盤";
-                    usEl.className = "val";
-                }
-            }
-
-        }, 1000);
-    }
-    
-    function initWeather() {
-        var saved = localStorage.getItem('my_city_setting');
-        var select = document.getElementById('city-select');
-        if(saved) select.value = saved;
-        if(select.value === 'auto') getGeoLocation();
-        else fetchWeatherBySelect();
-    }
-
-    function changeCity() {
-        var select = document.getElementById('city-select');
-        localStorage.setItem('my_city_setting', select.value);
-        if(select.value === 'auto') getGeoLocation();
-        else fetchWeatherBySelect();
-    }
-
-    function getGeoLocation() {
-        document.getElementById('weather-val').innerText = "定位...";
-        if(!navigator.geolocation) {
-            alert("不支援定位");
-            fallbackCity();
+        if (myStocks.includes(code)) {
+            alert("此股票已在清單中");
             return;
         }
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                var lat = position.coords.latitude;
-                var lon = position.coords.longitude;
-                fetchWeather(lat, lon);
-                findClosestCity(lat, lon);
-            },
-            function(error) {
-                fallbackCity();
-            }
-        );
+
+        myStocks.push(code);
+        localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
+        renderTable();
+        fetchPrice(code);
+        select.selectedIndex = 0; // 回到預設狀態
     }
-
-    function findClosestCity(userLat, userLon) {
-        var select = document.getElementById('city-select');
-        var minDistance = 9999;
-        var closestValue = "";
-
-        for (var i = 1; i < select.options.length; i++) {
-            var parts = select.options[i].value.split(',');
-            var cityLat = parseFloat(parts[0]);
-            var cityLon = parseFloat(parts[1]);
-            var dist = Math.pow(userLat - cityLat, 2) + Math.pow(userLon - cityLon, 2);
-            
-            if (dist < minDistance) {
-                minDistance = dist;
-                closestValue = select.options[i].value;
-            }
-        }
-
-        if (closestValue !== "") {
-            select.value = closestValue;
-            localStorage.setItem('my_city_setting', closestValue);
-        }
-    }
-
-    function fallbackCity() {
-        document.getElementById('weather-val').innerText = "N/A";
-        var select = document.getElementById('city-select');
-        select.value = "25.0330,121.5654,台北市"; 
-        fetchWeatherBySelect();
-    }
-
-    function fetchWeatherBySelect() {
-        var val = document.getElementById('city-select').value;
-        if(val === 'auto') return; 
-        var parts = val.split(',');
-        fetchWeather(parts[0], parts[1]);
-    }
-
-    function fetchWeather(lat, lon) {
-        document.getElementById('weather-val').innerText = "...";
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-            .then(r => r.json())
-            .then(d => { document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C"; })
-            .catch(() => { document.getElementById('weather-val').innerText = "N/A"; });
-    }
-
-    // --- 股票核心 ---
-    var myStocks = ['2330', '0050', '0056', '00878', '00919'];
-    var timerId = null;
-    var timeLeft = 25;
-    var UPDATE_INTERVAL = 25;
-    
-    try { var s = localStorage.getItem('stocks_final_v5'); if(s) myStocks = JSON.parse(s); } catch(e) {}
 
     function renderTable() {
         var tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
-        for(var i=0; i<myStocks.length; i++) {
-            var c = myStocks[i]; 
+        myStocks.forEach(c => {
             var name = stockMap[c] || c; 
-            
             var tr = document.createElement('tr');
-            var yahooLink = `https://tw.stock.yahoo.com/quote/${c}/news`;
-            var wantgooLink = `https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend`;
-            
             tr.innerHTML = `
-                <td>
-                    <b>${name}</b>
-                    <span class="stock-code-sub">(${c})</span>
-                </td>
-                <td id='prev-${c}'>...</td>
-                <td id='p-${c}'>...</td>
-                <td id='c-${c}'>...</td>
+                <td><b>${name}</b><span class="stock-code-sub">(${c})</span></td>
+                <td id='prev-${c}'>...</td><td id='p-${c}'>...</td><td id='c-${c}'>...</td>
                 <td id='pct-${c}'>...</td>
-                <td class='links'><a href="${yahooLink}" target="_blank" class="news">新聞</a><a href="${wantgooLink}" target="_blank" class="div">股利</a></td>
+                <td class='links'><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news">新聞</a><a href="https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend" target="_blank" class="div">股利</a></td>
                 <td><button onclick='removeStock("${c}")' class='del-btn'>✖</button></td>`;
             tbody.appendChild(tr);
-        }
-    }
-
-    // 新增: 手動更新函式
-    function manualUpdate() {
-        updateAll();
-        // 重置倒數時間
-        timeLeft = UPDATE_INTERVAL;
-        var textEl = document.getElementById('countdown-text');
-        if(textEl) textEl.innerText = timeLeft;
-    }
-
-    function updateAll() {
-        document.getElementById('last-update-time').innerText = "更新中...";
-        document.getElementById('countdown-text').innerText = "↻";
-        for(var i=0; i<myStocks.length; i++) fetchPrice(myStocks[i]);
-        fetchNews();
-        setTimeout(function(){ 
-            document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
-        }, 1500);
-    }
-
-    function fetchPrice(code) {
-        var pEl = document.getElementById("p-"+code); var cEl = document.getElementById("c-"+code);
-        var prevEl = document.getElementById("prev-"+code); var pctEl = document.getElementById("pct-"+code);
-        if(!pEl) return;
-
-        var t = new Date().getTime();
-        var url = "https://corsproxy.io/?" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/"+code+".TW?interval=1d&_="+t);
-        
-        fetch(url).then(r => r.json()).then(d => {
-            var m = d.chart.result[0].meta; 
-            var p = m.regularMarketPrice; 
-            var prev = m.chartPreviousClose; 
-            var chg = p - prev; 
-            var pct = (chg / prev) * 100; 
-
-            prevEl.innerText = prev.toFixed(2);
-            pEl.innerText = p.toFixed(2);
-            
-            var color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "black");
-            var sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-
-            pEl.style.color = color;
-            cEl.style.color = color;
-            cEl.innerText = sign + " " + Math.abs(chg).toFixed(2);
-            
-            pctEl.style.color = color;
-            pctEl.innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%";
-        }).catch(() => { 
-            if(pEl.innerText === "...") pEl.innerText = "Err"; 
         });
     }
 
+    function fetchPrice(code) {
+        var t = new Date().getTime();
+        var url = "https://corsproxy.io/?" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/"+code+".TW?interval=1d&_="+t);
+        fetch(url).then(r => r.json()).then(d => {
+            var m = d.chart.result[0].meta; 
+            var p = m.regularMarketPrice, prev = m.chartPreviousClose, chg = p - prev, pct = (chg / prev) * 100; 
+            document.getElementById("prev-"+code).innerText = prev.toFixed(2);
+            var pEl = document.getElementById("p-"+code); pEl.innerText = p.toFixed(2);
+            var cEl = document.getElementById("c-"+code);
+            var color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "black");
+            pEl.style.color = color; cEl.style.color = color;
+            cEl.innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2);
+            var pctEl = document.getElementById("pct-"+code); pctEl.style.color = color;
+            pctEl.innerText = (chg > 0 ? "+" : "") + pct.toFixed(2) + "%";
+        }).catch(() => {});
+    }
+
+    function removeStock(code) {
+        if(!confirm("刪除?")) return;
+        myStocks = myStocks.filter(s => s !== code);
+        localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
+        renderTable();
+    }
+
+    function manualUpdate() { updateAll(); timeLeft = 25; }
+    function updateAll() { 
+        myStocks.forEach(fetchPrice); fetchNews(); 
+        document.getElementById('last-update-time').innerText = "最後更新: " + new Date().toLocaleTimeString(); 
+    }
+
+    var timeLeft = 25;
     function startTimer() {
-        var textEl = document.getElementById('countdown-text');
-        if(timerId) clearInterval(timerId);
-        timerId = setInterval(function() {
-            timeLeft--;
-            if(timeLeft > 0) textEl.innerText = (timeLeft < 10 ? "0" : "") + timeLeft; 
-            else { updateAll(); timeLeft = UPDATE_INTERVAL; textEl.innerText = UPDATE_INTERVAL; }
+        setInterval(() => {
+            if (timeLeft <= 0) { updateAll(); timeLeft = 25; }
+            document.getElementById('countdown-text').innerText = timeLeft--;
         }, 1000);
     }
-    
-    function addStock() {
-        var inp = document.getElementById('stock-input'); var code = inp.value.trim().toUpperCase(); if(!code) return;
-        myStocks.push(code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
-        renderTable(); fetchPrice(code); inp.value = '';
-    }
-    function removeStock(code) {
-        if(!confirm("刪除?")) return; var temp = [];
-        for(var i=0; i<myStocks.length; i++) if(myStocks[i]!==code) temp.push(myStocks[i]);
-        myStocks = temp; localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); renderTable();
+
+    function startClock() {
+        setInterval(() => {
+            var now = new Date();
+            document.getElementById('clock-time').innerText = now.toLocaleTimeString();
+            document.getElementById('clock-date').innerText = now.toLocaleDateString();
+            
+            // 台股倒數
+            var close = new Date(now); close.setHours(13, 30, 0);
+            if (now.getDay() === 0 || now.getDay() === 6) document.getElementById('market-timer').innerText = "休市";
+            else if (now > close) document.getElementById('market-timer').innerText = "已收盤";
+            else {
+                var diff = Math.floor((close - now) / 1000);
+                document.getElementById('market-timer').innerText = Math.floor(diff/3600)+":"+Math.floor((diff%3600)/60)+":"+(diff%60);
+            }
+
+            // 美股倒數 (紐約時間)
+            var ny = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+            var nyH = ny.getHours(), nyM = ny.getMinutes();
+            if (nyH >= 9 && (nyH < 16 || (nyH === 16 && nyM === 0))) document.getElementById('us-market-timer').innerText = "開盤中";
+            else document.getElementById('us-market-timer').innerText = "未開盤";
+        }, 1000);
     }
 
-    try { startClock(); initWeather(); app.loadLogo(); renderTable(); updateAll(); startTimer(); initAutoSuggest(); } catch(e) { console.error(e); }
+    function fetchNews() {
+        fetch('https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
+        .then(r => r.json()).then(data => {
+            const grid = document.getElementById('news-grid-box'); grid.innerHTML = '';
+            data.items.slice(0, 9).forEach(n => {
+                grid.innerHTML += `<div class="news-item"><span class="news-source">Google</span><a href="${n.link}" target="_blank" class="news-link">${n.title}</a></div>`;
+            });
+        });
+    }
+
+    // 天氣
+    function fetchWeather(lat, lon) {
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C");
+    }
+    function changeCity() { 
+        var v = document.getElementById('city-select-top').value; 
+        if(v!=='auto') fetchWeather(v.split(',')[0], v.split(',')[1]); 
+    }
+
+    window.onload = () => {
+        app.loadLogo(); renderTable(); updateAll(); startTimer(); startClock(); initSelectSuggestions();
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude));
+    };
 </script>
-
 </body>
 </html>
