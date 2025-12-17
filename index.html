@@ -15,7 +15,7 @@
             padding: 12px; 
             border-radius: 8px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-            position: relative; /* 讓右上角計時器可以定位 */
+            position: relative; 
         }
         
         #error-console { background: #2c3e50; color: #f1c40f; padding: 8px; margin-bottom: 10px; font-size: 12px; border-radius: 4px; display: none; }
@@ -42,7 +42,7 @@
             align-items: center; 
             margin-bottom: 8px; 
             gap: 10px;
-            margin-top: 25px; /* 避開右上角計時器 */
+            margin-top: 25px; 
         }
         
         .mascot-container {
@@ -65,18 +65,25 @@
         .sub-info { 
             font-size: 13px; color: #aaa; line-height: 1.2; 
             display: flex; 
-            justify-content: flex-end; /* 靠右對齊，切齊標題 */
+            justify-content: flex-end; 
             width: 100%; 
         }
 
         .analyst-highlight {
-            font-size: 15px; /* 字體放大 */
+            font-size: 15px; 
             font-weight: bold;
             color: #555; 
         }
         
-        /* --- 儀表板 --- */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-bottom: 8px; }
+        /* --- 儀表板 (修改重點: 改為4欄) --- */
+        .dashboard { 
+            display: grid; 
+            /* 修改: 這裡改成 4 個 1fr */
+            grid-template-columns: 1fr 1fr 1fr 1fr; 
+            gap: 2px; 
+            margin-bottom: 8px; 
+        }
+        
         .card { background: #f8f9fa; padding: 4px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 1px; color: #888; font-size: 11px; font-weight: normal; }
         .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
@@ -103,13 +110,18 @@
         .news-link { text-decoration: none; color: #202124; font-size: 13px; line-height: 1.3; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .news-link:hover { color: #1a73e8; text-decoration: underline; }
         .backup-link { color: #666; font-style: italic; }
+        
+        /* 修改: 手機版改為 2x2 */
         @media (max-width: 600px) {
             .news-grid { grid-template-columns: 1fr; gap: 0; }
             .news-column { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 5px; }
             .news-column:last-child { border-bottom: none; margin-bottom: 0; }
+            
+            /* 儀表板變兩欄 */
+            .dashboard { grid-template-columns: 1fr 1fr; gap: 5px; }
         }
 
-        /* --- 輸入區 (獨立灰底) --- */
+        /* --- 輸入區 --- */
         .input-area { 
             background-color: #f1f3f4; 
             padding: 10px 15px; 
@@ -144,12 +156,11 @@
         }
         #add-btn:hover { background: #27ae60; }
         
-        /* --- 股票表格 (優化寬度) --- */
+        /* --- 股票表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th { padding: 3px 4px; background: #f8f9fa; color: #888; font-weight: normal; border-bottom: 1px solid #ddd; font-size: 12px; }
         td { padding: 4px 4px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
-        /* 總和 100% */
         th:nth-child(1), td:nth-child(1) { width: 15%; text-align: left; line-height: 1.1; }
         th:nth-child(2), td:nth-child(2) { width: 17%; text-align: right; color: #666; }
         th:nth-child(3), td:nth-child(3) { width: 19%; text-align: right; font-weight: bold; }
@@ -200,6 +211,13 @@
             <div class="val" id="market-timer">--:--:--</div>
             <div class="sub">13:30 收盤</div>
         </div>
+        
+        <div class="card">
+            <h4>美股開盤</h4>
+            <div class="val" id="us-market-timer">--:--:--</div>
+            <div class="sub">21:30/22:30</div>
+        </div>
+
         <div class="card">
             <h4>天氣</h4>
             <div class="val" id="weather-val">--°C</div>
@@ -257,7 +275,6 @@
 </div>
 
 <script>
-    // --- 內建股票代號與名稱對照表 (大幅擴充版) ---
     const stockMap = {
         // === 熱門 ETF ===
         '0050': '元大台灣50', '0056': '元大高股息', '00878': '國泰永續高股息', 
@@ -383,17 +400,24 @@
         cols.forEach(c => gridBox.appendChild(c));
     }
 
-    // --- 時鐘 & 天氣 ---
+    // --- 時鐘 & 天氣 & 美股 ---
     function startClock() {
         var tEl = document.getElementById('clock-time');
         var dEl = document.getElementById('clock-date');
         var mEl = document.getElementById('market-timer');
+        
+        // 新增美股元素
+        var usEl = document.getElementById('us-market-timer');
+        
         var days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        
         setInterval(function() {
             var now = new Date();
             var h = now.getHours(); var m = now.getMinutes(); var s = now.getSeconds();
             tEl.innerText = (h<10?'0':'')+h + ":" + (m<10?'0':'')+m + ":" + (s<10?'0':'')+s;
             dEl.innerText = now.getFullYear() + "/" + (now.getMonth()+1) + "/" + now.getDate() + " (" + days[now.getDay()] + ")";
+            
+            // --- 台股邏輯 ---
             var close = new Date(now); close.setHours(13, 30, 0);
             if (now.getDay() === 0 || now.getDay() === 6) { mEl.innerText = "休市"; }
             else if (now > close) { mEl.innerText = "已收盤"; mEl.className = "val green"; }
@@ -404,6 +428,40 @@
                 mEl.innerText = (dh<10?'0':'')+dh + ":" + (dm<10?'0':'')+dm + ":" + (ds<10?'0':'')+ds;
                 mEl.className = "val red";
             }
+
+            // --- 美股邏輯 (簡易版：9:30-16:00 ET) ---
+            // 取得紐約時間字串
+            var nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+            var nyH = nyTime.getHours();
+            var nyM = nyTime.getMinutes();
+            var nyDay = nyTime.getDay();
+
+            if (nyDay === 0 || nyDay === 6) {
+                usEl.innerText = "休市";
+                usEl.className = "val";
+            } else {
+                // 美股開盤 9:30 - 16:00
+                var nyTotalMins = nyH * 60 + nyM;
+                var openMins = 9 * 60 + 30; // 570
+                var closeMins = 16 * 60;    // 960
+
+                if (nyTotalMins >= openMins && nyTotalMins < closeMins) {
+                    usEl.innerText = "開盤中";
+                    usEl.className = "val green"; // 開盤顯示綠色
+                } else if (nyTotalMins < openMins) {
+                    // 盤前倒數
+                    var diffSec = (openMins * 60) - (nyH * 3600 + nyM * 60 + nyTime.getSeconds());
+                    var uh = Math.floor(diffSec / 3600);
+                    var um = Math.floor((diffSec % 3600) / 60);
+                    var us = diffSec % 60;
+                    usEl.innerText = (uh<10?'0':'')+uh + ":" + (um<10?'0':'')+um + ":" + (us<10?'0':'')+us;
+                    usEl.className = "val red"; // 倒數顯示紅色
+                } else {
+                    usEl.innerText = "已收盤";
+                    usEl.className = "val";
+                }
+            }
+
         }, 1000);
     }
     
