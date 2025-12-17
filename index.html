@@ -131,6 +131,7 @@
         dynamicStockMap[code] = name;
         localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
         addStock(code);
+        document.getElementById('search-results').style.display = 'none';
     }
 
     function addStock(code) {
@@ -143,7 +144,6 @@
             renderTable(); fetchPrice(finalCode);
         }
         document.getElementById('stock-input').value = '';
-        document.getElementById('search-results').style.display = 'none';
     }
 
     function renderTable() {
@@ -214,10 +214,12 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // 強力刷新與深度過濾
     async function fetchNews() {
         const timestamp = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒"];
+        // 鎖定黑名單：包含 newtalk 相關
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒"];
+        
+        // 雙新聞源 + 多元化來源 (中時、東森等)
         const gUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
         const yUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${timestamp}`;
 
@@ -225,6 +227,7 @@
             const [gRes, yRes] = await Promise.all([fetch(gUrl), fetch(yUrl)]);
             const gData = await gRes.json();
             const yData = await yRes.json();
+            // 抓取更大樣本量 (80 則)
             let combined = (gData.items || []).concat(yData.items || []);
 
             const filtered = combined.filter(item => {
@@ -236,11 +239,11 @@
             const container = document.getElementById('news-list-container'); 
             container.innerHTML = '';
             
-            // 擴大樣本後取前 9 則，確保塞滿
+            // 確保塞滿 9 則
             unique.slice(0, 9).forEach(n => { 
                 container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
             });
-        } catch (e) { console.error("新聞抓取失敗"); }
+        } catch (e) { console.error("新聞刷新失敗"); }
     }
 
     function getAutoWeather() {
