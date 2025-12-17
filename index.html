@@ -5,116 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>黑寶站長股票看板</title>
     <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-sub: #a0a0a0;
-            --accent: #bb86fc;
-            --up-color: #ff5252;
-            --down-color: #03dac6;
-            --border-radius: 12px;
-        }
-
         body {
-            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background-color: #f4f4f4; /* 淺灰白背景 */
+            color: #333; /* 深黑文字 */
             margin: 0;
             padding: 20px;
-            display: flex;
-            justify-content: center;
         }
 
         .container {
-            width: 100%;
             max-width: 1000px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        /* 頂部資訊列 */
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
+            margin: 0 auto;
+            background-color: #fff; /* 主內容白底 */
             padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            flex-wrap: wrap;
-            gap: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        .header-title h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* 移除原本的副標題文字，保持乾淨 */
-        
-        .weather-widget {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.05);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            min-width: 120px;
-            justify-content: center;
-        }
-
-        /* 股價儀表板 */
-        .stock-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-        }
-
-        .stock-card {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: var(--border-radius);
+        /* 標題區塊 */
+        .header {
             text-align: center;
-            border: 1px solid #333;
-            transition: transform 0.2s, border-color 0.2s;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
         }
 
-        .stock-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
+        .header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+
+        /* 天氣與定位 */
+        .weather-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+            background-color: #e8f4fc;
+            padding: 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* 股價看板 */
+        .stock-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stock-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .stock-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .stock-name {
-            font-size: 0.9rem;
-            color: var(--text-sub);
+            font-size: 0.9em;
+            color: #666;
             margin-bottom: 5px;
         }
 
         .stock-price {
-            font-size: 1.4rem;
+            font-size: 1.4em;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
-        .stock-change {
-            font-size: 0.9rem;
-        }
-
-        .up { color: var(--up-color); }
-        .down { color: var(--down-color); }
+        .up { color: #e74c3c; } /* 漲：紅 */
+        .down { color: #27ae60; } /* 跌：綠 */
+        .neutral { color: #7f8c8d; }
 
         /* 新聞區塊 */
         .news-section {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: var(--border-radius);
+            margin-top: 20px;
         }
 
         .news-header {
@@ -122,43 +96,40 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            border-left: 5px solid #3498db; /* 藍色裝飾線 */
+            padding-left: 10px;
         }
 
         .news-header h3 {
             margin: 0;
-            color: var(--text-main);
-        }
-        
-        .refresh-timer {
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            background: rgba(255,255,255,0.05);
-            padding: 4px 10px;
-            border-radius: 4px;
+            color: #2c3e50;
         }
 
-        .timer-count {
-            color: var(--accent);
+        .timer {
+            font-size: 0.9em;
+            color: #e67e22; /* 橘色倒數 */
             font-weight: bold;
-            font-family: monospace;
-            font-size: 1rem;
         }
 
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 兩欄排列 */
+            gap: 20px;
+        }
+
+        .news-category {
+            background-color: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
 
         .news-category h4 {
-            color: var(--accent);
             margin-top: 0;
-            margin-bottom: 12px;
-            font-size: 1.15rem;
-            border-left: 3px solid var(--accent);
-            padding-left: 10px;
+            color: #3498db;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .news-list {
@@ -168,41 +139,34 @@
         }
 
         .news-list li {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
             display: flex;
-            align-items: baseline;
         }
 
         .news-list li:last-child {
             border-bottom: none;
         }
 
-        .news-time {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            margin-right: 10px;
+        .time-tag {
+            color: #999;
+            font-size: 0.85em;
+            margin-right: 8px;
             min-width: 40px;
         }
 
         .news-link {
             text-decoration: none;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            transition: color 0.2s;
-            line-height: 1.4;
+            color: #333;
+            font-size: 0.95em;
         }
 
         .news-link:hover {
-            color: var(--accent);
+            color: #3498db;
+            text-decoration: underline;
         }
 
         @media (max-width: 600px) {
-            .header-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
             .news-grid {
                 grid-template-columns: 1fr;
             }
@@ -211,192 +175,191 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="header-section">
-            <div class="header-title">
-                <h2>📊 黑寶站長股票看板</h2>
-            </div>
-            
-            <div class="weather-widget" id="weather-box">
-                <span>📍 定位中...</span>
-            </div>
-        </div>
-
-        <div class="stock-grid" id="stock-container">
-            </div>
-
-        <div class="news-section">
-            <div class="news-header">
-                <h3>📰 綜合新聞快訊</h3>
-                <span class="refresh-timer">
-                    <span id="timer-count" class="timer-count">25</span> 秒後更新
-                </span>
-            </div>
-            <div class="news-grid" id="news-container">
-                </div>
+<div class="container">
+    <div class="header">
+        <h2>📊 黑寶站長股票看板</h2>
+        <div class="weather-info" id="weather-box">
+            📍 定位中，請稍候...
         </div>
     </div>
 
-    <script>
-        // --- 1. 股票數據 (初始數據) ---
-        let stocks = [
-            { id: '2330', name: '台積電', price: 1080, change: 15, pct: 1.41 },
-            { id: '2317', name: '鴻海', price: 212.5, change: -1.5, pct: -0.70 },
-            { id: '2454', name: '聯發科', price: 1380, change: 20, pct: 1.47 },
-            { id: '0050', name: '元大台灣50', price: 188.6, change: 1.2, pct: 0.64 },
-            { id: '^USDTWD', name: '美元/台幣', price: 32.45, change: 0.05, pct: 0.15 }
-        ];
+    <div class="stock-panel" id="stock-container">
+        </div>
 
-        // 模擬股價跳動
-        function updateStockPrices() {
-            stocks = stocks.map(stock => {
-                const fluctuation = (Math.random() - 0.5) * 2; // -1 to 1
-                const newPrice = Number((stock.price + fluctuation).toFixed(2));
-                const newChange = Number((stock.change + fluctuation).toFixed(2));
-                return { ...stock, price: newPrice, change: newChange };
-            });
-            renderStocks();
-        }
-
-        function renderStocks() {
-            const container = document.getElementById('stock-container');
-            let html = '';
-            
-            stocks.forEach(stock => {
-                const isUp = stock.change > 0;
-                const colorClass = isUp ? 'up' : 'down';
-                const sign = isUp ? '+' : '';
-                const arrow = isUp ? '▲' : '▼';
-                
-                html += `
-                <div class="stock-card">
-                    <div class="stock-name">${stock.name} ${stock.id}</div>
-                    <div class="stock-price ${colorClass}">${stock.price.toFixed(2)}</div>
-                    <div class="stock-change ${colorClass}">
-                        ${arrow} ${sign}${stock.change.toFixed(2)} (${sign}${stock.pct}%)
-                    </div>
-                </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // --- 2. 新聞數據 ---
-        const newsData = [
-            {
-                category: "國際財經",
-                items: [
-                    { time: "14:30", title: "聯準會暗示降息訊號，美股期貨盤前走揚" },
-                    { time: "13:50", title: "比特幣突破新高點，加密貨幣市場熱絡" },
-                    { time: "12:15", title: "日圓匯率持續震盪，日本央行密切關注" }
-                ]
-            },
-            {
-                category: "台股動態",
-                items: [
-                    { time: "14:45", title: "台積電尾盤爆量，大盤站穩 23000 點" },
-                    { time: "14:10", title: "外資今日買超 150 億，三大法人同步做多" },
-                    { time: "13:30", title: "AI 供應鏈續強，廣達、緯創漲幅亮眼" }
-                ]
-            },
-            {
-                category: "社會焦點",
-                items: [
-                    { time: "11:20", title: "捷運新線年底有望通車，交通部進行履勘" },
-                    { time: "10:45", title: "流感疫苗開打，疾管署呼籲民眾踴躍接種" },
-                    { time: "09:30", title: "基本工資審議結果出爐，明年調漲 4.5%" }
-                ]
-            },
-            {
-                category: "生活消費",
-                items: [
-                    { time: "12:00", title: "週末鋒面接近，全台轉雨氣溫驟降" },
-                    { time: "11:30", title: "連鎖咖啡買一送一，民眾排隊搶優惠" },
-                    { time: "10:15", title: "東京旅遊攻略：2025 必去新景點懶人包" }
-                ]
-            }
-        ];
-
-        function renderNews() {
-            const container = document.getElementById('news-container');
-            let html = '';
-            
-            newsData.forEach(cat => {
-                let listHtml = '';
-                cat.items.forEach(item => {
-                    listHtml += `
-                        <li>
-                            <span class="news-time">${item.time}</span>
-                            <a href="#" class="news-link">${item.title}</a>
-                        </li>
-                    `;
-                });
-
-                html += `
-                    <div class="news-category">
-                        <h4>${cat.category}</h4>
-                        <ul class="news-list">
-                            ${listHtml}
-                        </ul>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // --- 3. 自動定位與天氣 ---
-        function initWeather() {
-            const weatherBox = document.getElementById('weather-box');
-            
-            if (!navigator.geolocation) {
-                weatherBox.innerHTML = '<span>❌ 不支援定位</span>';
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const temp = Math.floor(Math.random() * (32 - 24) + 24); 
-                    const conditions = ['☀️ 晴朗', '☁️ 多雲', '🌧️ 短暫雨'];
-                    const cond = conditions[Math.floor(Math.random() * conditions.length)];
-                    weatherBox.innerHTML = `<span>${cond} ${temp}°C (已定位)</span>`;
-                },
-                (error) => {
-                    let msg = '無法取得位置';
-                    if (error.code === 1) msg = '📍 需允許定位權限'; 
-                    weatherBox.innerHTML = `<span>${msg}</span>`;
-                }
-            );
-        }
-
-        // --- 4. 倒數計時器 (修改點 2 & 3) ---
-        let countdown = 25; // 設定 25 秒
+    <div class="news-section">
+        <div class="news-header">
+            <h3>📰 即時新聞快訊</h3>
+            <span class="timer"><span id="countdown">25</span>秒後更新</span>
+        </div>
         
-        function startTimer() {
-            const timerElement = document.getElementById('timer-count');
-            
-            setInterval(() => {
-                countdown--;
-                timerElement.innerText = countdown;
+        <div class="news-grid" id="news-container">
+            </div>
+    </div>
+</div>
 
-                if (countdown <= 0) {
-                    // 時間到：刷新數據
-                    updateStockPrices();
-                    // 模擬新聞時間更新 (可選)
-                    // 重置倒數
-                    countdown = 25;
-                    timerElement.innerText = countdown;
-                }
-            }, 1000);
+<script>
+    // --- 1. 股票數據 ---
+    let stocks = [
+        { id: '2330', name: '台積電', price: 1080, change: 15, pct: 1.41 },
+        { id: '2317', name: '鴻海', price: 212.5, change: -1.5, pct: -0.70 },
+        { id: '2454', name: '聯發科', price: 1380, change: 20, pct: 1.47 },
+        { id: '0050', name: '元大台灣50', price: 188.6, change: 1.2, pct: 0.64 },
+        { id: '^USDTWD', name: '美元/台幣', price: 32.45, change: 0.05, pct: 0.15 }
+    ];
+
+    function renderStocks() {
+        const container = document.getElementById('stock-container');
+        let html = '';
+        
+        stocks.forEach(stock => {
+            const isUp = stock.change > 0;
+            const colorClass = isUp ? 'up' : 'down';
+            const sign = isUp ? '+' : '';
+            const arrow = isUp ? '▲' : '▼';
+            
+            html += `
+            <div class="stock-item">
+                <div class="stock-name">${stock.name} ${stock.id}</div>
+                <div class="stock-price ${colorClass}">${stock.price.toFixed(2)}</div>
+                <div style="font-size: 0.9em; color: ${isUp ? '#e74c3c' : '#27ae60'}">
+                    ${arrow} ${sign}${stock.change.toFixed(2)} (${sign}${stock.pct}%)
+                </div>
+            </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateStockPrices() {
+        stocks = stocks.map(stock => {
+            const fluctuation = (Math.random() - 0.5) * 2;
+            const newPrice = Number((stock.price + fluctuation).toFixed(2));
+            const newChange = Number((stock.change + fluctuation).toFixed(2));
+            return { ...stock, price: newPrice, change: newChange };
+        });
+        renderStocks();
+    }
+
+    // --- 2. 新聞數據 (四大分類) ---
+    const newsData = [
+        {
+            category: "國際財經",
+            items: [
+                { time: "14:30", title: "聯準會暗示降息訊號，美股期貨盤前走揚" },
+                { time: "13:50", title: "比特幣突破新高點，加密貨幣市場熱絡" },
+                { time: "12:15", title: "日圓匯率持續震盪，日本央行密切關注" }
+            ]
+        },
+        {
+            category: "台股動態",
+            items: [
+                { time: "14:45", title: "台積電尾盤爆量，大盤站穩 23000 點" },
+                { time: "14:10", title: "外資今日買超 150 億，三大法人同步做多" },
+                { time: "13:30", title: "AI 供應鏈續強，廣達、緯創漲幅亮眼" }
+            ]
+        },
+        {
+            category: "社會焦點",
+            items: [
+                { time: "11:20", title: "捷運新線年底有望通車，交通部進行履勘" },
+                { time: "10:45", title: "流感疫苗開打，疾管署呼籲民眾踴躍接種" },
+                { time: "09:30", title: "基本工資審議結果出爐，明年調漲 4.5%" }
+            ]
+        },
+        {
+            category: "生活消費",
+            items: [
+                { time: "12:00", title: "週末鋒面接近，全台轉雨氣溫驟降" },
+                { time: "11:30", title: "連鎖咖啡買一送一，民眾排隊搶優惠" },
+                { time: "10:15", title: "東京旅遊攻略：2025 必去新景點懶人包" }
+            ]
+        }
+    ];
+
+    function renderNews() {
+        const container = document.getElementById('news-container');
+        let html = '';
+        
+        newsData.forEach(cat => {
+            let listHtml = '';
+            cat.items.forEach(item => {
+                listHtml += `
+                    <li>
+                        <span class="time-tag">${item.time}</span>
+                        <a href="#" class="news-link">${item.title}</a>
+                    </li>
+                `;
+            });
+
+            html += `
+                <div class="news-category">
+                    <h4>${cat.category}</h4>
+                    <ul class="news-list">
+                        ${listHtml}
+                    </ul>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // --- 3. 自動定位 ---
+    function initWeather() {
+        const weatherBox = document.getElementById('weather-box');
+        
+        if (!navigator.geolocation) {
+            weatherBox.innerHTML = '❌ 您的瀏覽器不支援定位功能';
+            return;
         }
 
-        // --- 初始化 ---
-        window.onload = function() {
-            renderStocks();
-            renderNews();
-            initWeather();
-            startTimer(); // 啟動倒數
-        };
+        // 頁面載入後自動詢問
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // 成功取得定位 (模擬天氣)
+                const temp = Math.floor(Math.random() * (32 - 24) + 24); 
+                const conditions = ['☀️ 晴朗', '☁️ 多雲', '🌧️ 短暫雨'];
+                const cond = conditions[Math.floor(Math.random() * conditions.length)];
+                
+                weatherBox.innerHTML = `📍 已定位：台北市 (${cond} ${temp}°C)`;
+                weatherBox.style.backgroundColor = "#e8f8f5"; // 成功變綠色系底
+                weatherBox.style.color = "#27ae60";
+            },
+            (error) => {
+                // 失敗或拒絕
+                console.error("定位失敗:", error);
+                weatherBox.innerHTML = '⚠️ 無法取得位置 (請允許定位權限)';
+                weatherBox.style.backgroundColor = "#fdedec"; // 失敗變紅色系底
+            }
+        );
+    }
 
-    </script>
+    // --- 4. 25秒倒數計時器 ---
+    let timeLeft = 25; // 修改 3: 25秒
+    function startTimer() {
+        const timerElem = document.getElementById('countdown');
+        
+        setInterval(() => {
+            timeLeft--;
+            timerElem.innerText = timeLeft;
+            
+            if (timeLeft <= 0) {
+                // 時間到：更新數據
+                updateStockPrices();
+                // 重置
+                timeLeft = 25;
+                timerElem.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    // --- 初始化 ---
+    window.onload = function() {
+        renderStocks();
+        renderNews();
+        initWeather(); // 智慧定位跳轉 (自動執行)
+        startTimer();
+    };
+</script>
+
 </body>
 </html>
