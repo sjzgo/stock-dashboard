@@ -63,11 +63,19 @@
             .news-column:last-child { border-bottom: none; margin-bottom: 0; }
         }
 
-        /* --- 輸入區 --- */
+        /* --- 輸入區 (修改重點) --- */
         .input-area { 
-            margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee; 
+            /* 1. 增加上方的距離 (margin-top) */
+            margin-top: 25px;
+            /* 2. 增加內部的距離 (padding-top) */
+            padding-top: 15px;
+            /* 3. 加入一條虛線做明顯區隔 */
+            border-top: 2px dashed #ddd;
+            
+            margin-bottom: 15px; 
             display: flex; align-items: center; gap: 5px; justify-content: flex-start; 
         }
+
         #stock-input { width: 120px; flex: none; padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
         #add-btn { 
             padding: 5px 12px; cursor: pointer; border: none; border-radius: 4px; 
