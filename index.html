@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 - 權威淨化整合版</title>
+    <title>📊 喵喵站長股票看板</title>
     <style>
+        /* 100% 基準原始版 CSS */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
+        
         .top-right-timer { position: absolute; top: 12px; right: 15px; font-size: 12px; color: #888; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; }
         .top-left-weather { position: absolute; top: 12px; left: 15px; font-size: 12px; color: #555; background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; z-index: 10; display: flex; align-items: center; gap: 6px; }
         #weather-val { font-weight: bold; color: #2980b9; }
         #countdown-text { color: #e74c3c; font-weight: bold; margin: 0 2px; }
+
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; margin-top: 45px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; top: -2px; background: #f0f0f0; flex-shrink: 0; position: relative; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         .header-text h2 { margin: 0 0 4px 0; font-size: 1.4rem; line-height: 1.2; white-space: nowrap; }
+        
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-bottom: 8px; }
         .card { background: #f8f9fa; padding: 4px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 1px; color: #888; font-size: 11px; }
         .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
+
         .input-area { background-color: #f1f3f4; padding: 10px 15px; border-radius: 8px; margin: 20px 0 15px; display: flex; align-items: center; gap: 10px; position: relative; }
         #stock-input { width: 180px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; }
         #search-results { position: absolute; top: 45px; left: 15px; width: 260px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; max-height: 250px; overflow-y: auto; }
         .search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
         .search-item:hover { background-color: #ebf5ff; }
+
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; border-spacing: 0; }
         th, td { padding: 6px 0; border-bottom: 1px solid #eee; vertical-align: middle; }
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; white-space: normal; line-height: 1.1; }
@@ -33,10 +39,12 @@
         th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
         th:nth-child(6), td:nth-child(6) { width: 19%; text-align: center; }
         th:nth-child(7), td:nth-child(7) { width: 5%; text-align: center; }
+
         .links { display: flex; justify-content: center; gap: 1px; }
         .links a { text-decoration: none; color: white; padding: 2px 3px; border-radius: 3px; font-size: 10px; flex-shrink: 0; line-height: 1; cursor: pointer; }
         .news { background: #e67e22; } .div { background: #2c3e50; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0; }
+
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; background: white; }
         .news-item { font-size: 13px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; width: 100%; display: block; }
         .news-item a { text-decoration: none; color: #202124; line-height: 1.4; display: block; }
@@ -80,7 +88,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入代號/名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button onclick="addStock()">＋ 新增</button>
     </div>
@@ -93,7 +101,7 @@
     <div style="text-align:center; margin:10px 0;"><button style="background:#3498db;color:white;border:none;padding:5px 15px;border-radius:15px;cursor:pointer;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 純淨新聞整合 (已過濾所有指定媒體)</div>
+        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -131,7 +139,6 @@
         dynamicStockMap[code] = name;
         localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
         addStock(code);
-        document.getElementById('search-results').style.display = 'none';
     }
 
     function addStock(code) {
@@ -144,6 +151,7 @@
             renderTable(); fetchPrice(finalCode);
         }
         document.getElementById('stock-input').value = '';
+        document.getElementById('search-results').style.display = 'none';
     }
 
     function renderTable() {
@@ -214,38 +222,27 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 強化黑名單新聞抓取：雙來源 + 深度過濾 ---
     async function fetchNews() {
         const timestamp = new Date().getTime();
-        // 更新後的深度黑名單
-        const blacklist = [
-            "三立", "民視", "自由時報", "SETN", "FTV", "LTN", 
-            "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", 
-            "鏡新聞", "Mirror", "上報", "Up Media", "芋傳媒", "TaroNews"
-        ];
-        
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒"];
         const gUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
         const yUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${timestamp}`;
-
         try {
             const [gRes, yRes] = await Promise.all([fetch(gUrl), fetch(yUrl)]);
             const gData = await gRes.json();
             const yData = await yRes.json();
             let combined = (gData.items || []).concat(yData.items || []);
-
             const filtered = combined.filter(item => {
                 const text = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
                 return !blacklist.some(b => text.includes(b.toLowerCase()));
             });
-
             const unique = Array.from(new Set(filtered.map(a => a.title))).map(t => filtered.find(a => a.title === t));
-
             const container = document.getElementById('news-list-container'); 
             container.innerHTML = '';
             unique.slice(0, 9).forEach(n => { 
                 container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
             });
-        } catch (e) { console.error("新聞更新失敗"); }
+        } catch (e) { console.error("新聞抓取失敗"); }
     }
 
     function getAutoWeather() {
