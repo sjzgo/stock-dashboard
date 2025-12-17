@@ -47,25 +47,26 @@
         .refresh-bar { text-align: center; margin: 8px 0; }
         .refresh-btn { background-color: #3498db; color: white; border: none; padding: 4px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* --- 修正後的表格寬度分配 --- */
+        /* --- 修正表格寬度分配 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th, td { padding: 4px 2px; border-bottom: 1px solid #eee; vertical-align: middle; white-space: nowrap; overflow: hidden; }
+        th, td { padding: 4px 1px; border-bottom: 1px solid #eee; vertical-align: middle; white-space: nowrap; overflow: hidden; }
         
-        th:nth-child(1), td:nth-child(1) { width: 22%; text-align: left; } /* 名稱 */
-        th:nth-child(2), td:nth-child(2) { width: 12%; text-align: right; } /* 昨收 */
-        th:nth-child(3), td:nth-child(3) { width: 12%; text-align: right; font-weight: bold; } /* 現價 */
-        th:nth-child(4), td:nth-child(4) { width: 15%; text-align: right; } /* 漲跌 */
-        th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; } /* 幅度% */
-        th:nth-child(6), td:nth-child(6) { width: 18%; text-align: center; } /* 資訊(按鈕) */
-        th:nth-child(7), td:nth-child(7) { width: 6%; text-align: center; } /* 刪除 */
+        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; } /* 名稱稍微縮小 */
+        th:nth-child(2), td:nth-child(2) { width: 10%; text-align: right; } /* 昨收往左挪空間 */
+        th:nth-child(3), td:nth-child(3) { width: 15%; text-align: right; font-weight: bold; } /* 現價加大避免切到小數 */
+        th:nth-child(4), td:nth-child(4) { width: 14%; text-align: right; } /* 漲跌 */
+        th:nth-child(5), td:nth-child(5) { width: 14%; text-align: right; } /* 幅度% */
+        th:nth-child(6), td:nth-child(6) { width: 23%; text-align: center; } /* 資訊(按鈕)挪大點 */
+        th:nth-child(7), td:nth-child(7) { width: 4%; text-align: center; padding: 0; } /* 刪除欄極致縮小 */
 
         .stock-code-sub { font-size: 10px; color: #888; display: block; }
         
         /* 縮小資訊按鈕以避免重疊 */
         .links { display: flex; justify-content: center; gap: 2px; }
-        .links a { text-decoration: none; color: white; padding: 1px 3px; border-radius: 3px; font-size: 10px; flex-shrink: 0; }
+        .links a { text-decoration: none; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; flex-shrink: 0; }
         .news { background: #e67e22; } .div { background: #2c3e50; }
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 12px; padding: 0; width: 100%; }
+        .del-btn:hover { color: #e74c3c; }
 
         /* 新聞區塊 */
         .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; background: white; }
