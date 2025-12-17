@@ -80,7 +80,7 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="輸入名稱或代號" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="輸入名稱 (如: 味全)" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
         <button onclick="addStock()">＋ 新增</button>
     </div>
@@ -214,45 +214,57 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 終極新聞抓取：分離請求 + 海量樣本 + 媒體過濾 ---
+    // --- 強化補償機制新聞抓取 ---
     async function fetchNews() {
         const ts = new Date().getTime();
         const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
         
+        // 分別準備請求，避免一個掛掉全部掛掉
         const urls = [
             `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`
+            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://www.chinatimes.com/rss/realtimenews.xml&t=${ts}` // 備用補足源
         ];
 
-        let allItems = [];
-        for(let url of urls) {
+        let pool = [];
+        for (let url of urls) {
             try {
                 const res = await fetch(url);
                 const data = await res.json();
-                if(data.items) allItems = allItems.concat(data.items);
-            } catch(e) { console.error("單一來源失敗"); }
+                if (data.items) pool = pool.concat(data.items);
+                
+                // 每抓完一個來源就立刻過濾檢查一次
+                const filtered = pool.filter(item => {
+                    const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
+                    return !blacklist.some(b => txt.includes(b.toLowerCase()));
+                });
+                
+                // 去重
+                const uniqueTitles = new Set();
+                const finalNews = [];
+                for (let item of filtered) {
+                    if (!uniqueTitles.has(item.title)) {
+                        uniqueTitles.add(item.title);
+                        finalNews.push(item);
+                    }
+                    if (finalNews.length >= 9) break;
+                }
+
+                // 如果湊滿 9 條了，就直接渲染並跳出迴圈
+                if (finalNews.length >= 9) {
+                    renderNews(finalNews);
+                    return; 
+                }
+            } catch (e) { console.error("抓取失敗，嘗試下一個來源"); }
         }
+        // 如果跑完所有來源還是不足 9 條（極端情況），有多少顯多少
+        renderNews(pool.slice(0, 9));
+    }
 
-        // 過濾黑名單
-        const filtered = allItems.filter(item => {
-            const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
-            return !blacklist.some(b => txt.includes(b.toLowerCase()));
-        });
-
-        // 去重與填滿 9 條
-        const uniqueTitles = new Set();
-        const finalNews = [];
-        for(let item of filtered) {
-            if(!uniqueTitles.has(item.title)) {
-                uniqueTitles.add(item.title);
-                finalNews.push(item);
-            }
-            if(finalNews.length >= 9) break;
-        }
-
+    function renderNews(newsArray) {
         const container = document.getElementById('news-list-container'); 
         container.innerHTML = '';
-        finalNews.forEach(n => { 
+        newsArray.slice(0, 9).forEach(n => { 
             container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
         });
     }
@@ -288,4 +300,3 @@
 </script>
 </body>
 </html>
-
