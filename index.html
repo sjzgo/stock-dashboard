@@ -148,7 +148,7 @@
         if (!myStocks.includes(finalCode)) {
             myStocks.push(finalCode);
             localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
-            renderTable(); fetchPrice(finalCode);
+            renderTable(); Price(finalCode);
         }
         document.getElementById('stock-input').value = '';
         document.getElementById('search-results').style.display = 'none';
@@ -170,10 +170,10 @@
         });
     }
 
-    function fetchPrice(code) {
+    function Price(code) {
         let yahooCode = code.includes('.') ? code : code + ".TW";
         const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${yahooCode}?interval=1d`)}`;
-        fetch(url).then(r => r.json()).then(d => {
+        (url).then(r => r.json()).then(d => {
             if (d.chart.result) updateRow(code, d.chart.result[0].meta);
         }).catch(() => {
             let otcCode = code + ".TWO";
@@ -222,26 +222,44 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    async function fetchNews() {
+    async function fetchNews() async function fetchNews() {
         const timestamp = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒"];
+        // 您的黑名單維持不變
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "Up Media", "芋傳媒"];
+        
         const gUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${timestamp}`;
         const yUrl = `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${timestamp}`;
+
         try {
             const [gRes, yRes] = await Promise.all([fetch(gUrl), fetch(yUrl)]);
             const gData = await gRes.json();
             const yData = await yRes.json();
+            
+            // 整合兩大來源
             let combined = (gData.items || []).concat(yData.items || []);
+
+            // 執行深度過濾
             const filtered = combined.filter(item => {
                 const text = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
                 return !blacklist.some(b => text.includes(b.toLowerCase()));
             });
+
+            // 移除重複內容
             const unique = Array.from(new Set(filtered.map(a => a.title))).map(t => filtered.find(a => a.title === t));
+
             const container = document.getElementById('news-list-container'); 
             container.innerHTML = '';
-            unique.slice(0, 9).forEach(n => { 
-                container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
-            });
+            
+            // 關鍵修改：確保即使過濾後也要塞滿 9 條 (如果夠的話)
+            const finalDisplay = unique.slice(0, 9);
+            
+            if (finalDisplay.length > 0) {
+                finalDisplay.forEach(n => { 
+                    container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
+                });
+            } else {
+                container.innerHTML = '<div style="color:#888;padding:10px;">暫時沒有符合篩選條件的新聞...</div>';
+            }
         } catch (e) { console.error("新聞抓取失敗"); }
     }
 
@@ -276,3 +294,4 @@
 </script>
 </body>
 </html>
+
