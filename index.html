@@ -100,7 +100,7 @@
     <div style="text-align:center; margin:8px 0;"><button style="background:#3498db;color:white;border:none;padding:4px 12px;border-radius:15px;cursor:pointer;font-size:12px;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:13px;font-weight:bold;border-bottom:1px solid #eee;margin-bottom:5px;">📰 即時頭條 (同步更新)</div>
+        <div style="font-size:13px;font-weight:bold;border-bottom:1px solid #eee;margin-bottom:5px;">📰 即時頭條</div>
         <div class="news-grid" id="news-grid-box"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -109,7 +109,7 @@
 <script>
     let twStockData = []; 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
-    let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330.TW", "0050.TW"]');
+    let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
 
     // 1. 初始化證交所 API 名單
     async function initOfficialList() {
@@ -275,3 +275,4 @@
 </script>
 </body>
 </html>
+
