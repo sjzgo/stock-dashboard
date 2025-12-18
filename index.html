@@ -157,59 +157,56 @@
 
     function updateMarketStatus() {
         const now = new Date();
-        // 2. 加入星期顯示
         const dayNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-        const dayStr = dayNames[now.getDay()];
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${dayStr}`;
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${dayNames[now.getDay()]}`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
         document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
         const day = now.getDay(); const h = now.getHours(); const m = now.getMinutes();
-        if (day === 0 || day === 6) twTimer.innerText = "休市";
-        else if (h < 9) twTimer.innerText = "未開盤";
-        else if (h >= 13 && (h > 13 || m >= 30)) twTimer.innerText = "已收盤";
+        let statusHtml = "";
+        
+        if (day === 0 || day === 6) statusHtml = "休市";
+        else if (h < 9) statusHtml = "未開盤";
+        else if (h >= 13 && (h > 13 || m >= 30)) statusHtml = "已收盤";
         else {
             const closeTime = new Date(now); closeTime.setHours(13, 30, 0);
             const diff = Math.floor((closeTime - now) / 1000);
-            if (diff > 0) {
-                const mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-                const ss = (diff % 60).toString().padStart(2, '0');
-                twTimer.innerHTML = `<span class="red">開盤中</span><br><span style="font-size:11px; color:#555;">倒數 ${Math.floor(diff/3600)}:${mm}:${ss}</span>`;
-            } else { twTimer.innerText = "已收盤"; }
+            const mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const ss = (diff % 60).toString().padStart(2, '0');
+            statusHtml = `<span class="red">開盤中</span><br><span class="small-label">倒數 ${Math.floor(diff/3600)}:${mm}:${ss}</span>`;
         }
+        twTimer.innerHTML = statusHtml + `<br><span id="us-future-val" class="small-label">美期: 載入中</span>`;
     }
 
-    function fetchWeather(lat, lon) {
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
-        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
-        .then(r => r.json()).then(d => {
-            const aqi = d.current.european_aqi;
-            const el = document.getElementById('aqi-val');
-            el.innerText = aqi;
-            el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
-        });
-        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`)
-        .then(r => r.json()).then(d => {
-            if(d.chart.result){
-                const p = d.chart.result[0].meta.regularMarketPrice;
-                document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
-            }
-        });
-        // 1. 大盤趨勢：加入預估量邏輯
-        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
-        .then(r => r.json()).then(d => {
-            if(d.chart.result){
-                const meta = d.chart.result[0].meta;
-                const p = meta.regularMarketPrice;
-                const chg = p - meta.chartPreviousClose;
-                // Yahoo 的 Volume 通常是股數，轉換為億元需要估算或直接顯示
-                // 這裡使用簡易估算：總金額 (假設API給的是成交金額，如果不是則為量)
-                // 台灣加權指數成交量通常在 2000-5000億
-                let vol = Math.floor(meta.regularMarketVolume / 1000000); // 簡易轉億
+    // --- 證交所 (TWSE) 官方數據抓取 ---
+    async function fetchTwseData(currentPrice) {
+        try {
+            // 使用 AllOrigins 代理抓取證交所 MIS API (tse_t00.tw 是加權指數)
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_t00.tw&json=1&delay=0&_=' + new Date().getTime())}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const json = JSON.parse(data.contents);
+            
+            if(json.msgArray && json.msgArray.length > 0) {
+                const info = json.msgArray[0];
+                // 'a' = 累積成交金額 (元), 'v' = 累積成交量 (股/手)
+                // 優先使用 'a' (金額)
+                let volText = "";
+                let volVal = 0;
                 
+                if (info.a && !isNaN(info.a)) {
+                    volVal = Math.floor(parseInt(info.a) / 100000000); // 轉億
+                    volText = `${volVal} 億`;
+                } else if (info.v && !isNaN(info.v)) {
+                    // 如果沒有金額，改用量 (張數/單位)
+                    volVal = parseInt(info.v);
+                    volText = `${Math.floor(volVal / 100)} 萬張`; 
+                } else {
+                    return null; // 無法獲取
+                }
+
                 // 預估量邏輯
                 const now = new Date();
                 const h = now.getHours(), m = now.getMinutes();
@@ -219,15 +216,64 @@
                     const start = new Date(now); start.setHours(9, 0, 0);
                     const elapsedMins = (now - start) / 1000 / 60;
                     if(elapsedMins > 0) {
-                        // 簡單線性預估：目前量 / 已過時間 * 總時間(270分)
-                        const estimated = Math.floor(vol / elapsedMins * 270);
-                        vol = estimated;
+                        const estimated = Math.floor(volVal / elapsedMins * 270); // 簡單線性預估
+                        volText = `${estimated} ${volText.includes('張') ? '萬張' : '億'}`;
                         label = "預估";
                     }
                 }
+                return { label, text: volText };
+            }
+        } catch(e) { console.error("TWSE Fetch Error", e); }
+        return null;
+    }
+
+    function fetchWeather(lat, lon) {
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+        
+        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
+        .then(r => r.json()).then(d => {
+            const aqi = d.current.european_aqi;
+            const el = document.getElementById('aqi-val');
+            el.innerText = aqi;
+            el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
+        });
+
+        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`)
+        .then(r => r.json()).then(d => {
+            if(d.chart.result) document.getElementById('jpy-rate').innerText = `1臺幣=${d.chart.result[0].meta.regularMarketPrice.toFixed(2)}日圓`;
+        });
+
+        // 大盤指數 (Yahoo) + 成交量 (TWSE)
+        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
+        .then(r => r.json()).then(async d => {
+            if(d.chart.result){
+                const meta = d.chart.result[0].meta;
+                const p = meta.regularMarketPrice;
+                const chg = p - meta.chartPreviousClose;
+                const pct = (chg / meta.chartPreviousClose * 100).toFixed(2);
+                
+                // 呼叫 TWSE 抓取真實成交量
+                const volData = await fetchTwseData(p);
+                const volDisplay = volData ? `${volData.label} ${volData.text}` : "讀取中...";
 
                 const el = document.getElementById('tw-index-val');
-                el.innerHTML = `<div class="${chg >= 0 ? 'red' : 'green'}">${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}</div><div style="font-size:11px; color:#777;">${label} ${vol} 億</div>`;
+                el.innerHTML = `
+                    <div class="${chg >= 0 ? 'red' : 'green'}">${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}</div>
+                    <div class="small-label">漲跌幅 ${pct}%</div>
+                    <div class="small-label">${volDisplay}</div>`;
+            }
+        });
+
+        // 美股期指
+        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/ES=F?interval=1m&range=1d')}`)
+        .then(r => r.json()).then(d => {
+            if(d.chart.result){
+                const meta = d.chart.result[0].meta;
+                const p = meta.regularMarketPrice;
+                const chg = p - meta.chartPreviousClose;
+                const el = document.getElementById('us-future-val');
+                el.innerHTML = `美期: ${p.toFixed(0)} (<span class="${chg >= 0 ? 'red' : 'green'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}</span>)`;
             }
         });
     }
@@ -240,8 +286,7 @@
         try {
             const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
             const res = await fetch(url);
-            const data = await res.json();
-            twStockData = data.map(s => ({ c: s.Code, n: s.Name }));
+            twStockData = (await res.json()).map(s => ({ c: s.Code, n: s.Name }));
         } catch (e) {}
     }
 
