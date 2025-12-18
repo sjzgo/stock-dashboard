@@ -9,27 +9,40 @@
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* --- 頂部資訊欄 --- */
+        /* --- 1. 頂部資訊欄 (空間利用優化) --- */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
-            gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
+            gap: 5px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
         }
-        .top-left-group { display: flex; align-items: center; gap: 4px; flex-shrink: 1; min-width: 0; }
+        /* 左側群組：定位 + AQI */
+        .top-left-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        
         .info-pill { 
             background-color: #f9f9f9; padding: 2px 6px; border-radius: 12px; border: 1px solid #eee; 
             display: flex; align-items: center; white-space: nowrap; font-size: 11px;
         }
         #weather-val { font-weight: bold; color: #2980b9; margin-left: 2px; }
-        /* 修改為日圓匯率樣式 */
-        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; margin: 0 4px; }
+        
+        /* 中間：匯率 (利用 AQI 右邊的剩餘空間) */
+        /* 設定 flex-grow 讓它佔據中間位置，但不推擠左右 */
+        .middle-rate-group { 
+            flex-grow: 1; display: flex; justify-content: flex-start; padding-left: 5px; overflow: hidden; 
+        }
+        #jpy-rate { 
+            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
+            background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd;
+        }
+
+        /* 右側：假期倒數 */
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
 
-        /* --- 標題區 (移除Emoji) --- */
+        /* --- 3. 分析師頭銜加大 --- */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
-        .analyst-title { font-size: 0.8rem; color: #555; font-weight: bold; margin-top: 2px; white-space: nowrap; }
+        /* 字體加大，接近標題大小的 70% */
+        .analyst-title { font-size: 1rem; color: #555; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
         /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
@@ -42,31 +55,31 @@
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* --- 表格排版修復：重新分配寬度，解決重疊並利用右側空間 --- */
+        /* --- 1. 表格欄位極致調整 (X 推到底) --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th, td { padding: 8px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
         
-        /* 名稱 (24%) */
-        th:nth-child(1), td:nth-child(1) { width: 24%; text-align: left; font-size: 14px; } 
+        /* 名稱 (20%)：稍微縮減給中間 */
+        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
         /* 昨收, 現價, 漲跌 (各13%) */
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
         th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
-        /* 幅度% (加大到 15% 以解決重疊) */
-        th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; }
-        /* 資訊按鈕區 (16%) */
-        th:nth-child(6), td:nth-child(6) { width: 16%; }
-        /* 刪除區 (極致壓縮到 6%，推向最右) */
-        th:nth-child(7), td:nth-child(7) { width: 6%; }
+        /* 幅度% (17%)：加大空間 */
+        th:nth-child(5), td:nth-child(5) { width: 17%; text-align: right; }
+        /* 資訊 (20%)：加大空間，確保按鈕不重疊 */
+        th:nth-child(6), td:nth-child(6) { width: 20%; }
+        /* 刪除 (4%)：極致壓縮並靠最右 */
+        th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; padding-right: 0; }
 
         /* 按鈕容器 */
-        .links { display: flex; gap: 1px; justify-content: center; align-items: center; }
+        .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; padding-right: 2px; }
         .link-btn { text-decoration: none; padding: 2px 3px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; }
         .news-btn { background: #e67e22; }
         .div-btn { background: #8e44ad; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
-        /* 更新按鈕 */
+        /* 5. 立即更新按鈕：字體加大，留白縮小 */
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
         .refresh-btn { 
             background: #3498db; color: white; border: none; 
@@ -78,9 +91,9 @@
 
         .red { color: #e74c3c; } .green { color: #27ae60; }
         
-        /* --- 新聞區 (標題更新) --- */
+        /* --- 4. 新聞區 (標題簡化) --- */
         .news-section { margin-top: 8px; border-top: 2px solid #3498db; padding-top: 8px; }
-        .news-header { font-size: 14px; font-weight: bold; margin-bottom: 6px; color: #333; }
+        .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #333; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #f0f0f0; padding-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .news-item a { text-decoration: none; color: #2c3e50; line-height: 1.4; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
@@ -111,7 +124,11 @@
                 空氣品質:<span id="aqi-val">--</span>
             </div>
         </div>
-        <div id="jpy-rate">日圓: --</div>
+
+        <div class="middle-rate-group">
+            <div id="jpy-rate">1台幣兌換 -- 日圓</div>
+        </div>
+
         <div id="holiday-countdown">📅 載入假期...</div>
     </div>
 
@@ -145,18 +162,18 @@
 
     <div class="update-bar">
         <button class="refresh-btn" onclick="location.reload()">↻ 立即更新</button>
-        <div class="timer-info"><span id="countdown-text">30</span>秒後自動刷新</div>
+        <div class="timer-info"><span id="countdown-text">60</span>秒後自動刷新</div>
     </div>
     
     <div class="news-section">
-        <div class="news-header">📰 綜合快訊 (政治/娛樂/民生/財經/科技/兩岸/軍事/環保) - 共15則</div>
+        <div class="news-header">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待載入...</div>
 </div>
 
 <script>
-    // --- 假期與匯率 ---
+    // --- 假期 ---
     function updateHoliday() {
         const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }];
         const now = new Date();
@@ -185,7 +202,7 @@
         else usTimer.innerText = "已收盤";
     }
 
-    // --- 天氣/AQI/匯率(日圓) ---
+    // --- 天氣/AQI/匯率 (1台幣換...) ---
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
@@ -198,13 +215,13 @@
             el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
         });
 
-        // 台幣換日圓匯率 (TWDJPY=X)
+        // 1 TWD = ? JPY (使用 TWDJPY=X)
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const p = d.chart.result[0].meta.regularMarketPrice;
-                // 顯示到小數點後三位，較為精確
-                document.getElementById('jpy-rate').innerText = `日圓: ${p.toFixed(3)}`;
+                // 格式：1台幣兌換 XX.XX 日圓
+                document.getElementById('jpy-rate').innerText = `1台幣兌換 ${p.toFixed(2)} 日圓`;
             }
         });
     }
@@ -271,25 +288,22 @@
         });
     }
 
-    // --- 新聞邏輯 (擴充類別 + 增加至15則 + 強制更新) ---
+    // --- 新聞邏輯 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        // 輔助函數：產生帶有隨機時間戳的 RSS 代理網址，強制刷新快取
         const genUrl = (url) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url + (url.includes('?') ? '&' : '?') + '_t=' + ts)}`;
 
         const urls = [
-            // 原有來源 (民生/財經/焦點)
             genUrl('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
             genUrl('https://tw.news.yahoo.com/rss/realtime'),
             genUrl('https://news.ebc.net.tw/rss/news.xml'),
             genUrl('https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money'),
-            // 新增來源 (政治/娛樂/科技/環保/兩岸/軍事)
             genUrl('https://news.google.com/rss/headlines/section/topic/POLITICS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
             genUrl('https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
             genUrl('https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/search?q=%E7%92%B0%E4%BF%9D&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'), // 環保
-            genUrl('https://news.google.com/rss/search?q=%E5%85%A9%E5%B2%B8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'), // 兩岸
-            genUrl('https://news.google.com/rss/search?q=%E8%BB%8D%E4%BA%8B&hl=zh-TW&gl=TW&ceid=TW:zh-Hant')  // 軍事
+            genUrl('https://news.google.com/rss/search?q=%E7%92%B0%E4%BF%9D&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            genUrl('https://news.google.com/rss/search?q=%E5%85%A9%E5%B2%B8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            genUrl('https://news.google.com/rss/search?q=%E8%BB%8D%E4%BA%8B&hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
         ];
 
         let masterPool = [];
@@ -307,7 +321,6 @@
                 uniqueTitles.add(item.title);
                 finalDisplay.push(item);
             }
-            // 改為顯示 15 則
             if (finalDisplay.length >= 15) break;
         }
 
@@ -320,7 +333,7 @@
         document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
     }
 
-    let timeLeft = 30;
+    let timeLeft = 60; // 3. 調整為 60 秒
     setInterval(() => {
         updateMarketStatus();
         if (timeLeft <= 0) location.reload();
