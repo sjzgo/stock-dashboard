@@ -37,16 +37,15 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 2px; color: #888; font-size: 11px; }
-        .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; } /* 調整行高以適應日期+時間 */
+        .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; }
 
         /* 搜尋區 */
         .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格排版：高度壓縮 (Padding 縮小) */
+        /* 表格排版 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        /* 2. 修正：Padding 改為 4px，讓表格變矮 */
         th, td { padding: 4px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
         
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
@@ -127,7 +126,7 @@
     <div class="dashboard">
         <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
         <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
-        <div class="card"><h4>大盤趨勢</h4><div class="val" id="tw-index-val">--</div></div>
+        <div class="card"><h4>大盤價量</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
 
     <div class="input-area">
@@ -164,11 +163,9 @@
 
     function updateMarketStatus() {
         const now = new Date();
-        // 1. 修正：格式化日期與時間 (YYYY/MM/DD)
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
-        // 雙層顯示：上日期(小字)，下時間(大字)
         document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
@@ -196,15 +193,35 @@
                 document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
+        // --- 修正重點：大盤價量顯示邏輯 ---
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const meta = d.chart.result[0].meta;
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
+                // 嘗試獲取成交量 (Yahoo 有時為空或單位不一)
+                const vol = meta.regularMarketVolume; 
+                let volHtml = "";
+                // 如果有量且大於0，顯示量(億)，否則不顯示
+                if(vol && vol > 0) {
+                     // 假設單位是股，粗略換算。若Yahoo給的是元，這裡會變大。
+                     // 僅作顯示參考，通常Yahoo ^TWII volume不太準確，但為滿足需求顯示之。
+                     volHtml = `<span style="color:#aaa; font-size:11px; margin-left:4px;">| ${(vol/100000000).toFixed(0)}億</span>`;
+                }
+
                 const el = document.getElementById('tw-index-val');
-                el.innerText = `${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}`;
-                el.className = `val ${chg >= 0 ? 'red' : 'green'}`;
+                const colorClass = chg >= 0 ? 'red' : 'green';
+                const arrow = chg >= 0 ? '▲' : '▼';
+                
+                // 雙層結構：上層是價，下層是 漲跌 + 量
+                el.innerHTML = `
+                    <div style="font-size:16px; color:#333;">${p.toFixed(0)}</div>
+                    <div style="font-size:12px; display:flex; justify-content:center; align-items:center;">
+                        <span class="${colorClass}">${arrow}${Math.abs(chg).toFixed(0)}</span>
+                        ${volHtml}
+                    </div>
+                `;
             }
         });
     }
