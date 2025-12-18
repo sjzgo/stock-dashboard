@@ -126,7 +126,7 @@
     <div class="dashboard">
         <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
         <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
-        <div class="card"><h4>大盤價量</h4><div class="val" id="tw-index-val">--</div></div>
+        <div class="card"><h4>大盤氣色</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
 
     <div class="input-area">
@@ -163,7 +163,6 @@
 
     function updateMarketStatus() {
         const now = new Date();
-        // 修正：補回星期的顯示邏輯
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
         const dayName = daysArr[now.getDay()];
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${dayName})`;
@@ -196,6 +195,8 @@
                 document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
+
+        // --- 修正重點：心情指標與成交量顯示 ---
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
@@ -203,21 +204,21 @@
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
                 const vol = meta.regularMarketVolume; 
-                let volHtml = "";
-                if(vol && vol > 0) {
-                     volHtml = `<span style="color:#aaa; font-size:11px; margin-left:4px;">| ${(vol/100000000).toFixed(0)}億</span>`;
-                }
-
-                const el = document.getElementById('tw-index-val');
-                const colorClass = chg >= 0 ? 'red' : 'green';
-                const arrow = chg >= 0 ? '▲' : '▼';
                 
+                const el = document.getElementById('tw-index-val');
+                
+                // 心情邏輯
+                let sentiment = "平靜 😐";
+                let color = "#333";
+                if (chg > 0) { sentiment = "樂觀 🚀"; color = "#e74c3c"; }
+                else if (chg < 0) { sentiment = "焦慮 📉"; color = "#27ae60"; }
+
+                // 成交量換算（億）
+                let volText = vol && vol > 0 ? `${(vol/100000000).toFixed(0)} 億` : "計算中";
+
                 el.innerHTML = `
-                    <div style="font-size:16px; color:#333;">${p.toFixed(0)}</div>
-                    <div style="font-size:12px; display:flex; justify-content:center; align-items:center;">
-                        <span class="${colorClass}">${arrow}${Math.abs(chg).toFixed(0)}</span>
-                        ${volHtml}
-                    </div>
+                    <div style="font-size:16px; color:${color};">${sentiment}</div>
+                    <div style="font-size:12px; color:#666;">量: ${volText}</div>
                 `;
             }
         });
@@ -354,7 +355,7 @@
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
     function changeCityManually() { const [lat, lon] = document.getElementById('city-select').value.split(','); fetchWeather(lat, lon); }
 
-    window.onload = async () => { app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable(); myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather(); };
+    window.onload = async () => { app.loadLogo(); updateMarketStatus(); updateHoliday(); await initOfficialList(); renderTable(); myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather(); };
 </script>
 </body>
 </html>
