@@ -5,86 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長股票看板</title>
     <style>
-        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 10px; color: #333; margin: 0; font-size: 14px; }
+        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* --- 頂部資訊欄：解決重疊 --- */
+        /* --- 修正後的頂部資訊欄：極致緊湊 --- */
         .top-info-bar { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            flex-wrap: wrap; 
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 5px 0;
+            flex-wrap: nowrap; /* 強制不換行 */
+            gap: 5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #f0f0f0;
+            overflow: hidden;
         }
-        .top-left-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .info-pill { background-color: #f9f9f9; padding: 4px 10px; border-radius: 15px; border: 1px solid #eee; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .top-left-group { display: flex; align-items: center; gap: 4px; flex-shrink: 1; }
+        .info-pill { 
+            background-color: #f9f9f9; 
+            padding: 2px 6px; /* 縮減內邊距 */
+            border-radius: 12px; 
+            border: 1px solid #eee; 
+            display: flex; 
+            align-items: center; 
+            gap: 3px; 
+            white-space: nowrap;
+            font-size: 11px; /* 微調字體大小 */
+        }
         
         #weather-val { font-weight: bold; color: #2980b9; }
         #aqi-val { font-weight: bold; }
-        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 12px; white-space: nowrap; }
+        #holiday-countdown { 
+            color: #e67e22; 
+            font-weight: bold; 
+            font-size: 11px; 
+            white-space: nowrap; 
+            flex-shrink: 0; /* 確保紀念日文字不被壓縮 */
+        }
 
-        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
-        .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
+        .header-area { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .mascot-container { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text h2 { margin: 0; font-size: 1.4rem; line-height: 1.2; }
+        .header-text h2 { margin: 0; font-size: 1.3rem; line-height: 1.2; }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-bottom: 8px; }
-        .card { background: #f8f9fa; padding: 4px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
-        .card h4 { margin: 0 0 1px; color: #888; font-size: 11px; }
-        .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
+        /* 儀錶板 */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
+        .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
+        .card h4 { margin: 0 0 2px; color: #888; font-size: 10px; }
+        .card .val { font-size: 13px; font-weight: bold; }
 
-        .input-area { background-color: #f1f3f4; padding: 10px 15px; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; gap: 10px; position: relative; }
-        #stock-input { width: 150px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; }
-        #search-results { position: absolute; top: 45px; left: 15px; width: 260px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
+        /* 搜尋區 */
+        .input-area { background-color: #f1f3f4; padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; position: relative; }
+        #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; min-width: 0; }
+        #search-results { position: absolute; top: 40px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th, td { padding: 8px 2px; border-bottom: 1px solid #eee; text-align: right; }
-        th:first-child, td:first-child { text-align: left; width: 22%; }
-        
-        .links a { text-decoration: none; color: white; padding: 2px 4px; border-radius: 3px; font-size: 10px; }
-        .news-btn { background: #e67e22; }
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; padding: 0 5px; }
+        /* 表格優化 */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+        th, td { padding: 10px 2px; border-bottom: 1px dotted #eee; text-align: right; }
+        th:first-child, td:first-child { text-align: left; width: 25%; }
+        .news-btn { background: #e67e22; color: white; text-decoration: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; }
 
-        /* --- 更新列：解決重疊 --- */
+        /* 更新列 */
         .update-bar { 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             margin: 20px 0; 
             position: relative; 
-            min-height: 40px;
+            height: 40px;
         }
         .refresh-btn { 
             background: #3498db; 
             color: white; 
             border: none; 
-            padding: 8px 25px; 
+            padding: 8px 24px; 
             border-radius: 20px; 
             cursor: pointer; 
             font-weight: bold;
-            transition: 0.2s;
         }
-        .refresh-btn:hover { background: #2980b9; }
         .timer-info { 
             position: absolute; 
             right: 0; 
             font-size: 11px; 
             color: #999; 
-            background: #f9f9f9; 
-            padding: 4px 8px; 
-            border-radius: 10px;
-            border: 1px solid #eee;
+            background: #fdfdfd; 
+            padding: 2px 6px;
         }
         #countdown-text { color: #e74c3c; font-weight: bold; }
 
-        .news-section { margin-top: 15px; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; background: white; }
-        .news-item { font-size: 13px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .news-item a { text-decoration: none; color: #202124; display: block; }
-        #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 5px; }
-        .red { color: #e74c3c; } .green { color: #27ae60; }
+        .news-section { border-top: 2px solid #3498db; padding-top: 10px; margin-top: 10px; }
+        .news-item { font-size: 13px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-item a { text-decoration: none; color: #333; }
     </style>
 </head>
 <body>
@@ -93,19 +105,17 @@
     <div class="top-info-bar">
         <div class="top-left-group">
             <div class="info-pill">
-                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:12px;outline:none;cursor:pointer;font-weight:bold;color:#555;">
+                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:11px;outline:none;cursor:pointer;font-weight:bold;color:#555;padding:0;">
                     <option value="auto">📍 定位</option>
                     <option value="25.03,121.56">台北</option><option value="25.01,121.46">新北</option>
                     <option value="24.99,121.30">桃園</option><option value="24.14,120.67">台中</option>
                     <option value="22.99,120.21">台南</option><option value="22.62,120.30">高雄</option>
                 </select>
-                <span id="weather-val">--°C</span>
+                <span id="weather-val">--°</span>
             </div>
-            <div class="info-pill">
-                AQI: <span id="aqi-val">--</span>
-            </div>
+            <div class="info-pill">AQI:<span id="aqi-val">--</span></div>
         </div>
-        <div id="holiday-countdown">正在計算假期...</div>
+        <div id="holiday-countdown">📅 距離節日: --天</div>
     </div>
 
     <div class="header-area">
@@ -125,7 +135,7 @@
     <div class="input-area">
         <input type="text" id="stock-input" placeholder="代號/名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
-        <button onclick="addStock()">＋ 新增</button>
+        <button onclick="addStock()" style="padding:6px 12px; border-radius:4px; border:none; background:#333; color:white; cursor:pointer;">+ 新增</button>
     </div>
 
     <table>
@@ -139,47 +149,41 @@
     </div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
-    <div id="last-update-time">最後載入: --:--:--</div>
 </div>
 
 <script>
-    // --- 假期倒數邏輯 ---
+    // --- 假期倒數 ---
     function updateHoliday() {
         const holidays = [
             { name: "春節", date: "2026-01-28" },
             { name: "和平紀念日", date: "2026-02-28" },
             { name: "清明節", date: "2026-04-04" },
-            { name: "端午節", date: "2026-06-20" },
-            { name: "中秋節", date: "2026-10-06" },
-            { name: "國慶日", date: "2026-10-10" }
+            { name: "端午節", date: "2026-06-20" }
         ];
         const now = new Date();
         let next = holidays.find(h => new Date(h.date) > now);
-        if(!next) next = { name: "2027新年", date: "2027-01-01" };
+        if(!next) next = { name: "元旦", date: "2027-01-01" };
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
         document.getElementById('holiday-countdown').innerText = `📅 距離${next.name}還有 ${days} 天`;
     }
 
-    // --- 天氣與 AQI ---
+    // --- 天氣/AQI ---
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = d.current_weather.temperature + "°C");
+        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
         
         fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
         .then(r => r.json()).then(d => {
             const aqi = d.current.european_aqi;
             const el = document.getElementById('aqi-val');
             el.innerText = aqi;
-            if(aqi <= 50) el.style.color = "#27ae60";
-            else if(aqi <= 100) el.style.color = "#e67e22";
-            else el.style.color = "#e74c3c";
+            el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
         });
     }
 
-    // --- 股票搜尋與資料抓取 ---
+    // --- 股票邏輯 ---
     let twStockData = []; 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
@@ -196,16 +200,14 @@
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
-        const query = val.toLowerCase();
-        const results = twStockData.filter(s => s.c.includes(query) || s.n.includes(query)).slice(0, 10);
-        let html = results.map(s => `<div style="padding:8px; cursor:pointer; border-bottom:1px solid #eee;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
+        const results = twStockData.filter(s => s.c.includes(val) || s.n.includes(val)).slice(0, 10);
+        let html = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
         resDiv.innerHTML = html;
         resDiv.style.display = html ? 'block' : 'none';
     }
 
     function selectStock(c, n) { 
-        dynamicStockMap[c] = n; 
-        localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap)); 
+        dynamicStockMap[c] = n; localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
         if (!myStocks.includes(c)) { myStocks.push(c); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); }
         location.reload(); 
     }
@@ -216,8 +218,8 @@
             const name = dynamicStockMap[c] || c; 
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
-                <td id="prev-${c}">...</td><td id="p-${c}">...</td><td id="c-${c}">...</td><td id="pct-${c}">...</td>
-                <td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news-btn">新聞</a></div></td>
+                <td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td>
+                <td><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news-btn">新聞</a></td>
                 <td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
             </tr>`;
         });
@@ -228,39 +230,29 @@
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart.result) {
                 let m = d.chart.result[0].meta, p = m.regularMarketPrice, prev = m.chartPreviousClose, chg = p - prev, pct = (chg/prev)*100;
-                const color = chg > 0 ? "#e74c3c" : "#27ae60";
-                document.getElementById("prev-"+code).innerText = prev.toFixed(2);
-                document.getElementById("p-"+code).innerText = p.toFixed(2); document.getElementById("p-"+code).style.color = color;
+                const color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "#333");
+                document.getElementById("prev-"+code).innerText = prev.toFixed(1);
+                document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).style.color = color;
                 document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2);
                 document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).style.color = color;
             }
         });
     }
 
-    // --- 新聞與倒數 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const urls = [
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.ebc.net.tw/rss/news.xml&t=${ts}`
-        ];
-        let pool = [];
-        const res = await Promise.allSettled(urls.map(u => fetch(u).then(r => r.json())));
-        res.forEach(r => { if(r.status === 'fulfilled' && r.value.items) pool = pool.concat(r.value.items); });
-
-        const unique = Array.from(new Set(pool.map(n => n.title))).map(t => pool.find(n => n.title === t));
-        const container = document.getElementById('news-list-container');
-        container.innerHTML = '';
-        unique.slice(0, 9).forEach(n => {
-            container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`;
+        const url = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`;
+        fetch(url).then(r => r.json()).then(d => {
+            if(d.items) {
+                const container = document.getElementById('news-list-container');
+                container.innerHTML = d.items.slice(0, 8).map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
+            }
         });
-        document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
     }
 
     let timeLeft = 25;
     setInterval(() => {
-        document.getElementById('clock-time').innerText = new Date().toLocaleTimeString();
+        document.getElementById('clock-time').innerText = new Date().toLocaleTimeString('zh-TW', {hour12: false});
         if (timeLeft <= 0) location.reload();
         document.getElementById('countdown-text').innerText = timeLeft--;
     }, 1000);
@@ -270,27 +262,17 @@
             navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
         } else fetchWeather(25.03, 121.56);
     }
-    
-    function changeCityManually() {
-        const [lat, lon] = document.getElementById('city-select').value.split(',');
-        fetchWeather(lat, lon);
-    }
 
     const app = {
-        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
-        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; }
+        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
+        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } }
     };
 
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
 
     window.onload = async () => {
-        app.loadLogo();
-        updateHoliday();
-        await initOfficialList();
-        renderTable();
-        myStocks.forEach(fetchPrice);
-        fetchNews();
-        getAutoWeather();
+        app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable();
+        myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather();
     };
 </script>
 </body>
