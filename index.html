@@ -37,18 +37,17 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 2px; color: #888; font-size: 11px; }
-        .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; } /* 調整行高以適應日期+時間 */
+        /* 調整行高以適應雙層文字 */
+        .card .val { font-size: 14px; font-weight: bold; line-height: 1.3; } 
 
         /* 搜尋區 */
         .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格排版：高度壓縮 (Padding 縮小) */
+        /* 表格排版 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        /* 2. 修正：Padding 改為 4px，讓表格變矮 */
         th, td { padding: 4px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
-        
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
@@ -162,21 +161,39 @@
         document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
     }
 
+    // --- 股市狀態計時器 (修正版：加入倒數) ---
     function updateMarketStatus() {
         const now = new Date();
-        // 1. 修正：格式化日期與時間 (YYYY/MM/DD)
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
-        // 雙層顯示：上日期(小字)，下時間(大字)
         document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
-        const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
-        if (day === 0 || day === 6) twTimer.innerText = "休市";
-        else if (h < 9) twTimer.innerText = "未開盤";
-        else if (h >= 13 && m >= 30 || h > 13) twTimer.innerText = "已收盤";
-        else twTimer.innerHTML = `<span class="red">開盤中</span>`;
+        const day = now.getDay(); const h = now.getHours(); const m = now.getMinutes();
+        
+        if (day === 0 || day === 6) {
+            twTimer.innerText = "休市";
+        } else if (h < 9) {
+            twTimer.innerText = "未開盤";
+        } else if (h >= 13 && (h > 13 || m >= 30)) {
+            twTimer.innerText = "已收盤";
+        } else {
+            // 計算距離 13:30 收盤還有多久
+            const closeTime = new Date(now);
+            closeTime.setHours(13, 30, 0);
+            const diff = Math.floor((closeTime - now) / 1000);
+            
+            if (diff > 0) {
+                const hh = Math.floor(diff / 3600).toString().padStart(2, '0');
+                const mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                const ss = (diff % 60).toString().padStart(2, '0');
+                // 動態顯示：開盤中 + 倒數
+                twTimer.innerHTML = `<span class="red">開盤中</span><br><span style="font-size:11px; color:#555;">倒數 ${hh}:${mm}:${ss}</span>`;
+            } else {
+                twTimer.innerText = "已收盤";
+            }
+        }
     }
 
     function fetchWeather(lat, lon) {
