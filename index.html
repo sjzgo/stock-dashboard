@@ -8,7 +8,7 @@
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 14px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* 頂部資訊欄：全台回歸 + 空間優化 */
+        /* 頂部資訊欄：緊湊且不換行 */
         .top-info-bar { 
             display: flex; 
             justify-content: space-between; 
@@ -22,17 +22,19 @@
         .top-left-group { display: flex; align-items: center; gap: 3px; flex-shrink: 1; min-width: 0; }
         .info-pill { 
             background-color: #f9f9f9; 
-            padding: 2px 4px; 
+            padding: 2px 5px; 
             border-radius: 12px; 
             border: 1px solid #eee; 
             display: flex; 
             align-items: center; 
             white-space: nowrap;
-            font-size: 11px;
+            font-size: 10.5px;
         }
         
         #weather-val { font-weight: bold; color: #2980b9; margin-left: 2px; }
-        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+        #aqi-label { margin-right: 2px; }
+        #aqi-val { font-weight: bold; }
+        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 10.5px; white-space: nowrap; flex-shrink: 0; }
 
         .header-area { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
         .mascot-container { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
@@ -54,11 +56,10 @@
         .news-btn { background: #e67e22; color: white; text-decoration: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; }
 
-        /* 更新列：藍色按鈕 + 右側倒數 */
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 20px 0; position: relative; height: 40px; }
         .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .refresh-btn:hover { background: #2980b9; }
-        .timer-info { position: absolute; right: 0; font-size: 11px; color: #999; background: #fdfdfd; padding: 2px 6px; border: 1px solid #eee; border-radius: 10px; }
+        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 6px; border: 1px solid #eee; border-radius: 10px; }
         #countdown-text { color: #e74c3c; font-weight: bold; }
 
         .news-section { border-top: 2px solid #3498db; padding-top: 10px; margin-top: 10px; }
@@ -72,7 +73,7 @@
     <div class="top-info-bar">
         <div class="top-left-group">
             <div class="info-pill">
-                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:11px;outline:none;cursor:pointer;font-weight:bold;color:#555;padding:0;max-width:45px;">
+                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:10.5px;outline:none;cursor:pointer;font-weight:bold;color:#555;padding:0;max-width:42px;">
                     <option value="auto">📍定位</option>
                     <option value="25.03,121.56">台北</option><option value="25.01,121.46">新北</option>
                     <option value="24.99,121.30">桃園</option><option value="24.14,120.67">台中</option>
@@ -87,9 +88,11 @@
                 </select>
                 <span id="weather-val">--°</span>
             </div>
-            <div class="info-pill">AQI:<span id="aqi-val">--</span></div>
+            <div class="info-pill">
+                <span id="aqi-label">空氣品質:</span><span id="aqi-val">--</span>
+            </div>
         </div>
-        <div id="holiday-countdown">📅 載入中...</div>
+        <div id="holiday-countdown">📅 距離春節還有 -- 天</div>
     </div>
 
     <div class="header-area">
@@ -130,22 +133,14 @@
 <script>
     // --- 假期倒數 ---
     function updateHoliday() {
-        const holidays = [
-            { name: "春節", date: "2026-01-28" },
-            { name: "和平紀念日", date: "2026-02-28" },
-            { name: "清明節", date: "2026-04-04" },
-            { name: "端午節", date: "2026-06-20" },
-            { name: "中秋節", date: "2026-10-06" },
-            { name: "國慶日", date: "2026-10-10" }
-        ];
+        const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }];
         const now = new Date();
-        let next = holidays.find(h => new Date(h.date) > now);
-        if(!next) next = { name: "新年", date: "2027-01-01" };
+        let next = holidays.find(h => new Date(h.date) > now) || { name: "新年", date: "2027-01-01" };
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
         document.getElementById('holiday-countdown').innerText = `📅 距離${next.name}還有 ${days} 天`;
     }
 
-    // --- 天氣/AQI ---
+    // --- 天氣/空氣品質 ---
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
@@ -193,12 +188,7 @@
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
             const name = dynamicStockMap[c] || c; 
-            tbody.innerHTML += `<tr>
-                <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
-                <td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td>
-                <td><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news-btn">新聞</a></td>
-                <td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
-            </tr>`;
+            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news-btn">新聞</a></td><td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
         });
     }
 
@@ -216,35 +206,23 @@
         });
     }
 
-    // --- 極簡過濾新聞 (僅限三民自鏡) ---
+    // --- 極簡過濾新聞 (僅限三立與鏡) ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "鏡週刊", "鏡電視", "鏡新聞"];
+        const blacklist = ["三立", "鏡"]; // 僅保留這兩類關鍵字
+        const url = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`;
         
-        const urls = [
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.ebc.net.tw/rss/news.xml&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://www.cna.com.tw/cna2018/static/js/rss/realtimenews.xml&t=${ts}`
-        ];
-
-        let masterPool = [];
-        const res = await Promise.allSettled(urls.map(u => fetch(u).then(r => r.json())));
-        res.forEach(r => { if(r.status === 'fulfilled' && r.value.items) masterPool = masterPool.concat(r.value.items); });
-
-        const uniqueTitles = new Set();
-        const high = [], low = [];
-
-        for (let item of masterPool) {
-            if (uniqueTitles.has(item.title)) continue;
-            uniqueTitles.add(item.title);
-            
-            const isLow = blacklist.some(b => item.title.includes(b));
-            if (isLow) low.push(item); else high.push(item);
-        }
-
-        const container = document.getElementById('news-list-container');
-        container.innerHTML = [...high, ...low].slice(0, 9).map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
+        fetch(url).then(r => r.json()).then(d => {
+            if(d.items) {
+                const container = document.getElementById('news-list-container');
+                const high = [], low = [];
+                d.items.forEach(i => {
+                    const isLow = blacklist.some(b => i.title.includes(b));
+                    if(isLow) low.push(i); else high.push(i);
+                });
+                container.innerHTML = [...high, ...low].slice(0, 9).map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
+            }
+        });
     }
 
     let timeLeft = 25;
@@ -266,6 +244,11 @@
     };
 
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
+
+    function changeCityManually() {
+        const [lat, lon] = document.getElementById('city-select').value.split(',');
+        fetchWeather(lat, lon);
+    }
 
     window.onload = async () => {
         app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable();
