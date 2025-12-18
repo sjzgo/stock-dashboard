@@ -3,103 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (現行繽紛版)</title>
+    <title>📊 喵喵站長股票看板 (現行版+頂部繽紛)</title>
     <style>
-        /* 全局字體與繽紛背景 */
-        body { 
-            font-family: '微軟正黑體', sans-serif; 
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); /* 舒適淺藍漸層 */
-            padding: 8px; color: #333; margin: 0; font-size: 15px; 
-            min-height: 100vh;
-        }
-        .container { 
-            max-width: 900px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); 
-            padding: 12px; border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* 加深陰影 */
-            position: relative; 
-        }
+        /* 全局字體 (維持現行版簡潔背景) */
+        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
         /* 頂部資訊欄 */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
-            gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eee;
+            gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
             width: 100%; overflow: hidden;
         }
-        .top-left-group { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
-        .info-pill { background-color: #fff; padding: 2px 6px; border-radius: 12px; border: 1px solid #d1d9e6; display: flex; align-items: center; white-space: nowrap; font-size: 11px; color: #5c6b89; }
-        #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #2980b9; padding: 0; }
-        #weather-val { font-weight: bold; color: #e67e22; }
+        .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+        .info-pill { background-color: #f9f9f9; padding: 2px 4px; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; white-space: nowrap; font-size: 11px; }
+        #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #555; padding: 0; margin-right: 2px; }
+        #weather-val { font-weight: bold; color: #2980b9; }
         
-        .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; }
-        #jpy-rate { color: #2d5a27; font-weight: bold; font-size: 11px; white-space: nowrap; background: #e8f5e9; padding: 2px 8px; border-radius: 10px; border: 1px solid #c8e6c9; }
+        .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
+        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd; overflow: hidden; text-overflow: ellipsis; }
 
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
-        #holiday-countdown { color: #d35400; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
-        /* 標題區域 */
-        .header-area { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
-        .mascot-container { width: 55px; height: 55px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        /* 標題與分析師 */
+        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
+        .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text h2 { margin: 0; font-size: 1.6rem; color: #2c3e50; }
-        .analyst-title { font-size: 0.95rem; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
+        .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
+        .analyst-title { font-size: 1rem; color: #555; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* 儀表板 - 繽紛卡片設計 */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .card { padding: 8px 4px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s; }
-        .card:hover { transform: translateY(-2px); }
-        .card h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        /* 儀表板佈局 */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
+        /* 卡片基礎樣式 */
+        .card { padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
+        .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; }
+
+        /* --- 核心修改：頂部三個區塊的繽紛配色 --- */
         
-        /* 時間卡片：淺藍 */
-        .card-time { background: #e3f2fd; border-left: 4px solid #2196f3; }
-        .card-time h4 { color: #1976d2; }
-        /* 狀態卡片：淺綠 */
-        .card-status { background: #e8f5e9; border-left: 4px solid #4caf50; }
-        .card-status h4 { color: #388e3c; }
-        /* 大盤卡片：金黃 */
-        .card-index { background: #fffde7; border-left: 4px solid #fbc02d; }
-        .card-index h4 { color: #f57f17; }
+        /* 卡片 1: 現在時間 (清爽藍) */
+        .dashboard .card:nth-child(1) {
+            background: #e3f2fd; /* 淺藍背景 */
+            border-left: 3px solid #2196f3; /* 藍色側邊條 */
+            border-color: #bbdefb; /* 邊框顏色微調 */
+        }
+        .dashboard .card:nth-child(1) h4 { margin: 0 0 2px; color: #1565c0; font-size: 11px; } /* 深藍標題 */
+        
+        /* 卡片 2: 台股狀態 (活力綠) */
+        .dashboard .card:nth-child(2) {
+            background: #e8f5e9; /* 淺綠背景 */
+            border-left: 3px solid #4caf50; /* 綠色側邊條 */
+            border-color: #c8e6c9;
+        }
+        .dashboard .card:nth-child(2) h4 { margin: 0 0 2px; color: #2e7d32; font-size: 11px; } /* 深綠標題 */
 
-        .card .val { font-size: 14px; font-weight: bold; line-height: 1.3; }
+        /* 卡片 3: 台股大盤 (財富金) */
+        .dashboard .card:nth-child(3) {
+            background: #fffde7; /* 淺金背景 */
+            border-left: 3px solid #fbc02d; /* 金色側邊條 */
+            border-color: #fff9c4;
+        }
+        .dashboard .card:nth-child(3) h4 { margin: 0 0 2px; color: #ef6c00; font-size: 11px; } /* 深橘標題 */
+        
+        /* ------------------------------------- */
 
         /* 搜尋區 */
-        .input-area { background-color: #f8f9fa; padding: 8px 12px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; border: 1px solid #eee; }
-        #stock-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+        .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; }
+        #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
+        #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格樣式優化 */
+        /* 表格排版 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        thead tr { background-color: #f1f4f8; }
-        th { padding: 6px 1px; color: #666; font-weight: bold; border-bottom: 2px solid #3498db; }
-        td { padding: 6px 1px; border-bottom: 1px solid #f0f0f0; text-align: center; vertical-align: middle; }
+        th, td { padding: 4px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
         
-        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 4px; } 
-        .links { display: flex; gap: 2px; justify-content: flex-end; }
-        .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 4px; font-size: 11px; color: white; transition: opacity 0.2s; }
-        .link-btn:hover { opacity: 0.8; }
-        .news-btn { background: #ff9f43; }
-        .div-btn { background: #5f27cd; }
-        .del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 16px; }
-        .del-btn:hover { color: #e74c3c; }
+        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
+        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
+        th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
+        th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
+        th:nth-child(5), td:nth-child(5) { width: 17%; text-align: right; }
+        th:nth-child(6), td:nth-child(6) { width: 20%; }
+        th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; padding-right: 0; }
 
-        /* 底部按鈕 */
-        .update-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0; position: relative; }
+        .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; }
+        .link-btn { text-decoration: none; padding: 2px 3px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; }
+        .news-btn { background: #e67e22; }
+        .div-btn { background: #8e44ad; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
+
+        .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
         .refresh-btn { 
-            background: linear-gradient(to right, #3498db, #2980b9); color: white; border: none; 
-            padding: 4px 25px; height: 34px; border-radius: 20px; cursor: pointer; 
-            font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px;
+            border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; 
         }
-        .refresh-btn:active { transform: scale(0.95); }
-        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; }
+        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 4px; }
+        #countdown-text { color: #e74c3c; font-weight: bold; }
 
-        .red { color: #e74c3c; font-weight: bold; } 
-        .green { color: #27ae60; font-weight: bold; }
+        .red { color: #e74c3c; } .green { color: #27ae60; }
         
-        /* 新聞區 */
-        .news-section { margin-top: 12px; border-top: 3px solid #3498db; padding-top: 8px; }
-        .news-header { font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #2c3e50; display: flex; align-items: center; }
-        .news-header::before { content: '🔥'; margin-right: 5px; }
-        .news-item { font-size: 13px; margin-bottom: 7px; border-bottom: 1px solid #f9f9f9; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .news-item a { text-decoration: none; color: #34495e; transition: color 0.2s; }
-        .news-item a:hover { color: #3498db; }
+        .news-section { margin-top: 8px; border-top: 2px solid #3498db; padding-top: 8px; }
+        .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #333; }
+        .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #f0f0f0; padding-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .news-item a { text-decoration: none; color: #2c3e50; line-height: 1.4; }
+        #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -123,11 +128,11 @@
                 </select>
                 <span id="weather-val">--°</span>
             </div>
-            <div class="info-pill">AQI:<span id="aqi-val">--</span></div>
+            <div class="info-pill">空氣品質:<span id="aqi-val">--</span></div>
         </div>
 
         <div class="middle-rate-group">
-            <div id="jpy-rate">TWD/JPY --</div>
+            <div id="jpy-rate">1臺幣= -- 日圓</div>
         </div>
 
         <div class="top-right-holiday">
@@ -147,15 +152,15 @@
     </div>
 
     <div class="dashboard">
-        <div class="card card-time"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
-        <div class="card card-status"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
-        <div class="card card-index"><h4>台股大盤</h4><div class="val" id="tw-index-val">--</div></div>
+        <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
+        <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
+        <div class="card"><h4>台股大盤</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="搜尋股票代號..." autocomplete="off" oninput="unifiedSearch(this.value)">
-        <div id="search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: white; z-index: 99; border: 1px solid #ddd; display: none;"></div>
-        <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#2c3e50; color:white; cursor:pointer; font-weight:bold;">新增</button>
+        <input type="text" id="stock-input" placeholder="代號/名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <div id="search-results"></div>
+        <button onclick="addStock()" style="padding:6px 12px; border-radius:4px; border:none; background:#333; color:white; cursor:pointer; font-weight:bold;">+ 新增</button>
     </div>
 
     <table>
@@ -164,19 +169,19 @@
     </table>
 
     <div class="update-bar">
-        <button class="refresh-btn" onclick="location.reload()">↻ 立即同步數據</button>
-        <div class="timer-info"><span id="countdown-text" style="color:#e74c3c; font-weight:bold;">60</span>秒後重新整理</div>
+        <button class="refresh-btn" onclick="location.reload()">↻ 立即更新</button>
+        <div class="timer-info"><span id="countdown-text">60</span>秒後自動刷新</div>
     </div>
     
     <div class="news-section">
-        <div class="news-header">即時新聞財報</div>
+        <div class="news-header">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
-    <div id="last-update-time" style="font-size: 10px; color: #aaa; text-align: right;">最後載入: --:--:--</div>
+    <div id="last-update-time">最後載入: --:--:--</div>
 </div>
 
 <script>
-    // --- 核心數據邏輯 (與現行版完全一致，確保不報錯) ---
+    // --- JS 腳本維持「現行版」原樣，確保功能穩定 ---
     function updateHoliday() {
         const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }, { name: "中秋節", date: "2026-10-06" }, { name: "國慶日", date: "2026-10-10" }];
         const now = new Date();
@@ -192,14 +197,14 @@
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${dayName})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
-        document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#7f8c8d; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
+        document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
         const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
         if (day === 0 || day === 6) twTimer.innerText = "休市";
         else if (h < 9) twTimer.innerText = "未開盤";
         else if (h >= 13 && m >= 30 || h > 13) twTimer.innerText = "已收盤";
-        else twTimer.innerHTML = `<span class="red">盤中交易</span>`;
+        else twTimer.innerHTML = `<span class="red">開盤中</span>`;
     }
 
     function fetchWeather(lat, lon) {
@@ -216,22 +221,28 @@
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const p = d.chart.result[0].meta.regularMarketPrice;
-                document.getElementById('jpy-rate').innerText = `1台幣 = ${p.toFixed(2)}日圓`;
+                document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
 
-        // 大盤指數與心情 (現行版邏輯)
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const meta = d.chart.result[0].meta;
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
+                
                 const el = document.getElementById('tw-index-val');
                 const colorClass = chg >= 0 ? 'red' : 'green';
                 const formattedIndex = p.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                let sentiment = chg > 0 ? "樂觀 🚀" : (chg < 0 ? "焦慮 📉" : "平靜 😐");
-                el.innerHTML = `<div class="${colorClass}">${formattedIndex}</div><div style="font-size:12px; color:#666;">${sentiment}</div>`;
+                let sentiment = "平靜 😐";
+                if (chg > 0) sentiment = "樂觀 🚀";
+                else if (chg < 0) sentiment = "焦慮 📉";
+
+                el.innerHTML = `
+                    <div style="font-size:16px;" class="${colorClass}">${formattedIndex}</div>
+                    <div style="font-size:12px; color:#666;">${sentiment}</div>
+                `;
             }
         });
     }
@@ -254,7 +265,7 @@
         if (!val) { resDiv.style.display = 'none'; return; }
         const query = val.toLowerCase();
         const results = twStockData.filter(s => s.c.includes(query) || s.n.includes(query)).slice(0, 10);
-        resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
+        resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
         resDiv.style.display = 'block';
     }
 
@@ -288,7 +299,9 @@
     }
 
     async function fetchNews() {
-        const ts = new Date().getTime(); const rand = Math.random();
+        const ts = new Date().getTime();
+        const rand = Math.random();
+        
         const fetchRaw = async (url) => {
             try {
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url + "?t=" + ts)}&_=${rand}`;
@@ -299,11 +312,15 @@
                 const items = xmlDoc.getElementsByTagName("item");
                 let list = [];
                 for(let i=0; i<Math.min(items.length, 10); i++){
-                    list.push({ title: items[i].getElementsByTagName("title")[0].textContent, link: items[i].getElementsByTagName("link")[0].textContent });
+                    list.push({
+                        title: items[i].getElementsByTagName("title")[0].textContent,
+                        link: items[i].getElementsByTagName("link")[0].textContent
+                    });
                 }
                 return list;
             } catch (e) { return []; }
         };
+
         const fetchJson = async (url) => {
             try {
                 const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url + "&_t=" + ts + "&_r=" + rand)}`;
@@ -316,16 +333,27 @@
         const results = await Promise.allSettled([
             fetchRaw('https://news.ebc.net.tw/rss/news.xml'),
             fetchRaw('https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money'),
-            fetchJson('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
+            fetchJson('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            fetchJson('https://tw.news.yahoo.com/rss/realtime'),
+            fetchJson('https://news.google.com/rss/headlines/section/topic/POLITICS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            fetchJson('https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
         ]);
+
         let masterPool = [];
         results.forEach(r => { if(r.status === 'fulfilled') masterPool = masterPool.concat(r.value); });
-        const uniqueTitles = new Set(); const finalDisplay = [];
+
+        const uniqueTitles = new Set();
+        const finalDisplay = [];
         for (let item of masterPool) {
-            if (!uniqueTitles.has(item.title)) { uniqueTitles.add(item.title); finalDisplay.push(item); }
-            if (finalDisplay.length >= 12) break;
+            if (!uniqueTitles.has(item.title)) {
+                uniqueTitles.add(item.title);
+                finalDisplay.push(item);
+            }
+            if (finalDisplay.length >= 16) break;
         }
-        document.getElementById('news-list-container').innerHTML = finalDisplay.map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
+
+        const container = document.getElementById('news-list-container');
+        container.innerHTML = finalDisplay.map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
         document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
     }
 
