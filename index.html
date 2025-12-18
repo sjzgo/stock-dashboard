@@ -196,7 +196,7 @@
             }
         });
 
-        // --- 修正重點：僅顯示帶有千分位與小數點的指數 ---
+        // --- 核心修改：合併指數顯示與心情指標 ---
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
@@ -207,10 +207,18 @@
                 const el = document.getElementById('tw-index-val');
                 const colorClass = chg >= 0 ? 'red' : 'green';
 
-                // 使用 toLocaleString 確保千分位與小數點格式
+                // 1. 指數格式化 (27,468.53)
                 const formattedIndex = p.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-                el.innerHTML = `<div style="font-size:16px;" class="${colorClass}">${formattedIndex}</div>`;
+                // 2. 心情邏輯
+                let sentiment = "平靜 😐";
+                if (chg > 0) sentiment = "樂觀 🚀";
+                else if (chg < 0) sentiment = "焦慮 📉";
+
+                el.innerHTML = `
+                    <div style="font-size:16px;" class="${colorClass}">${formattedIndex}</div>
+                    <div style="font-size:12px; color:#666;">${sentiment}</div>
+                `;
             }
         });
     }
