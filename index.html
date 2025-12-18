@@ -9,59 +9,22 @@
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* 頂部資訊欄：終極加固佈局 */
+        /* 頂部資訊欄 */
         .top-info-bar { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-wrap: nowrap; 
-            gap: 2px; 
-            margin-bottom: 10px; 
-            padding-bottom: 8px; 
-            border-bottom: 1px solid #f0f0f0;
-            width: 100%;
-            overflow: hidden;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
+            gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
+            width: 100%; overflow: hidden;
         }
-
-        /* 左側：定位+空氣品質 */
-        .top-left-group { 
-            display: flex; 
-            align-items: center; 
-            gap: 2px; 
-            flex: 0 0 auto; 
-        }
-        .info-pill { 
-            background-color: #f9f9f9; padding: 2px 4px; border-radius: 12px; border: 1px solid #eee; 
-            display: flex; align-items: center; white-space: nowrap; font-size: 11px;
-        }
-        #city-select { 
-            border: none; background: transparent; font-size: 11px; outline: none; 
-            cursor: pointer; font-weight: bold; color: #555; padding: 0; margin-right: 2px;
-        }
+        .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+        .info-pill { background-color: #f9f9f9; padding: 2px 4px; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; white-space: nowrap; font-size: 11px; }
+        #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #555; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #2980b9; }
         
-        /* 中間：日圓匯率 (緩衝區) */
-        .middle-rate-group { 
-            flex: 1 1 auto; 
-            display: flex; 
-            justify-content: center; 
-            min-width: 30px; 
-            overflow: hidden;
-        }
-        #jpy-rate { 
-            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
-            background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd;
-            overflow: hidden; text-overflow: ellipsis;
-        }
+        .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
+        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 右側：假期倒數 */
-        .top-right-holiday {
-            flex: 0 0 auto; 
-            text-align: right;
-        }
-        #holiday-countdown { 
-            color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap;
-        }
+        .top-right-holiday { flex: 0 0 auto; text-align: right; }
+        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
         /* 標題與分析師 */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
@@ -74,23 +37,24 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 2px; color: #888; font-size: 11px; }
-        .card .val { font-size: 14px; font-weight: bold; }
+        .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; } /* 調整行高以適應日期+時間 */
 
         /* 搜尋區 */
         .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格排版：極致利用右側空間 */
+        /* 表格排版：高度壓縮 (Padding 縮小) */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th, td { padding: 8px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
+        /* 2. 修正：Padding 改為 4px，讓表格變矮 */
+        th, td { padding: 4px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
+        
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
         th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
         th:nth-child(5), td:nth-child(5) { width: 17%; text-align: right; }
         th:nth-child(6), td:nth-child(6) { width: 20%; }
-        /* 刪除按鈕強制靠右，佔比極小 */
         th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; padding-right: 0; }
 
         .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; }
@@ -99,7 +63,6 @@
         .div-btn { background: #8e44ad; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
-        /* 更新按鈕樣式 */
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
         .refresh-btn { 
             background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px;
@@ -110,7 +73,6 @@
 
         .red { color: #e74c3c; } .green { color: #27ae60; }
         
-        /* 新聞區 */
         .news-section { margin-top: 8px; border-top: 2px solid #3498db; padding-top: 8px; }
         .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #333; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #f0f0f0; padding-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -163,7 +125,7 @@
     </div>
 
     <div class="dashboard">
-        <div class="card"><h4>時間</h4><div class="val" id="clock-time">--:--:--</div></div>
+        <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
         <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
         <div class="card"><h4>大盤趨勢</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
@@ -202,7 +164,13 @@
 
     function updateMarketStatus() {
         const now = new Date();
-        document.getElementById('clock-time').innerText = now.toLocaleTimeString('zh-TW', {hour12: false});
+        // 1. 修正：格式化日期與時間 (YYYY/MM/DD)
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+        const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
+        
+        // 雙層顯示：上日期(小字)，下時間(大字)
+        document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
+        
         const twTimer = document.getElementById('market-timer');
         const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
         if (day === 0 || day === 6) twTimer.innerText = "休市";
@@ -285,7 +253,7 @@
                 const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
                 document.getElementById("prev-"+code).innerText = prev.toFixed(1);
                 document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).className = clr;
-                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : (chg < 0 ? "▼" : "")) + Math.abs(chg).toFixed(2);
+                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2);
                 document.getElementById("c-"+code).className = clr;
                 document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).className = clr;
             }
@@ -343,7 +311,7 @@
                 uniqueTitles.add(item.title);
                 finalDisplay.push(item);
             }
-            if (finalDisplay.length >= 16) break; /* 調整為 16 則 */
+            if (finalDisplay.length >= 16) break;
         }
 
         const container = document.getElementById('news-list-container');
