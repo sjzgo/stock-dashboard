@@ -214,52 +214,56 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 強制刷新修復版新聞抓取 ---
+    // --- 穩定型強化新聞抓取：海量池 + 多重過濾 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const rnd = Math.random().toString(36).substring(7); // 強力防快取隨機數
         const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
         
+        // 極大化來源池，確保萬無一失
         const urls = [
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}&r=${rnd}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}&r=${rnd}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money&t=${ts}&r=${rnd}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://www.reuters.com/world/asia-pacific/&t=${ts}&r=${rnd}`
+            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://www.reutersagency.com/feed/?best-topics=business&p=1&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=財經+股市+國際&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}` // 關鍵字搜尋遞補
         ];
 
-        let pool = [];
+        let combinedItems = [];
+        const results = await Promise.allSettled(urls.map(url => fetch(url).then(res => res.json())));
+
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value.items) {
+                combinedItems = combinedItems.concat(result.value.items);
+            }
+        });
+
+        // 深度過濾與去重
         const uniqueTitles = new Set();
         const finalNews = [];
 
-        // 使用併發請求提升速度
-        try {
-            const results = await Promise.allSettled(urls.map(url => fetch(url).then(res => res.json())));
+        for (let item of combinedItems) {
+            const title = item.title;
+            const textToSearch = (title + (item.author || "") + (item.description || "")).toLowerCase();
             
-            results.forEach(result => {
-                if (result.status === 'fulfilled' && result.value.items) {
-                    pool = pool.concat(result.value.items);
-                }
-            });
-
-            const filtered = pool.filter(item => {
-                const txt = (item.title + (item.author||"") + (item.description||"")).toLowerCase();
-                return !blacklist.some(b => txt.includes(b.toLowerCase()));
-            });
-
-            for (let item of filtered) {
-                if (!uniqueTitles.has(item.title)) {
-                    uniqueTitles.add(item.title);
-                    finalNews.push(item);
-                }
-                if (finalNews.length >= 9) break;
+            // 檢查黑名單
+            const isBlacklisted = blacklist.some(b => textToSearch.includes(b.toLowerCase()));
+            
+            if (!isBlacklisted && !uniqueTitles.has(title)) {
+                uniqueTitles.add(title);
+                finalNews.push(item);
             }
+            if (finalNews.length >= 12) break; // 抓多一點備用
+        }
 
-            const container = document.getElementById('news-list-container'); 
-            container.innerHTML = '';
-            finalNews.forEach(n => { 
-                container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
-            });
-        } catch (e) { console.error("新聞更新全面失敗"); }
+        // 渲染 9 條新聞，如果不夠 9 條，則強制抓原始池中非重複的前幾名（保證不空）
+        const container = document.getElementById('news-list-container'); 
+        container.innerHTML = '';
+        
+        const displayList = finalNews.length >= 9 ? finalNews.slice(0, 9) : combinedItems.slice(0, 9);
+
+        displayList.forEach(n => { 
+            container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
+        });
     }
 
     function getAutoWeather() {
