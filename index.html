@@ -3,26 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (版面平衡修正版)</title>
+    <title>📊 喵喵站長股票看板 (版面終極修復)</title>
     <style>
-        /* 全局字體 */
+        /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
         /* 頂部資訊欄 */
-        .top-info-bar { 
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
-            gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
-            width: 100%; overflow: hidden;
-        }
+        .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
         .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
         .info-pill { background-color: #fff; padding: 2px 5px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
-        
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 8px; border-radius: 10px; border: 1px solid #c3e6cb; }
-
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
@@ -37,13 +31,10 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); }
         .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
-
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 4px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { margin: 0 0 2px; color: #00838f; font-size: 11px; }
-
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 4px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { margin: 0 0 2px; color: #33691e; font-size: 11px; }
-
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 4px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { margin: 0 0 2px; color: #f57f17; font-size: 11px; }
 
@@ -51,39 +42,41 @@
         .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; border: 1px solid #eee; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
         
-        /* --- 核心修改：表格欄位比例重新分配 --- */
-        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th, td { padding: 5px 1px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+        /* --- 核心修復：表格排版 --- */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; /* 整體字體縮小到12px以防擠壓 */ table-layout: fixed; }
+        th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
+        td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         
-        /* 1. 名稱 (24%) - 加寬，解決左邊擁擠問題 */
-        th:nth-child(1), td:nth-child(1) { width: 24%; text-align: left; padding-left: 4px; } 
-        /* 2. 昨收 (10%) - 稍微縮小 */
-        th:nth-child(2), td:nth-child(2) { width: 10%; text-align: right; }
-        /* 3. 現價 (11%) */
-        th:nth-child(3), td:nth-child(3) { width: 11%; text-align: right; }
-        /* 4. 漲跌 (11%) */
-        th:nth-child(4), td:nth-child(4) { width: 11%; text-align: right; }
+        /* 1. 名稱 (20%) */
+        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
         
-        /* 5. 幅度% (12%) - 縮小寬度，讓它自然靠右，靠近按鈕 */
-        th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 2px; }
+        /* 2-5. 數字欄位 (平均分配剩餘空間，確保不撞車) */
+        /* 昨收 (13%) */
+        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
+        /* 現價 (13%) */
+        th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
+        /* 漲跌 (12%) */
+        th:nth-child(4), td:nth-child(4) { width: 12%; text-align: right; }
+        /* 幅度 (12%) */
+        th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 4px; }
         
-        /* 6. 資訊 (24%) - 縮小寬度，拉近與幅度的距離，但保留按鈕空間 */
-        th:nth-child(6), td:nth-child(6) { width: 24%; text-align: right; }
+        /* 6. 資訊 (22%) - 放兩個按鈕 */
+        th:nth-child(6), td:nth-child(6) { width: 22%; text-align: right; }
         
-        /* 7. 刪除 (8%) - 加寬，解決與資訊太近的問題 */
-        th:nth-child(7), td:nth-child(7) { width: 8%; text-align: right; padding-right: 4px; }
+        /* 7. 刪除 (8%) - 改為置中對齊 */
+        th:nth-child(7), td:nth-child(7) { width: 8%; text-align: center; padding-right: 0; }
 
         /* 按鈕容器 */
-        .links { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
-        .link-btn { text-decoration: none; padding: 3px 6px; border-radius: 4px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
+        .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
+        .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         
-        /* --- 核心修改：新聞按鈕顏色 (亮橘色) --- */
+        /* 新聞按鈕 (亮橘色) */
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
-        /* 股利維持吉利紅 */
+        /* 股利按鈕 (吉利紅) */
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
-        /* ------------------------------------ */
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
+        /* -------------------------- */
 
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0; position: relative; }
         .refresh-btn { 
@@ -164,7 +157,7 @@
 
     <div class="update-bar">
         <button class="refresh-btn" onclick="location.reload()">↻ 立即同步數據</button>
-        <div class="timer-info"><span id="countdown-text">60</span>秒後重新整理</div>
+        <div class="timer-info"><span id="countdown-text">60</span>秒後自動刷新</div>
     </div>
     
     <div class="news-section">
@@ -262,7 +255,7 @@
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
             const name = dynamicStockMap[c] || c; 
-            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td><td style="text-align:right;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
+            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td><td style="text-align:center;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
         });
     }
 
