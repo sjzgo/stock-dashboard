@@ -217,7 +217,7 @@
     // --- 穩定型強化新聞抓取：海量池 + 多重過濾 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "芋傳媒", "TaroNews"];
         
         // 極大化來源池，確保萬無一失
         const urls = [
@@ -297,3 +297,4 @@
 </script>
 </body>
 </html>
+
