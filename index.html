@@ -5,44 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長股票看板</title>
     <style>
-        /* 全局字體設定 */
+        /* 全局字體 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* --- 1. 頂部資訊欄 (空間利用優化) --- */
+        /* --- 1. 頂部資訊欄 (動態平衡佈局) --- */
         .top-info-bar { 
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
-            gap: 5px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: nowrap; /* 絕對不換行 */
+            gap: 4px; 
+            margin-bottom: 10px; 
+            padding-bottom: 8px; 
+            border-bottom: 1px solid #f0f0f0;
+            width: 100%;
         }
-        /* 左側群組：定位 + AQI */
-        .top-left-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        
+
+        /* 左側：固定寬度優先，不縮小 */
+        .top-left-group { 
+            display: flex; align-items: center; gap: 3px; 
+            flex: 0 0 auto; 
+        }
         .info-pill { 
-            background-color: #f9f9f9; padding: 2px 6px; border-radius: 12px; border: 1px solid #eee; 
+            background-color: #f9f9f9; padding: 2px 5px; border-radius: 12px; border: 1px solid #eee; 
             display: flex; align-items: center; white-space: nowrap; font-size: 11px;
         }
         #weather-val { font-weight: bold; color: #2980b9; margin-left: 2px; }
         
-        /* 中間：匯率 (利用 AQI 右邊的剩餘空間) */
-        /* 設定 flex-grow 讓它佔據中間位置，但不推擠左右 */
+        /* 中間：日圓 (緩衝區) */
+        /* flex-grow: 1 讓它自動吃掉所有剩餘空間 */
+        /* min-width: 0 允許它在極端狀況下被壓縮 */
         .middle-rate-group { 
-            flex-grow: 1; display: flex; justify-content: flex-start; padding-left: 5px; overflow: hidden; 
+            flex: 1 1 auto; 
+            display: flex; 
+            justify-content: center; /* 居中顯示 */
+            min-width: 0; 
+            padding: 0 2px;
         }
         #jpy-rate { 
             color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
             background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd;
+            overflow: hidden; text-overflow: ellipsis; /* 空間不足時顯示... */
         }
 
-        /* 右側：假期倒數 */
-        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+        /* 右側：紀念日 (固定優先，字變長會往左推擠中間) */
+        .top-right-holiday {
+            flex: 0 0 auto; 
+            text-align: right;
+        }
+        #holiday-countdown { 
+            color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap;
+        }
 
-        /* --- 3. 分析師頭銜加大 --- */
+        /* --- 標題與分析師 --- */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
-        /* 字體加大，接近標題大小的 70% */
-        .analyst-title { font-size: 1rem; color: #555; font-weight: bold; margin-top: 4px; white-space: nowrap; }
+        /* 3. 字體縮小調整 */
+        .analyst-title { font-size: 0.85rem; color: #666; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
         /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
@@ -55,35 +77,28 @@
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* --- 1. 表格欄位極致調整 (X 推到底) --- */
+        /* 表格：極致空間利用 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th, td { padding: 8px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
-        
-        /* 名稱 (20%)：稍微縮減給中間 */
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
-        /* 昨收, 現價, 漲跌 (各13%) */
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
         th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
-        /* 幅度% (17%)：加大空間 */
         th:nth-child(5), td:nth-child(5) { width: 17%; text-align: right; }
-        /* 資訊 (20%)：加大空間，確保按鈕不重疊 */
         th:nth-child(6), td:nth-child(6) { width: 20%; }
-        /* 刪除 (4%)：極致壓縮並靠最右 */
+        /* X 推到底 */
         th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; padding-right: 0; }
 
-        /* 按鈕容器 */
         .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; padding-right: 2px; }
         .link-btn { text-decoration: none; padding: 2px 3px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; }
         .news-btn { background: #e67e22; }
         .div-btn { background: #8e44ad; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
-        /* 5. 立即更新按鈕：字體加大，留白縮小 */
+        /* 更新按鈕：大字填滿 */
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
         .refresh-btn { 
-            background: #3498db; color: white; border: none; 
-            padding: 2px 15px; height: 30px; line-height: 26px;
+            background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px;
             border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; 
         }
         .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 4px; }
@@ -91,7 +106,6 @@
 
         .red { color: #e74c3c; } .green { color: #27ae60; }
         
-        /* --- 4. 新聞區 (標題簡化) --- */
         .news-section { margin-top: 8px; border-top: 2px solid #3498db; padding-top: 8px; }
         .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #333; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #f0f0f0; padding-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -120,16 +134,16 @@
                 </select>
                 <span id="weather-val">--°</span>
             </div>
-            <div class="info-pill">
-                空氣品質:<span id="aqi-val">--</span>
-            </div>
+            <div class="info-pill">空質:<span id="aqi-val">--</span></div>
         </div>
 
         <div class="middle-rate-group">
-            <div id="jpy-rate">1台幣兌換 -- 日圓</div>
+            <div id="jpy-rate">1臺幣= -- 日圓</div>
         </div>
 
-        <div id="holiday-countdown">📅 載入假期...</div>
+        <div class="top-right-holiday">
+            <div id="holiday-countdown">📅 載入中...</div>
+        </div>
     </div>
 
     <div class="header-area">
@@ -173,22 +187,19 @@
 </div>
 
 <script>
-    // --- 假期 ---
     function updateHoliday() {
-        const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }];
+        const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }, { name: "中秋節", date: "2026-10-06" }, { name: "國慶日", date: "2026-10-10" }];
         const now = new Date();
         let next = holidays.find(h => new Date(h.date) > now) || { name: "新年", date: "2027-01-01" };
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
         document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
     }
 
-    // --- 股市狀態 ---
     function updateMarketStatus() {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString('zh-TW', {hour12: false});
-        
         const twTimer = document.getElementById('market-timer');
-        const day = now.getDay(); const h = now.getHours(); const m = now.getMinutes();
+        const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
         if (day === 0 || day === 6) twTimer.innerText = "休市";
         else if (h < 9) twTimer.innerText = "未開盤";
         else if (h >= 13 && m >= 30 || h > 13) twTimer.innerText = "已收盤";
@@ -202,11 +213,9 @@
         else usTimer.innerText = "已收盤";
     }
 
-    // --- 天氣/AQI/匯率 (1台幣換...) ---
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
-        
         fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
         .then(r => r.json()).then(d => {
             const aqi = d.current.european_aqi;
@@ -214,19 +223,16 @@
             el.innerText = aqi;
             el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
         });
-
-        // 1 TWD = ? JPY (使用 TWDJPY=X)
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const p = d.chart.result[0].meta.regularMarketPrice;
-                // 格式：1台幣兌換 XX.XX 日圓
-                document.getElementById('jpy-rate').innerText = `1台幣兌換 ${p.toFixed(2)} 日圓`;
+                // 1. 日圓顯示修改
+                document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
     }
 
-    // --- 股票邏輯 ---
     let twStockData = []; 
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
@@ -259,17 +265,7 @@
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
             const name = dynamicStockMap[c] || c; 
-            tbody.innerHTML += `<tr>
-                <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
-                <td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td>
-                <td>
-                    <div class="links">
-                        <a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a>
-                        <a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a>
-                    </div>
-                </td>
-                <td style="text-align:center;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
-            </tr>`;
+            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td><td style="text-align:right;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
         });
     }
 
@@ -288,11 +284,9 @@
         });
     }
 
-    // --- 新聞邏輯 ---
     async function fetchNews() {
         const ts = new Date().getTime();
         const genUrl = (url) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url + (url.includes('?') ? '&' : '?') + '_t=' + ts)}`;
-
         const urls = [
             genUrl('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
             genUrl('https://tw.news.yahoo.com/rss/realtime'),
@@ -305,35 +299,21 @@
             genUrl('https://news.google.com/rss/search?q=%E5%85%A9%E5%B2%B8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
             genUrl('https://news.google.com/rss/search?q=%E8%BB%8D%E4%BA%8B&hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
         ];
-
-        let masterPool = [];
         const res = await Promise.allSettled(urls.map(u => fetch(u).then(r => r.json())));
-        res.forEach(r => { 
-            if(r.status === 'fulfilled' && r.value.items) {
-                masterPool = masterPool.concat(r.value.items); 
-            }
-        });
-
+        let masterPool = [];
+        res.forEach(r => { if(r.status === 'fulfilled' && r.value.items) masterPool = masterPool.concat(r.value.items); });
         const uniqueTitles = new Set();
         const finalDisplay = [];
         for (let item of masterPool) {
-            if (!uniqueTitles.has(item.title)) {
-                uniqueTitles.add(item.title);
-                finalDisplay.push(item);
-            }
+            if (!uniqueTitles.has(item.title)) { uniqueTitles.add(item.title); finalDisplay.push(item); }
             if (finalDisplay.length >= 15) break;
         }
-
         const container = document.getElementById('news-list-container');
-        if (finalDisplay.length > 0) {
-            container.innerHTML = finalDisplay.map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
-        } else {
-            container.innerHTML = '<div style="padding:10px; color:#888;">正在努力載入最新快訊...</div>';
-        }
+        container.innerHTML = finalDisplay.map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
         document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
     }
 
-    let timeLeft = 60; // 3. 調整為 60 秒
+    let timeLeft = 60;
     setInterval(() => {
         updateMarketStatus();
         if (timeLeft <= 0) location.reload();
@@ -354,10 +334,7 @@
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
     function changeCityManually() { const [lat, lon] = document.getElementById('city-select').value.split(','); fetchWeather(lat, lon); }
 
-    window.onload = async () => {
-        app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable();
-        myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather();
-    };
+    window.onload = async () => { app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable(); myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather(); };
 </script>
 </body>
 </html>
