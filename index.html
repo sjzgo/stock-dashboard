@@ -126,7 +126,7 @@
     <div class="dashboard">
         <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
         <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
-        <div class="card"><h4>大盤氣色</h4><div class="val" id="tw-index-val">--</div></div>
+        <div class="card"><h4>台股大盤</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
 
     <div class="input-area">
@@ -196,30 +196,21 @@
             }
         });
 
-        // --- 修正重點：心情指標與成交量顯示 ---
+        // --- 修正重點：僅顯示帶有千分位與小數點的指數 ---
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const meta = d.chart.result[0].meta;
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
-                const vol = meta.regularMarketVolume; 
                 
                 const el = document.getElementById('tw-index-val');
-                
-                // 心情邏輯
-                let sentiment = "平靜 😐";
-                let color = "#333";
-                if (chg > 0) { sentiment = "樂觀 🚀"; color = "#e74c3c"; }
-                else if (chg < 0) { sentiment = "焦慮 📉"; color = "#27ae60"; }
+                const colorClass = chg >= 0 ? 'red' : 'green';
 
-                // 成交量換算（億）
-                let volText = vol && vol > 0 ? `${(vol/100000000).toFixed(0)} 億` : "計算中";
+                // 使用 toLocaleString 確保千分位與小數點格式
+                const formattedIndex = p.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-                el.innerHTML = `
-                    <div style="font-size:16px; color:${color};">${sentiment}</div>
-                    <div style="font-size:12px; color:#666;">量: ${volText}</div>
-                `;
+                el.innerHTML = `<div style="font-size:16px;" class="${colorClass}">${formattedIndex}</div>`;
             }
         });
     }
