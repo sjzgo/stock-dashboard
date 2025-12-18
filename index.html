@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長股票看板</title>
     <style>
-        /* 全局字體 */
+        /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
@@ -20,7 +20,7 @@
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
-        /* 標題區 */
+        /* 標題與分析師 */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
@@ -104,7 +104,7 @@
     <div class="dashboard">
         <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
         <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--</div></div>
-        <div class="card"><h4>大盤趨勢</h4><div class="val" id="tw-index-val">載入中...</div></div>
+        <div class="card"><h4>大盤趨勢</h4><div class="val" id="tw-index-val">讀取中...</div></div>
     </div>
 
     <div class="input-area">
@@ -160,40 +160,32 @@
         }
     }
 
-    // --- 強化版：大盤成交金額 (三道防線) ---
-    async function getMarketVolume() {
-        // 1. 嘗試抓取官方 TWSE (MIS)
+    // --- 核心：直接從證交所抓取全部大盤資料 ---
+    async function fetchTwseMarketTrend() {
         try {
-            const url = `https://corsproxy.io/?${encodeURIComponent('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_t00.tw&json=1&delay=0&_=' + new Date().getTime())}`;
+            const ts = new Date().getTime();
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_t00.tw&_=' + ts)}`;
             const res = await fetch(url);
             const data = await res.json();
-            const json = JSON.parse(data.contents || JSON.stringify(data)); // 處理不同的 proxy 回傳格式
+            const json = JSON.parse(data.contents);
+            
             if(json.msgArray && json.msgArray.length > 0) {
-                const a = json.msgArray[0].a; // 成交金額
-                if(a && !isNaN(a)) return Math.floor(parseInt(a) / 100000000);
+                const info = json.msgArray[0];
+                const price = parseFloat(info.z || info.y); // 現價
+                const yesterday = parseFloat(info.y); // 昨收
+                const diff = price - yesterday;
+                const volume = info.a ? Math.floor(parseInt(info.a) / 100000000) : 0; // 金額(億)
+                
+                const colorClass = diff >= 0 ? 'red' : 'green';
+                const sign = diff > 0 ? '▲' : (diff < 0 ? '▼' : '');
+                
+                document.getElementById('tw-index-val').innerHTML = `
+                    <div class="${colorClass}">${price.toFixed(2)} ${sign}${Math.abs(diff).toFixed(2)}</div>
+                    <div class="small-label">成交 ${volume} 億</div>`;
             }
-        } catch(e) {}
-
-        // 2. 嘗試透過台積電 (2330) 反推 (備案：假設台積電佔大盤成交值 8%~10% 的保守估計，通常用作最後手段)
-        try {
-            const url = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/2330.TW?interval=1d&range=1d')}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            if(data.chart.result) {
-                const meta = data.chart.result[0].meta;
-                const lastPrice = meta.regularMarketPrice;
-                const volume = meta.regularMarketVolume; // 股數
-                if(volume > 0) {
-                    // 成交金額 = 股數 * 價格
-                    const tsmcVal = (volume * lastPrice) / 100000000; // 億
-                    // 粗略估算大盤：台積電約佔大盤 30% 權重，但成交量佔比約 5-8%
-                    // 這裡給一個動態係數
-                    return Math.floor(tsmcVal * 12); 
-                }
-            }
-        } catch(e) {}
-
-        return 0; // 真的抓不到
+        } catch(e) {
+            document.getElementById('tw-index-val').innerText = "官方資料讀取中...";
+        }
     }
 
     function fetchWeather(lat, lon) {
@@ -211,24 +203,8 @@
             if(d.chart.result) document.getElementById('jpy-rate').innerText = `1臺幣=${d.chart.result[0].meta.regularMarketPrice.toFixed(2)}日圓`;
         });
 
-        // 大盤指數 (Yahoo) + 成交金額 (混合策略)
-        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
-        .then(r => r.json()).then(async d => {
-            if(d.chart.result){
-                const meta = d.chart.result[0].meta;
-                const p = meta.regularMarketPrice;
-                const chg = p - meta.chartPreviousClose;
-                
-                // 異步抓取成交量
-                const vol = await getMarketVolume();
-                const volText = vol > 0 ? `成交 ${vol} 億` : `成交計算中...`;
-
-                const el = document.getElementById('tw-index-val');
-                el.innerHTML = `
-                    <div class="${chg >= 0 ? 'red' : 'green'}">${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}</div>
-                    <div class="small-label">${volText}</div>`;
-            }
-        });
+        // 呼叫證交所官方行情
+        fetchTwseMarketTrend();
     }
 
     let twStockData = []; 
