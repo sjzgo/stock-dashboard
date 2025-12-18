@@ -45,7 +45,7 @@
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格排版 */
+        /* 表格高度壓縮 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th, td { padding: 4px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
@@ -54,7 +54,7 @@
         th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
         th:nth-child(5), td:nth-child(5) { width: 17%; text-align: right; }
         th:nth-child(6), td:nth-child(6) { width: 20%; }
-        th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; padding-right: 0; }
+        th:nth-child(7), td:nth-child(7) { width: 4%; text-align: right; }
 
         .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 3px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; }
@@ -62,10 +62,19 @@
         .div-btn { background: #8e44ad; }
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
-        .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
+        /* --- 3. 立即更新：消除多餘留白 --- */
+        .update-bar { 
+            display: flex; justify-content: center; align-items: center; 
+            margin: 2px 0; /* 縮小外部留白 */
+            position: relative; 
+            height: 32px; /* 縮小高度 */
+        }
         .refresh-btn { 
-            background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px;
-            border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; 
+            background: #3498db; color: white; border: none; 
+            padding: 0 15px; /* 移除上下 Padding */
+            height: 28px; /* 固定較扁的高度 */
+            line-height: 28px;
+            border-radius: 14px; cursor: pointer; font-weight: bold; font-size: 16px; 
         }
         .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 4px; }
         #countdown-text { color: #e74c3c; font-weight: bold; }
@@ -119,7 +128,7 @@
 
     <div class="dashboard">
         <div class="card"><h4>現在時間</h4><div class="val" id="clock-time">--</div></div>
-        <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--:--:--</div></div>
+        <div class="card"><h4>台股狀態</h4><div class="val" id="market-timer">--</div></div>
         <div class="card"><h4>大盤趨勢</h4><div class="val" id="tw-index-val">--</div></div>
     </div>
 
@@ -160,68 +169,20 @@
         const dayNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${dayNames[now.getDay()]}`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
-        
-        document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
+        document.getElementById('clock-time').innerHTML = `<div class="small-label">${dateStr}</div><div>${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
-        const day = now.getDay(); const h = now.getHours(); const m = now.getMinutes();
-        let statusHtml = "";
-        
-        if (day === 0 || day === 6) statusHtml = "休市";
-        else if (h < 9) statusHtml = "未開盤";
-        else if (h >= 13 && (h > 13 || m >= 30)) statusHtml = "已收盤";
+        const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
+        if (day === 0 || day === 6) twTimer.innerText = "休市";
+        else if (h < 9) twTimer.innerText = "未開盤";
+        else if (h >= 13 && (h > 13 || m >= 30)) twTimer.innerText = "已收盤";
         else {
             const closeTime = new Date(now); closeTime.setHours(13, 30, 0);
             const diff = Math.floor((closeTime - now) / 1000);
             const mm = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
             const ss = (diff % 60).toString().padStart(2, '0');
-            statusHtml = `<span class="red">開盤中</span><br><span class="small-label">倒數 ${Math.floor(diff/3600)}:${mm}:${ss}</span>`;
+            twTimer.innerHTML = `<span class="red">開盤中</span><br><span class="small-label">收盤倒數 ${Math.floor(diff/3600)}:${mm}:${ss}</span>`;
         }
-        twTimer.innerHTML = statusHtml + `<br><span id="us-future-val" class="small-label">美期: 載入中</span>`;
-    }
-
-    // --- 證交所 (TWSE) 官方數據抓取 (解法 A：保證準確金額) ---
-    async function fetchTwseData(currentPrice) {
-        try {
-            // 使用 AllOrigins 代理抓取證交所 MIS API
-            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_t00.tw&json=1&delay=0&_=' + new Date().getTime())}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            const json = JSON.parse(data.contents);
-            
-            if(json.msgArray && json.msgArray.length > 0) {
-                const info = json.msgArray[0];
-                // 'a' = 累積成交金額, 'v' = 累積成交量
-                let volText = "";
-                let volVal = 0;
-                
-                if (info.a && !isNaN(info.a)) {
-                    volVal = Math.floor(parseInt(info.a) / 100000000); // 轉億
-                    volText = `${volVal} 億`;
-                } else if (info.v && !isNaN(info.v)) {
-                    volVal = parseInt(info.v);
-                    volText = `${Math.floor(volVal / 100)} 萬張`; 
-                } else {
-                    return null; 
-                }
-
-                // 預估量邏輯
-                const now = new Date();
-                const h = now.getHours(), m = now.getMinutes();
-                let label = "成交";
-                if (h >= 9 && (h < 13 || (h === 13 && m < 30))) {
-                    const start = new Date(now); start.setHours(9, 0, 0);
-                    const elapsedMins = (now - start) / 1000 / 60;
-                    if(elapsedMins > 0) {
-                        const estimated = Math.floor(volVal / elapsedMins * 270); 
-                        volText = `${estimated} ${volText.includes('張') ? '萬張' : '億'}`;
-                        label = "預估";
-                    }
-                }
-                return { label, text: volText };
-            }
-        } catch(e) { console.error("TWSE Fetch Error", e); }
-        return null;
     }
 
     function fetchWeather(lat, lon) {
@@ -239,35 +200,17 @@
             if(d.chart.result) document.getElementById('jpy-rate').innerText = `1臺幣=${d.chart.result[0].meta.regularMarketPrice.toFixed(2)}日圓`;
         });
 
-        // 整合 Yahoo 指數 + TWSE 官方成交量
+        // 2. 修正：大盤簡化顯示，避免載入中
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
-        .then(r => r.json()).then(async d => {
-            if(d.chart.result){
-                const meta = d.chart.result[0].meta;
-                const p = meta.regularMarketPrice;
-                const chg = p - meta.chartPreviousClose;
-                const pct = (chg / meta.chartPreviousClose * 100).toFixed(2);
-                
-                // 呼叫 TWSE
-                const volData = await fetchTwseData(p);
-                const volDisplay = volData ? `${volData.label} ${volData.text}` : "讀取中...";
-
-                const el = document.getElementById('tw-index-val');
-                el.innerHTML = `
-                    <div class="${chg >= 0 ? 'red' : 'green'}">${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}</div>
-                    <div class="small-label">漲跌幅 ${pct}%</div>
-                    <div class="small-label">${volDisplay}</div>`;
-            }
-        });
-
-        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/ES=F?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const meta = d.chart.result[0].meta;
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
-                const el = document.getElementById('us-future-val');
-                el.innerHTML = `美期: ${p.toFixed(0)} (<span class="${chg >= 0 ? 'red' : 'green'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}</span>)`;
+                const el = document.getElementById('tw-index-val');
+                el.innerHTML = `
+                    <div class="${chg >= 0 ? 'red' : 'green'}">${p.toFixed(0)} ${chg >= 0 ? '▲' : '▼'}${Math.abs(chg).toFixed(0)}</div>
+                    <div class="small-label">今日大盤價 ${p.toFixed(0)}</div>`;
             }
         });
     }
