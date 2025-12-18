@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (現行版+吉利配色)</title>
+    <title>📊 喵喵站長股票看板 (現行版+新聞微調)</title>
     <style>
         /* 全局字體 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -33,7 +33,7 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
         .analyst-title { font-size: 1rem; color: #555; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* 儀表板配色 */
+        /* 儀表板配色 (保留) */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card .val { font-size: 14px; font-weight: bold; line-height: 1.2; }
@@ -44,8 +44,7 @@
         .dashboard .card:nth-child(2) { background: #e8f5e9; border-left: 3px solid #4caf50; } /* 狀態綠 */
         .dashboard .card:nth-child(2) h4 { margin: 0 0 2px; color: #2e7d32; font-size: 11px; }
 
-        /* 指標區：換成溫暖蜜桃色 (Peach) */
-        .dashboard .card:nth-child(3) { background: #fff3e0; border-left: 3px solid #ff9800; border-color: #ffe0b2; } 
+        .dashboard .card:nth-child(3) { background: #fff3e0; border-left: 3px solid #ff9800; border-color: #ffe0b2; } /* 大盤蜜桃 */
         .dashboard .card:nth-child(3) h4 { margin: 0 0 2px; color: #e65100; font-size: 11px; }
 
         /* 搜尋區 */
@@ -69,10 +68,11 @@
         .links { display: flex; gap: 1px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         
-        /* 新聞改為更清晰的亮藍色 */
-        .news-btn { background: #007bff; } 
-        /* 股利改為吉利的深紅色 */
-        .div-btn { background: #dc3545; }  
+        /* --- 核心修改：新聞按鈕顏色 --- */
+        .news-btn { background: #607d8b; } /* 改為沉穩的智慧灰藍 (Slate Blue) */
+        /* -------------------------------- */
+        
+        .div-btn { background: #dc3545; }  /* 股利保留吉利紅 */
         
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
