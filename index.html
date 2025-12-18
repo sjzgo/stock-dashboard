@@ -163,7 +163,10 @@
 
     function updateMarketStatus() {
         const now = new Date();
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
+        // 修正：補回星期的顯示邏輯
+        const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
+        const dayName = daysArr[now.getDay()];
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${dayName})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
         document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#777; margin-bottom:1px;">${dateStr}</div><div>${timeStr}</div>`;
@@ -193,20 +196,15 @@
                 document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
-        // --- 修正重點：大盤價量顯示邏輯 ---
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
                 const meta = d.chart.result[0].meta;
                 const p = meta.regularMarketPrice;
                 const chg = p - meta.chartPreviousClose;
-                // 嘗試獲取成交量 (Yahoo 有時為空或單位不一)
                 const vol = meta.regularMarketVolume; 
                 let volHtml = "";
-                // 如果有量且大於0，顯示量(億)，否則不顯示
                 if(vol && vol > 0) {
-                     // 假設單位是股，粗略換算。若Yahoo給的是元，這裡會變大。
-                     // 僅作顯示參考，通常Yahoo ^TWII volume不太準確，但為滿足需求顯示之。
                      volHtml = `<span style="color:#aaa; font-size:11px; margin-left:4px;">| ${(vol/100000000).toFixed(0)}億</span>`;
                 }
 
@@ -214,7 +212,6 @@
                 const colorClass = chg >= 0 ? 'red' : 'green';
                 const arrow = chg >= 0 ? '▲' : '▼';
                 
-                // 雙層結構：上層是價，下層是 漲跌 + 量
                 el.innerHTML = `
                     <div style="font-size:16px; color:#333;">${p.toFixed(0)}</div>
                     <div style="font-size:12px; display:flex; justify-content:center; align-items:center;">
