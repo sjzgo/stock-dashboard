@@ -5,69 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長股票看板</title>
     <style>
-        /* 全局字體 */
         body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* --- 1. 頂部資訊欄 (修正文字截斷與名稱) --- */
-        .top-info-bar { 
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; 
-            gap: 4px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;
-            width: 100%; overflow: hidden;
-        }
-
-        /* 左側：定位 + 空氣品質 (優先保留寬度) */
-        .top-left-group { 
-            display: flex; align-items: center; gap: 3px; 
-            flex: 0 0 auto; /* 不准壓縮 */
-        }
-        .info-pill { 
-            background-color: #f9f9f9; padding: 2px 6px; border-radius: 12px; border: 1px solid #eee; 
-            display: flex; align-items: center; white-space: nowrap; font-size: 11px;
-        }
-        /* 修正選單寬度：移除 max-width，讓"定位"完整顯示 */
-        #city-select { 
-            border: none; background: transparent; font-size: 11px; outline: none; 
-            cursor: pointer; font-weight: bold; color: #555; padding: 0; margin-right: 2px;
-        }
+        .top-info-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap; gap: 4px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
+        .top-left-group { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; }
+        .info-pill { background-color: #f9f9f9; padding: 2px 6px; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; white-space: nowrap; font-size: 11px; }
+        #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #555; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #2980b9; }
         
-        /* 中間：日圓 (緩衝區：自動縮放) */
-        .middle-rate-group { 
-            flex: 1 1 auto; /* 吃掉剩餘空間 */
-            display: flex; justify-content: center; 
-            min-width: 0; /* 允許被壓縮 */
-            padding: 0 4px;
-        }
-        #jpy-rate { 
-            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
-            background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd;
-            overflow: hidden; text-overflow: ellipsis; 
-        }
+        .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 0; padding: 0 4px; }
+        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #f0fff4; padding: 2px 6px; border-radius: 10px; border: 1px solid #d1e7dd; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 右側：假期 (優先保留) */
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
-        /* --- 標題與分析師 --- */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
         .mascot-container { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
         .analyst-title { font-size: 1rem; color: #555; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
         .card h4 { margin: 0 0 2px; color: #888; font-size: 11px; }
         .card .val { font-size: 14px; font-weight: bold; }
 
-        /* 搜尋區 */
         .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
         #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        /* 表格：維持極致版面 */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th, td { padding: 8px 1px; border-bottom: 1px dotted #eee; text-align: center; vertical-align: middle; }
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; font-size: 14px; padding-left: 2px; } 
@@ -85,10 +52,7 @@
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
 
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 4px 0; position: relative; height: 36px; }
-        .refresh-btn { 
-            background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px;
-            border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; 
-        }
+        .refresh-btn { background: #3498db; color: white; border: none; padding: 2px 15px; height: 30px; line-height: 26px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; }
         .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 4px; }
         #countdown-text { color: #e74c3c; font-weight: bold; }
 
@@ -122,15 +86,11 @@
                 </select>
                 <span id="weather-val">--°</span>
             </div>
-            <div class="info-pill">
-                空氣品質:<span id="aqi-val">--</span>
-            </div>
+            <div class="info-pill">空氣品質:<span id="aqi-val">--</span></div>
         </div>
-
         <div class="middle-rate-group">
             <div id="jpy-rate">1臺幣= -- 日圓</div>
         </div>
-
         <div class="top-right-holiday">
             <div id="holiday-countdown">📅 載入中...</div>
         </div>
@@ -173,7 +133,7 @@
         <div class="news-header">📰 即時新聞</div>
         <div id="news-list-container"></div>
     </div>
-    <div id="last-update-time">等待載入...</div>
+    <div id="last-update-time">最後載入: --:--:--</div>
 </div>
 
 <script>
@@ -188,7 +148,6 @@
     function updateMarketStatus() {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString('zh-TW', {hour12: false});
-        
         const twTimer = document.getElementById('market-timer');
         const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
         if (day === 0 || day === 6) twTimer.innerText = "休市";
@@ -200,7 +159,6 @@
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
-        
         fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
         .then(r => r.json()).then(d => {
             const aqi = d.current.european_aqi;
@@ -208,7 +166,6 @@
             el.innerText = aqi;
             el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
         });
-
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
@@ -216,8 +173,6 @@
                 document.getElementById('jpy-rate').innerText = `1臺幣=${p.toFixed(2)}日圓`;
             }
         });
-
-        // 4. 大盤趨勢 (加權指數)
         fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
         .then(r => r.json()).then(d => {
             if(d.chart.result){
@@ -275,38 +230,70 @@
                 const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
                 document.getElementById("prev-"+code).innerText = prev.toFixed(1);
                 document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).className = clr;
-                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2);
+                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : (chg < 0 ? "▼" : "")) + Math.abs(chg).toFixed(2);
                 document.getElementById("c-"+code).className = clr;
                 document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).className = clr;
             }
         });
     }
 
+    // --- 強化版新聞抓取：多管道代理 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const genUrl = (url) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url + (url.includes('?') ? '&' : '?') + '_t=' + ts)}`;
-        const urls = [
-            genUrl('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://tw.news.yahoo.com/rss/realtime'),
-            genUrl('https://news.ebc.net.tw/rss/news.xml'),
-            genUrl('https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money'),
-            genUrl('https://news.google.com/rss/headlines/section/topic/POLITICS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/search?q=%E7%92%B0%E4%BF%9D&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/search?q=%E5%85%A9%E5%B2%B8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
-            genUrl('https://news.google.com/rss/search?q=%E8%BB%8D%E4%BA%8B&hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
-        ];
-        const res = await Promise.allSettled(urls.map(u => fetch(u).then(r => r.json())));
+        const rand = Math.random();
+        
+        // 管道 A: AllOrigins (針對東森與經濟日報，保證原始最新)
+        const fetchRaw = async (url) => {
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url + "?t=" + ts)}&_=${rand}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+                const items = xmlDoc.getElementsByTagName("item");
+                let list = [];
+                for(let i=0; i<Math.min(items.length, 10); i++){
+                    list.push({
+                        title: items[i].getElementsByTagName("title")[0].textContent,
+                        link: items[i].getElementsByTagName("link")[0].textContent
+                    });
+                }
+                return list;
+            } catch (e) { return []; }
+        };
+
+        // 管道 B: rss2json (針對 Google/Yahoo，強力重刷)
+        const fetchJson = async (url) => {
+            try {
+                const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url + "&_t=" + ts + "&_r=" + rand)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                return data.items || [];
+            } catch (e) { return []; }
+        };
+
+        const results = await Promise.allSettled([
+            fetchRaw('https://news.ebc.net.tw/rss/news.xml'),
+            fetchRaw('https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money'),
+            fetchJson('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            fetchJson('https://tw.news.yahoo.com/rss/realtime'),
+            fetchJson('https://news.google.com/rss/headlines/section/topic/POLITICS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant'),
+            fetchJson('https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')
+        ]);
+
         let masterPool = [];
-        res.forEach(r => { if(r.status === 'fulfilled' && r.value.items) masterPool = masterPool.concat(r.value.items); });
+        results.forEach(r => { if(r.status === 'fulfilled') masterPool = masterPool.concat(r.value); });
+
         const uniqueTitles = new Set();
         const finalDisplay = [];
         for (let item of masterPool) {
-            if (!uniqueTitles.has(item.title)) { uniqueTitles.add(item.title); finalDisplay.push(item); }
-            // 3. 增加到 20 則
+            if (!uniqueTitles.has(item.title)) {
+                uniqueTitles.add(item.title);
+                finalDisplay.push(item);
+            }
             if (finalDisplay.length >= 20) break;
         }
+
         const container = document.getElementById('news-list-container');
         container.innerHTML = finalDisplay.map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
         document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
