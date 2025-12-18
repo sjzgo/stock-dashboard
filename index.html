@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (微調最終版)</title>
+    <title>📊 喵喵站長股票看板 (版面最佳化)</title>
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -47,23 +47,29 @@
         th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         
-        /* 1. 名稱 (20%) */
-        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
+        /* 1. 名稱 (20%) - 修正：允許換行 (white-space: normal)，行高設緊湊一點 */
+        th:nth-child(1), td:nth-child(1) { 
+            width: 20%; 
+            text-align: left; 
+            padding-left: 2px; 
+            white-space: normal; /* 允許換行 */
+            line-height: 1.2;    /* 調整行高讓換行後不佔太多空間 */
+            word-wrap: break-word; 
+        } 
         
         /* 2-3. 昨收/現價 (13%) */
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
 
-        /* --- 修正重點區 --- */
-        /* 4. 漲跌 (12%) - 增加右間距(8px)，把數字往左推 */
+        /* 4. 漲跌 (12%) - 右間距保持 */
         th:nth-child(4), td:nth-child(4) { width: 12%; text-align: right; padding-right: 8px; }
         
-        /* 5. 幅度 (12%) - 減少右間距(0px)，把數字往右靠，去利用新聞左邊的空白 */
+        /* 5. 幅度 (12%) */
         th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
-        /* ------------------ */
         
-        /* 6. 資訊 (22%) */
-        th:nth-child(6), td:nth-child(6) { width: 22%; text-align: right; }
+        /* 6. 資訊 (22%) - 修正：標題置中，內容靠右 */
+        th:nth-child(6) { width: 22%; text-align: center; } /* 標題置中 */
+        td:nth-child(6) { width: 22%; text-align: right; }  /* 內容維持靠右以排列按鈕 */
         
         /* 7. 刪除 (8%) */
         th:nth-child(7), td:nth-child(7) { width: 8%; text-align: center; padding-right: 0; }
@@ -72,7 +78,7 @@
         .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         
-        /* 按鈕配色 (維持亮橘與吉利紅) */
+        /* 配色保持 */
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         
