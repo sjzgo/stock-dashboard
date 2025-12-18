@@ -5,66 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長股票看板</title>
     <style>
-        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 14px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
+        /* 字體加大 15px 並確保不溢出 */
+        body { font-family: '微軟正黑體', sans-serif; background: #f0f2f5; padding: 8px; color: #333; margin: 0; font-size: 15px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative; }
         
-        /* 頂部資訊欄：緊湊且不換行 */
+        /* 頂部資訊欄：緊湊配置不重疊 */
         .top-info-bar { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             flex-wrap: nowrap; 
-            gap: 4px;
-            margin-bottom: 12px;
+            gap: 2px;
+            margin-bottom: 10px;
             padding-bottom: 8px;
             border-bottom: 1px solid #f0f0f0;
         }
-        .top-left-group { display: flex; align-items: center; gap: 3px; flex-shrink: 1; min-width: 0; }
+        .top-left-group { display: flex; align-items: center; gap: 4px; flex-shrink: 1; min-width: 0; }
         .info-pill { 
             background-color: #f9f9f9; 
-            padding: 2px 5px; 
+            padding: 2px 6px; 
             border-radius: 12px; 
             border: 1px solid #eee; 
             display: flex; 
             align-items: center; 
             white-space: nowrap;
-            font-size: 10.5px;
+            font-size: 11px;
         }
         
         #weather-val { font-weight: bold; color: #2980b9; margin-left: 2px; }
-        #aqi-label { margin-right: 2px; }
-        #aqi-val { font-weight: bold; }
-        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 10.5px; white-space: nowrap; flex-shrink: 0; }
+        #index-monitor { color: #8e44ad; font-weight: bold; font-size: 11px; white-space: nowrap; margin: 0 4px; }
+        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
 
-        .header-area { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
         .mascot-container { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #f0f0f0; flex-shrink: 0; }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text h2 { margin: 0; font-size: 1.3rem; line-height: 1.2; }
+        .header-text h2 { margin: 0; font-size: 1.4rem; line-height: 1.2; }
 
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 10px; }
         .card { background: #f8f9fa; padding: 6px 2px; border-radius: 4px; text-align: center; border: 1px solid #eee; }
-        .card h4 { margin: 0 0 2px; color: #888; font-size: 10px; }
-        .card .val { font-size: 13px; font-weight: bold; }
+        .card h4 { margin: 0 0 2px; color: #888; font-size: 11px; }
+        .card .val { font-size: 14px; font-weight: bold; }
 
-        .input-area { background-color: #f1f3f4; padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; position: relative; }
-        #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; outline: none; min-width: 0; }
-        #search-results { position: absolute; top: 40px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; max-height: 250px; overflow-y: auto; }
+        .input-area { background-color: #f1f3f4; padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; position: relative; }
+        #stock-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; min-width: 0; }
+        #search-results { position: absolute; top: 35px; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th, td { padding: 10px 2px; border-bottom: 1px dotted #eee; text-align: right; }
-        th:first-child, td:first-child { text-align: left; width: 25%; }
-        .news-btn { background: #e67e22; color: white; text-decoration: none; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; }
-
-        .update-bar { display: flex; justify-content: center; align-items: center; margin: 20px 0; position: relative; height: 40px; }
-        .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .refresh-btn:hover { background: #2980b9; }
-        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 6px; border: 1px solid #eee; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+        th, td { padding: 8px 2px; border-bottom: 1px dotted #eee; text-align: right; }
+        th:first-child, td:first-child { text-align: left; width: 24%; font-size: 15px; }
+        
+        /* 立即更新按鈕：壓縮留白 */
+        .update-bar { display: flex; justify-content: center; align-items: center; margin: 8px 0; position: relative; height: 32px; }
+        .refresh-btn { background: #3498db; color: white; border: none; padding: 4px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; background: #fdfdfd; padding: 2px 4px; }
         #countdown-text { color: #e74c3c; font-weight: bold; }
 
-        .news-section { border-top: 2px solid #3498db; padding-top: 10px; margin-top: 10px; }
-        .news-item { font-size: 13px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .news-item a { text-decoration: none; color: #333; }
+        .red { color: #e74c3c; } .green { color: #27ae60; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -73,7 +70,7 @@
     <div class="top-info-bar">
         <div class="top-left-group">
             <div class="info-pill">
-                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:10.5px;outline:none;cursor:pointer;font-weight:bold;color:#555;padding:0;max-width:42px;">
+                <select id="city-select" onchange="changeCityManually()" style="border:none;background:transparent;font-size:11px;outline:none;cursor:pointer;font-weight:bold;color:#555;padding:0;max-width:42px;">
                     <option value="auto">📍定位</option>
                     <option value="25.03,121.56">台北</option><option value="25.01,121.46">新北</option>
                     <option value="24.99,121.30">桃園</option><option value="24.14,120.67">台中</option>
@@ -89,10 +86,11 @@
                 <span id="weather-val">--°</span>
             </div>
             <div class="info-pill">
-                <span id="aqi-label">空氣品質:</span><span id="aqi-val">--</span>
+                空氣品質:<span id="aqi-val">--</span>
             </div>
         </div>
-        <div id="holiday-countdown">📅 距離春節還有 -- 天</div>
+        <div id="index-monitor">台指參考: 加載中...</div>
+        <div id="holiday-countdown">📅 載入假期...</div>
     </div>
 
     <div class="header-area">
@@ -112,11 +110,11 @@
     <div class="input-area">
         <input type="text" id="stock-input" placeholder="代號/名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div id="search-results"></div>
-        <button onclick="addStock()" style="padding:6px 12px; border-radius:4px; border:none; background:#333; color:white; cursor:pointer;">+ 新增</button>
+        <button onclick="addStock()" style="padding:6px 12px; border-radius:4px; border:none; background:#333; color:white; cursor:pointer; font-weight:bold;">+ 新增</button>
     </div>
 
     <table>
-        <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th></th></tr></thead>
+        <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th></th></tr></thead>
         <tbody id="stock-list"></tbody>
     </table>
 
@@ -124,23 +122,42 @@
         <button class="refresh-btn" onclick="location.reload()">↻ 立即更新</button>
         <div class="timer-info"><span id="countdown-text">25</span>秒後自動刷新</div>
     </div>
-
-    <div class="news-section">
-        <div id="news-list-container"></div>
+    
     </div>
-</div>
 
 <script>
-    // --- 假期倒數 ---
+    // --- 假期與指數監測 ---
     function updateHoliday() {
         const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }];
         const now = new Date();
         let next = holidays.find(h => new Date(h.date) > now) || { name: "新年", date: "2027-01-01" };
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
-        document.getElementById('holiday-countdown').innerText = `📅 距離${next.name}還有 ${days} 天`;
+        document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
     }
 
-    // --- 天氣/空氣品質 ---
+    // --- 修復台美股計時器 ---
+    function updateMarketStatus() {
+        const now = new Date();
+        document.getElementById('clock-time').innerText = now.toLocaleTimeString('zh-TW', {hour12: false});
+        
+        // 台股
+        const twTimer = document.getElementById('market-timer');
+        const day = now.getDay(); const h = now.getHours(); const m = now.getMinutes();
+        if (day === 0 || day === 6) twTimer.innerText = "休市";
+        else if (h < 9) twTimer.innerText = "未開盤";
+        else if (h >= 13 && m >= 30 || h > 13) twTimer.innerText = "已收盤";
+        else twTimer.innerHTML = `<span class="red">開盤中</span>`;
+
+        // 美股 (夏令/冬令簡易判定)
+        const usTimer = document.getElementById('us-market-timer');
+        const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+        const nyDay = nyTime.getDay(); const nyH = nyTime.getHours();
+        if (nyDay === 0 || nyDay === 6) usTimer.innerText = "休市";
+        else if (nyH >= 9 && nyH < 16) usTimer.innerHTML = `<span class="green">開盤中</span>`;
+        else usTimer.innerText = "已收盤";
+    }
+
+    // --- 天氣與 AQI ---
     function fetchWeather(lat, lon) {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
@@ -151,6 +168,17 @@
             const el = document.getElementById('aqi-val');
             el.innerText = aqi;
             el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#e67e22" : "#e74c3c");
+        });
+
+        // 藉此抓取大盤數據作監測
+        fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`)
+        .then(r => r.json()).then(d => {
+            if(d.chart.result){
+                const meta = d.chart.result[0].meta;
+                const chg = meta.regularMarketPrice - meta.chartPreviousClose;
+                document.getElementById('index-monitor').innerText = `大盤:${meta.regularMarketPrice.toFixed(0)} (${chg >= 0 ? '+' : ''}${chg.toFixed(0)})`;
+                document.getElementById('index-monitor').className = chg >= 0 ? 'red' : 'green';
+            }
         });
     }
 
@@ -172,10 +200,9 @@
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
         const query = val.toLowerCase();
-        const results = twStockData.filter(s => s.c.includes(query) || s.n.includes(query)).slice(0, 15);
-        let html = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
-        resDiv.innerHTML = html;
-        resDiv.style.display = html ? 'block' : 'none';
+        const results = twStockData.filter(s => s.c.includes(query) || s.n.includes(query)).slice(0, 10);
+        resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee;" onclick="selectStock('${s.c}', '${s.n}')"><b>${s.n}</b> <small>${s.c}</small></div>`).join('');
+        resDiv.style.display = 'block';
     }
 
     function selectStock(c, n) { 
@@ -188,7 +215,7 @@
         const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
         myStocks.forEach(c => {
             const name = dynamicStockMap[c] || c; 
-            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="news-btn">新聞</a></td><td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
+            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
         });
     }
 
@@ -197,37 +224,19 @@
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart.result) {
                 let m = d.chart.result[0].meta, p = m.regularMarketPrice, prev = m.chartPreviousClose, chg = p - prev, pct = (chg/prev)*100;
-                const color = chg > 0 ? "#e74c3c" : (chg < 0 ? "#27ae60" : "#333");
+                const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
                 document.getElementById("prev-"+code).innerText = prev.toFixed(1);
-                document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).style.color = color;
-                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2);
-                document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).style.color = color;
-            }
-        });
-    }
-
-    // --- 極簡過濾新聞 (僅限三立與鏡) ---
-    async function fetchNews() {
-        const ts = new Date().getTime();
-        const blacklist = ["三立", "鏡"]; // 僅保留這兩類關鍵字
-        const url = `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`;
-        
-        fetch(url).then(r => r.json()).then(d => {
-            if(d.items) {
-                const container = document.getElementById('news-list-container');
-                const high = [], low = [];
-                d.items.forEach(i => {
-                    const isLow = blacklist.some(b => i.title.includes(b));
-                    if(isLow) low.push(i); else high.push(i);
-                });
-                container.innerHTML = [...high, ...low].slice(0, 9).map(n => `<div class="news-item">● <a href="${n.link}" target="_blank">${n.title}</a></div>`).join('');
+                document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).className = clr;
+                document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : (chg < 0 ? "▼" : "")) + Math.abs(chg).toFixed(2);
+                document.getElementById("c-"+code).className = clr;
+                document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).className = clr;
             }
         });
     }
 
     let timeLeft = 25;
     setInterval(() => {
-        document.getElementById('clock-time').innerText = new Date().toLocaleTimeString('zh-TW', {hour12: false});
+        updateMarketStatus();
         if (timeLeft <= 0) location.reload();
         document.getElementById('countdown-text').innerText = timeLeft--;
     }, 1000);
@@ -244,15 +253,11 @@
     };
 
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
-
-    function changeCityManually() {
-        const [lat, lon] = document.getElementById('city-select').value.split(',');
-        fetchWeather(lat, lon);
-    }
+    function changeCityManually() { const [lat, lon] = document.getElementById('city-select').value.split(','); fetchWeather(lat, lon); }
 
     window.onload = async () => {
         app.loadLogo(); updateHoliday(); await initOfficialList(); renderTable();
-        myStocks.forEach(fetchPrice); fetchNews(); getAutoWeather();
+        myStocks.forEach(fetchPrice); getAutoWeather();
     };
 </script>
 </body>
