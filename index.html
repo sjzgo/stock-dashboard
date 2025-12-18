@@ -93,7 +93,7 @@
     <div style="text-align:center; margin:10px 0;"><button style="background:#3498db;color:white;border:none;padding:5px 15px;border-radius:15px;cursor:pointer;" onclick="manualUpdate()">↻ 立即更新</button></div>
 
     <div class="news-section">
-        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 即時新聞</div>
+        <div style="font-size:14px;font-weight:bold;border-bottom:2px solid #3498db;margin-bottom:10px;padding-bottom:5px;">📰 全台即時新聞總匯</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">等待更新...</div>
@@ -214,52 +214,62 @@
     let timeLeft = 25;
     setInterval(() => { if (timeLeft <= 0) { updateAll(); timeLeft = 25; } document.getElementById('countdown-text').innerText = timeLeft--; }, 1000);
 
-    // --- 穩定型強化新聞抓取：海量池 + 多重過濾 ---
+    // --- 全台大聯盟新聞抓取：強力補償 + 絕對滿員 ---
     async function fetchNews() {
         const ts = new Date().getTime();
-        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "芋傳媒", "TaroNews"];
+        const blacklist = ["三立", "民視", "自由時報", "SETN", "FTV", "LTN", "新頭殼", "Newtalk", "年代", "鏡週刊", "鏡電視", "鏡新聞", "Mirror", "上報", "芋傳媒", "TaroNews"];
         
-        // 極大化來源池，確保萬無一失
+        // 擴展來源：包含 Google 全台搜尋、Yahoo 即時、中央社、經濟日報
         const urls = [
             `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://tw.news.yahoo.com/rss/realtime&t=${ts}`,
+            `https://api.rss2json.com/v1/api.json?rss_url=https://www.cna.com.tw/cna2018/static/js/rss/realtimenews.xml&t=${ts}`,
             `https://api.rss2json.com/v1/api.json?rss_url=https://money.udn.com/rssfeed/news/1001/5588/1051?ch=money&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://www.reutersagency.com/feed/?best-topics=business&p=1&t=${ts}`,
-            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=財經+股市+國際&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}` // 關鍵字搜尋遞補
+            `https://api.rss2json.com/v1/api.json?rss_url=https://news.google.com/rss/search?q=台灣+即時+頭條&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${ts}` 
         ];
 
-        let combinedItems = [];
+        let masterPool = [];
         const results = await Promise.allSettled(urls.map(url => fetch(url).then(res => res.json())));
 
         results.forEach(result => {
             if (result.status === 'fulfilled' && result.value.items) {
-                combinedItems = combinedItems.concat(result.value.items);
+                masterPool = masterPool.concat(result.value.items);
             }
         });
 
-        // 深度過濾與去重
+        // 深度過濾與去重邏輯
         const uniqueTitles = new Set();
-        const finalNews = [];
+        const finalSelection = [];
 
-        for (let item of combinedItems) {
+        for (let item of masterPool) {
             const title = item.title;
             const textToSearch = (title + (item.author || "") + (item.description || "")).toLowerCase();
-            
-            // 檢查黑名單
             const isBlacklisted = blacklist.some(b => textToSearch.includes(b.toLowerCase()));
             
             if (!isBlacklisted && !uniqueTitles.has(title)) {
                 uniqueTitles.add(title);
-                finalNews.push(item);
+                finalSelection.push(item);
             }
-            if (finalNews.length >= 12) break; // 抓多一點備用
+            if (finalSelection.length >= 15) break; // 抓多一點備用
         }
 
-        // 渲染 9 條新聞，如果不夠 9 條，則強制抓原始池中非重複的前幾名（保證不空）
+        // 最終保險渲染：如果經過過濾還是不到 9 條（這在全台大聯盟中極難發生），就直接從 masterPool 補齊非黑名單項目
         const container = document.getElementById('news-list-container'); 
         container.innerHTML = '';
         
-        const displayList = finalNews.length >= 9 ? finalNews.slice(0, 9) : combinedItems.slice(0, 9);
+        let displayList = finalSelection.slice(0, 9);
+        
+        // 如果不足 9 條，補上 masterPool 中的內容，只要不在黑名單即可
+        if (displayList.length < 9) {
+            for (let item of masterPool) {
+                const textToSearch = (item.title + (item.author || "")).toLowerCase();
+                if (!blacklist.some(b => textToSearch.includes(b.toLowerCase())) && !uniqueTitles.has(item.title)) {
+                    displayList.push(item);
+                    uniqueTitles.add(item.title);
+                }
+                if (displayList.length >= 9) break;
+            }
+        }
 
         displayList.forEach(n => { 
             container.innerHTML += `<div class="news-item"><a href="${n.link}" target="_blank">● ${n.title}</a></div>`; 
@@ -297,4 +307,3 @@
 </script>
 </body>
 </html>
-
