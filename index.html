@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (現行亮彩修正版)</title>
+    <title>📊 喵喵站長股票看板 (版面平衡修正版)</title>
     <style>
         /* 全局字體 */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -51,29 +51,38 @@
         .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; border: 1px solid #eee; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
         
-        /* --- 修正重點：表格欄位比例與對齊 --- */
+        /* --- 核心修改：表格欄位比例重新分配 --- */
         table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         th, td { padding: 5px 1px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         
-        /* 1. 名稱 (20%) */
-        th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 4px; } 
-        /* 2-4. 價格數據 (12% * 3) */
-        th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3), th:nth-child(4), td:nth-child(4) { width: 12%; text-align: right; }
-        /* 5. 幅度% (15%) - 增加右間距防止碰頭 */
-        th:nth-child(5), td:nth-child(5) { width: 15%; text-align: right; padding-right: 8px; }
-        /* 6. 資訊 (26%) - 增加寬度並讓內容靠右 */
-        th:nth-child(6), td:nth-child(6) { width: 26%; text-align: right; }
-        /* 7. 刪除 (5%) */
-        th:nth-child(7), td:nth-child(7) { width: 5%; text-align: right; padding-right: 4px; }
+        /* 1. 名稱 (24%) - 加寬，解決左邊擁擠問題 */
+        th:nth-child(1), td:nth-child(1) { width: 24%; text-align: left; padding-left: 4px; } 
+        /* 2. 昨收 (10%) - 稍微縮小 */
+        th:nth-child(2), td:nth-child(2) { width: 10%; text-align: right; }
+        /* 3. 現價 (11%) */
+        th:nth-child(3), td:nth-child(3) { width: 11%; text-align: right; }
+        /* 4. 漲跌 (11%) */
+        th:nth-child(4), td:nth-child(4) { width: 11%; text-align: right; }
+        
+        /* 5. 幅度% (12%) - 縮小寬度，讓它自然靠右，靠近按鈕 */
+        th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 2px; }
+        
+        /* 6. 資訊 (24%) - 縮小寬度，拉近與幅度的距離，但保留按鈕空間 */
+        th:nth-child(6), td:nth-child(6) { width: 24%; text-align: right; }
+        
+        /* 7. 刪除 (8%) - 加寬，解決與資訊太近的問題 */
+        th:nth-child(7), td:nth-child(7) { width: 8%; text-align: right; padding-right: 4px; }
 
-        /* 按鈕容器：強制右對齊以消除右邊空白 */
+        /* 按鈕容器 */
         .links { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 3px 6px; border-radius: 4px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         
-        .news-btn { background: #00d2ff; } 
-        .div-btn { background: #ff4757; }  
+        /* --- 核心修改：新聞按鈕顏色 (亮橘色) --- */
+        .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
+        /* 股利維持吉利紅 */
+        .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         
-        .del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 16px; padding: 0; }
+        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; }
         /* ------------------------------------ */
 
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0; position: relative; }
