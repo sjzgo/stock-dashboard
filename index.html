@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.5 正式版)</title>
+    <title>📊 喵喵站長資訊看板 (v8.7)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -12,7 +12,7 @@
         /* --- 頂部資訊欄 (緊湊佈局) --- */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; 
-            gap: 1px; /* 極窄間距 */
+            gap: 1px; 
             margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; 
         }
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
@@ -221,7 +221,7 @@
     </div>
     
     <div class="news-section">
-        <div class="news-header">📰 即時新聞 (TOP 20)</div>
+        <div class="news-header">📰 即時新聞 (如未顯示請手動更新)</div>
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">最後載入: --:--:--</div>
@@ -241,9 +241,14 @@
 
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
 
-    // --- 初始化完整股票清單 (維持架構但不自動執行以防卡頓) ---
+    // --- 初始化完整股票清單 ---
     async function initFullStockList() {
-        // 暫時關閉全清單下載，確保穩定性
+        try {
+            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            fullStockList = data.map(s => ({ id: s.Code, name: s.Name }));
+        } catch (e) {}
     }
 
     function getWeatherIcon(code) {
@@ -341,7 +346,7 @@
         myStocks.forEach(c => {
             let name = dynamicStockMap[c] || c;
             if (name === c) {
-                const found = stockDB.find(s => s.id === c);
+                const found = stockDB.find(s => s.id === c) || fullStockList.find(s => s.id === c);
                 if (found) name = found.name;
             }
 
@@ -366,6 +371,8 @@
         let nameToAdd = val;
 
         let found = stockDB.find(s => s.id === val || s.name === val);
+        if (!found) found = fullStockList.find(s => s.id === val || s.name === val);
+
         if (found) {
             codeToAdd = found.id;
             nameToAdd = found.name;
@@ -517,7 +524,7 @@
         } catch(e) {}
     }
 
-    // 【回復功能】自動節日計算 (無空白)
+    // 自動節日計算 (無空白)
     function updateHoliday() {
         const holidays = [
             { name: "跨年", date: "2025-01-01" },
@@ -535,7 +542,6 @@
         const now = new Date();
         const next = holidays.find(h => new Date(h.date) > now) || holidays[0];
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
-        // 無空白格式
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
@@ -570,7 +576,7 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
-    // 初始化啟動
+    // 初始化啟動 (移除 initFullStockList)
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
