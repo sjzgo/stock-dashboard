@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.4 空間優化版)</title>
+    <title>📊 喵喵站長資訊看板 (v8.5 正式版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* --- 頂部資訊欄 (間距再縮小) --- */
+        /* --- 頂部資訊欄 (緊湊佈局) --- */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; 
-            gap: 1px; /* 【優化】從 2px 改為 1px，盡量擠出空間 */
+            gap: 1px; /* 極窄間距 */
             margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; 
         }
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
@@ -23,11 +23,11 @@
         /* 中間匯率區 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         
-        /* 日圓樣式 */
+        /* 日圓樣式：緊湊版 */
         #jpy-rate { 
             color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
             background: #ebfbee; 
-            padding: 2px 3px; /* 【優化】左右內距再縮 1px */
+            padding: 2px 3px; 
             border-radius: 10px; border: 1px solid #c3e6cb; 
         }
         
@@ -241,14 +241,9 @@
 
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
 
-    // --- 初始化完整股票清單 ---
+    // --- 初始化完整股票清單 (維持架構但不自動執行以防卡頓) ---
     async function initFullStockList() {
-        try {
-            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            fullStockList = data.map(s => ({ id: s.Code, name: s.Name }));
-        } catch (e) {}
+        // 暫時關閉全清單下載，確保穩定性
     }
 
     function getWeatherIcon(code) {
@@ -346,7 +341,7 @@
         myStocks.forEach(c => {
             let name = dynamicStockMap[c] || c;
             if (name === c) {
-                const found = stockDB.find(s => s.id === c) || fullStockList.find(s => s.id === c);
+                const found = stockDB.find(s => s.id === c);
                 if (found) name = found.name;
             }
 
@@ -450,11 +445,12 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率
+            // 匯率 (Yahoo)
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
                    const p = d.chart.result[0].meta.regularMarketPrice;
+                   // 【修正】無空白格式
                    document.getElementById('jpy-rate').innerText = `1台幣=${p.toFixed(2)}日圓`;
                 }
             }).catch(()=>console.log("匯率無法讀取"));
@@ -477,7 +473,6 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 大盤
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
@@ -490,7 +485,6 @@
                             </div>
                         `;
 
-                        // 更新心情指標
                         const badge = document.getElementById('sentiment-badge');
                         badge.style.display = 'block';
                         badge.innerText = sentiment;
@@ -523,9 +517,26 @@
         } catch(e) {}
     }
 
-    // 【修改重點】壓力測試字串 - 去空白
+    // 【回復功能】自動節日計算 (無空白)
     function updateHoliday() {
-        document.getElementById('holiday-countdown').innerText = `📅和平紀念日99天`;
+        const holidays = [
+            { name: "跨年", date: "2025-01-01" },
+            { name: "春節", date: "2025-01-29" },
+            { name: "和平紀念", date: "2025-02-28" },
+            { name: "兒童節", date: "2025-04-04" },
+            { name: "勞動節", date: "2025-05-01" },
+            { name: "端午節", date: "2025-05-31" },
+            { name: "中秋節", date: "2025-10-06" },
+            { name: "國慶日", date: "2025-10-10" },
+            { name: "跨年", date: "2026-01-01" },
+            { name: "春節", date: "2026-02-17" },
+            { name: "和平紀念", date: "2026-02-28" }
+        ];
+        const now = new Date();
+        const next = holidays.find(h => new Date(h.date) > now) || holidays[0];
+        const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
+        // 無空白格式
+        document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
     function updateMarketStatus() {
@@ -559,7 +570,7 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
-    // 初始化啟動 (移除 initFullStockList)
+    // 初始化啟動
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
