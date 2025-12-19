@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.4)</title>
+    <title>📊 喵喵站長資訊看板 (v7.5 客製版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -52,7 +52,6 @@
 
         .input-actions { display: flex; align-items: center; gap: 12px; }
         
-        /* 心情指標標籤 */
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap;
@@ -400,7 +399,7 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率 (Yahoo) - 獨立抓取，避免影響其他
+            // 匯率
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -409,7 +408,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 大盤指數 (GAS - 混合來源)
+            // 【大盤修復 v7.5】混合雙引擎 (GAS抓指數 + Yahoo抓金額)
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -419,31 +418,28 @@
                         const y = parseFloat(info.y);
                         const chg = p - y;
                         
-                        // 心情指標 logic
                         let sentiment = "盤整觀望 😐";
                         let sentimentColor = "#888";
                         if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
                         else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
-                        
-                        // 更新大盤
-                        // 1. 先用 GAS 更新指數
-                        const el = document.getElementById('tw-index-val');
-                        // 2. 嘗試抓取 Yahoo 補成交量 (因為 GAS 的 t00 v 是張數，非金額)
-                        // 這裡採用雙重保障，先顯示 GAS 指數，量暫時不顯示，等 Yahoo 回傳
-                         el.innerHTML = `<div class="${chg>=0?'red':'green'}">${p.toLocaleString()}</div>
-                                        <div id="tw-volume-display" style="font-size:11px; color:#555; margin-top:2px;">查詢中...</div>`;
 
-                        // 3. 異步抓取 Yahoo 補成交量 (因為只有 Yahoo 會算好金額)
+                        // 1. 先顯示 GAS 指數，成交金額顯示"讀取中"
+                        const el = document.getElementById('tw-index-val');
+                        const colorClass = chg >= 0 ? 'red' : 'green';
+                        el.innerHTML = `
+                            <div style="font-size:12px; color:#555; margin-bottom:2px;">成交金額: <span id="vol-real">--</span> (億)</div>
+                            <div class="${colorClass}" style="font-size:15px; font-weight:bold;">加權指數: ${p.toLocaleString()}</div>
+                        `;
+
+                        // 2. 異步抓取 Yahoo 補成交量
                         const indexYahooUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1d&range=1d')}`;
                         fetch(indexYahooUrl).then(ry => ry.json()).then(dy => {
                              if(dy.chart?.result) {
-                                 // Yahoo 的 volume 即使是 0，通常也是最準的金額來源 (盤後)
                                  const vol = dy.chart.result[0].meta.regularMarketVolume || 0;
-                                 const volText = vol > 0 ? `量: ${Math.round(vol/100000000)}億` : "量: --";
-                                 const volEl = document.getElementById('tw-volume-display');
-                                 if(volEl) volEl.innerText = volText;
+                                 const volEl = document.getElementById('vol-real');
+                                 if(volEl) volEl.innerText = (vol/100000000).toFixed(2);
                              }
                         });
 
