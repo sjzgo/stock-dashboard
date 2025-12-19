@@ -4,19 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 喵喵站長資訊看板 (v9.1 終極搜尋)</title>
-
-<body>
-    <header style="text-align: center; padding: 20px; background-color: #f0f8ff;">
-        <h1 style="color: #333; font-family: '微軟正黑體', sans-serif;">
-            📊 喵喵站長資訊看板 
-            <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle;">
-                (v9.1 終極搜尋)
-            </span>
-        </h1>
-        <p>歡迎回來，站長！今日市場數據載入中...</p>
-    </header>
-    
-    </body>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -34,11 +21,12 @@
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
         /* --- 標題區域 --- */
-        .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
-        .mascot-container { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header { text-align: center; padding: 15px; background-color: #f0f8ff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #dbeafe; }
+        .header-title-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .mascot-container { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
-        .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
+        h1 { margin: 0; color: #2c3e50; font-size: 1.4rem; line-height: 1.2; }
+        .analyst-title { font-size: 0.9rem; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
 
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
@@ -57,6 +45,21 @@
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
         #sentiment-badge { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap; display: none; min-width: 60px; text-align: center; }
+
+        /* --- 搜尋結果下拉選單 (優化版) --- */
+        #search-results { 
+            position: relative; 
+            z-index: 99; 
+            margin-top: -10px; 
+            margin-bottom: 10px; 
+            background: white; 
+            border: 1px solid #3498db; /* 搜尋時變藍色邊框 */
+            border-top: none; 
+            display: none; 
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
 
         /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
@@ -114,7 +117,7 @@
                 <span id="weather-icon" style="margin-left:2px; font-size:12px;"></span>
                 <span id="weather-val" style="margin-left:1px;">--°</span>
             </div>
-            <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
+            <div class="info-pill">空品:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
         </div>
         <div class="middle-rate-group">
             <div id="jpy-rate">1台幣=--日圓</div>
@@ -124,16 +127,24 @@
         </div>
     </div>
 
-    <div class="header-area">
-        <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
-            <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
+    <header>
+        <div class="header-title-row">
+            <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
+                <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
+            </div>
+            <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
+            <div>
+                <h1>
+                    📊 喵喵站長資訊看板 
+                    <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
+                        v9.1
+                    </span>
+                </h1>
+                <div class="analyst-title">首席分析師：黑寶</div>
+            </div>
         </div>
-        <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
-        <div class="header-text">
-            <h2>📊 喵喵站長資訊看板</h2>
-            <div class="analyst-title">首席分析師：黑寶</div>
-        </div>
-    </div>
+        <p style="margin:5px 0 0 0; color:#666; font-size:13px;">歡迎回來，站長！今日市場數據載入中...</p>
+    </header>
 
     <div class="dashboard">
         <div class="card">
@@ -154,14 +165,14 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱..." autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱 (支援模糊搜尋)" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div class="input-actions">
             <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
             <div id="sentiment-badge"></div>
         </div>
     </div>
 
-    <div id="search-results" style="position: relative; z-index: 99; margin-top:-10px; margin-bottom:10px; background:white; border:1px solid #ddd; border-top:none; display:none;"></div>
+    <div id="search-results"></div>
 
     <table>
         <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th>刪</th></tr></thead>
@@ -193,7 +204,7 @@
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
 
-    // ★★★ 這是您的 GAS 網址 (已填入您提供的) ★★★
+    // ★★★ 這是您的 GAS 網址 ★★★
     const gasUrl = "https://script.google.com/macros/s/AKfycbxOaln9DyAI-EhsuTK8qawgX3-5kWMer0OzxONkDLAetks25pV_KuGb2JNeXHByj8zS/exec"; 
 
     function getWeatherIcon(code) {
@@ -291,7 +302,6 @@
         tbody.innerHTML = '';
         myStocks.forEach(c => {
             let name = dynamicStockMap[c] || c;
-            // 嘗試從本地 DB 找名字
             let found = stockDB.find(s => s.id === c);
             if (found && name === c) name = found.name;
 
@@ -315,7 +325,6 @@
         let codeToAdd = val;
         let nameToAdd = val;
 
-        // 如果動態表有名字，直接用
         if (dynamicStockMap[val]) {
             nameToAdd = dynamicStockMap[val];
         } else {
@@ -345,7 +354,7 @@
         }
     }
 
-    // ★★★ 【重點修正】搜尋功能：改成呼叫 GAS (v10.0 架構) ★★★
+    // ★★★ 【重點修正】v9.1 終極搜尋：加入精美的載入動畫 ★★★
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -356,12 +365,19 @@
 
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            // 使用 GAS 的 search 模式 (這是關鍵！)
             const url = `${gasUrl}?mode=search&q=${encodeURIComponent(query)}`;
             
-            // 顯示載入中
-            resDiv.innerHTML = `<div style="padding:10px; color:gray;">🔍 搜尋中...</div>`;
+            // --- 這裡就是您要求的載入中特效 ---
             resDiv.style.display = 'block';
+            resDiv.innerHTML = `
+                <div style="padding:15px; text-align:center;">
+                    <div style="font-size:14px; color:#2980b9; font-weight:bold; margin-bottom:5px;">
+                        ⏳ 喵喵搜尋中...
+                    </div>
+                    <div style="font-size:11px; color:#95a5a6;">
+                        正在呼叫 Google 財經資料庫，請稍候
+                    </div>
+                </div>`;
 
             fetch(url)
                 .then(r => r.json())
@@ -369,14 +385,14 @@
                     if(data.length > 0) {
                         resDiv.innerHTML = data.map(s => {
                             return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.n}')">
-                                <b>${s.n}</b> <small>${s.id}</small>
+                                <b>${s.n}</b> <small style="color:#666; margin-left:5px;">${s.id}</small>
                             </div>`;
                         }).join('');
                     } else {
-                        resDiv.innerHTML = '<div style="padding:10px; color:#888;">找不到相符股票</div>';
+                        resDiv.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">找不到相符股票 🐱</div>';
                     }
                 }).catch(() => { 
-                    resDiv.innerHTML = '<div style="padding:10px; color:red;">連線失敗，請檢查網路</div>';
+                    resDiv.innerHTML = '<div style="padding:10px; color:red; text-align:center;">連線失敗，請檢查網路 ❌</div>';
                 });
         }, 500); 
     }
@@ -518,7 +534,7 @@
         const h = now.getHours();
         const m = now.getMinutes();
         const totalMin = h * 60 + m;
-        const closeMin = 13 * 60 + 30; // 13:30
+        const closeMin = 13 * 60 + 30; 
 
         if (h >= 9 && totalMin < closeMin) {
             const leftMin = closeMin - totalMin;
