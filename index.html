@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.2)</title>
+    <title>📊 喵喵站長資訊看板 (v8.3 穩定修復版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* --- 頂部資訊欄 (間距優化) --- */
+        /* --- 頂部資訊欄 --- */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; 
-            gap: 2px; /* 這裡控制整體元件的間距 */
+            gap: 2px; 
             margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; 
         }
         .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
@@ -20,14 +20,14 @@
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
         
-        /* 中間匯率區 (置中) */
+        /* 中間匯率區 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         
-        /* 【修改重點 1】日圓樣式瘦身：減少 padding */
+        /* 日圓樣式：緊湊版 */
         #jpy-rate { 
             color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
             background: #ebfbee; 
-            padding: 2px 4px; /* 從 8px 改為 4px，騰出更多空間 */
+            padding: 2px 4px; /* 緊湊內距 */
             border-radius: 10px; border: 1px solid #c3e6cb; 
         }
         
@@ -237,19 +237,9 @@
 
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
-    let fullStockList = []; 
 
+    // GAS URL
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
-
-    // --- 初始化完整股票清單 ---
-    async function initFullStockList() {
-        try {
-            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            fullStockList = data.map(s => ({ id: s.Code, name: s.Name }));
-        } catch (e) {}
-    }
 
     function getWeatherIcon(code) {
         if (code === 0) return "☀️";
@@ -262,7 +252,7 @@
         return "⚡";
     }
 
-    // --- 2. 核心功能 ---
+    // --- 2. 核心功能：抓取資料 ---
     async function getStockPrice(stockId) {
         try {
             const controller = new AbortController();
@@ -273,8 +263,10 @@
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
+                // GAS 成功
                 const iconEl = document.getElementById('source-icon');
                 if(iconEl) iconEl.innerText = '⚡';
+                
                 const textEl = document.getElementById('source-text');
                 if(textEl) textEl.innerText = '(即時報價)';
                 
@@ -326,6 +318,7 @@
     function fetchPriceFallback(code) {
         const iconEl = document.getElementById('source-icon');
         if(iconEl) iconEl.innerText = '🐢';
+        
         const textEl = document.getElementById('source-text');
         if(textEl) textEl.innerText = '(報價延遲)';
 
@@ -346,7 +339,7 @@
         myStocks.forEach(c => {
             let name = dynamicStockMap[c] || c;
             if (name === c) {
-                const found = stockDB.find(s => s.id === c) || fullStockList.find(s => s.id === c);
+                const found = stockDB.find(s => s.id === c);
                 if (found) name = found.name;
             }
 
@@ -371,8 +364,6 @@
         let nameToAdd = val;
 
         let found = stockDB.find(s => s.id === val || s.name === val);
-        if (!found) found = fullStockList.find(s => s.id === val || s.name === val);
-
         if (found) {
             codeToAdd = found.id;
             nameToAdd = found.name;
@@ -404,20 +395,8 @@
         const query = val.trim().toLowerCase();
         if (!query) return;
 
-        const source = [...stockDB, ...fullStockList];
-        const seen = new Set();
-        const results = [];
+        const results = stockDB.filter(s => s.id.includes(query) || s.name.includes(query)).slice(0, 10);
         
-        for (const s of source) {
-            if (seen.has(s.id)) continue; 
-            
-            if (s.id.includes(query) || s.name.includes(query)) {
-                results.push(s);
-                seen.add(s.id);
-                if (results.length >= 10) break;
-            }
-        }
-
         if (results.length > 0) {
             resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.name}')"><b>${s.name}</b> <small>${s.id}</small></div>`).join('');
             resDiv.style.display = 'block';
@@ -464,17 +443,17 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率
+            // 匯率 (Yahoo)
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
                    const p = d.chart.result[0].meta.regularMarketPrice;
-                   // 【修改重點】移除等號空白，更緊湊
+                   // 顯示：1台幣=xx日圓
                    document.getElementById('jpy-rate').innerText = `1台幣=${p.toFixed(2)}日圓`;
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤】
+            // 【大盤】 只用 GAS (t00) - 移除成交金額
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -492,7 +471,7 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 大盤 (移除成交金額)
+                        // 顯示 GAS 指數 (移除成交金額)
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
@@ -526,4 +505,65 @@
 
     // --- 5. 新聞 與 時間 ---
     async function fetchNews() {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
+        try {
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(data.contents, "text/xml");
+            const items = Array.from(xml.querySelectorAll("item")).slice(0, 20);
+            document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
+            document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
+        } catch(e) {}
+    }
+
+    // 壓力測試：顯示「和平紀念日」
+    function updateHoliday() {
+        document.getElementById('holiday-countdown').innerText = `📅 和平紀念日 99天`;
+    }
+
+    function updateMarketStatus() {
+        const now = new Date();
+        const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[now.getDay()]})`;
+        const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
+        
+        document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
+        
+        const twTimer = document.getElementById('market-timer');
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const totalMin = h * 60 + m;
+        const closeMin = 13 * 60 + 30; // 13:30
+
+        if (h >= 9 && totalMin < closeMin) {
+            const leftMin = closeMin - totalMin;
+            const lh = Math.floor(leftMin / 60);
+            const lm = leftMin % 60;
+            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
+        } else {
+            twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
+        }
+    }
+
+    let timeLeft = 60;
+    setInterval(() => {
+        updateMarketStatus();
+        document.getElementById('countdown-text').innerText = timeLeft--;
+        if (timeLeft < 0) location.reload();
+    }, 1000);
+
+    // 初始化啟動 (移除 initFullStockList)
+    window.onload = () => {
+        app.loadLogo();
+        updateMarketStatus();
+        updateHoliday();
+        renderTable();
+        myStocks.forEach(getStockPrice);
+        fetchExternalInfo();
+        fetchNews();
+        getAutoWeather();
+    };
+</script>
+</body>
+</html>
