@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.1 極致版)</title>
+    <title>📊 喵喵站長資訊看板 (v7.2)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -41,16 +41,31 @@
         /* --- 搜尋區 (心情指標搬來這裡) --- */
         .input-area { 
             background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; 
-            display: flex; align-items: center; gap: 8px; position: relative; border: 1px solid #eee; 
+            display: flex; align-items: center; position: relative; border: 1px solid #eee; 
+            justify-content: space-between; /* 左右分佈 */
         }
-        /* 搜尋框自動伸縮，最小寬度設為 0 以防破版 */
-        #stock-input { flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
+        
+        /* 1. 搜尋框 (縮小一點，騰出空間給右邊) */
+        #stock-input { 
+            flex: 1; /* 佔據剩餘空間 */
+            min-width: 0; 
+            padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; 
+            margin-right: 8px; /* 跟按鈕保持距離 */
+        }
+
+        /* 按鈕與指標的容器 (確保靠右對齊) */
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* 按鈕跟心情指標的間距 */
+        }
         
         /* 心情指標標籤 */
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap;
-            display: none; /* 預設隱藏，有資料才顯示 */
+            display: none; 
+            min-width: 60px; text-align: center; /* 確保寬度足夠 */
         }
 
         /* --- 表格排版 --- */
@@ -77,39 +92,30 @@
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
 
-        /* --- 底部更新列 (絕對置中修復) --- */
+        /* --- 底部更新列 (絕對置中) --- */
         .update-bar { 
-            position: relative; /* 讓子元素可以絕對定位 */
+            position: relative; 
             display: flex; 
-            justify-content: center; /* 按鈕置中 */
+            justify-content: center; 
             align-items: center; 
             margin: 10px 0; 
             height: 30px;
         }
 
-        /* 左側狀態區 (絕對定位於左) */
         .status-container {
-            position: absolute;
-            left: 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            color: #999;
+            position: absolute; left: 0;
+            display: flex; align-items: center; gap: 4px;
+            font-size: 10px; color: #999;
         }
         #source-icon { font-size: 16px; line-height: 1; }
         
-        /* 中間按鈕 */
         .refresh-btn { 
             background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; 
-            padding: 0 15px; 
-            height: 26px; line-height: 26px;
+            padding: 0 15px; height: 26px; line-height: 26px;
             border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px;
-            box-shadow: 0 3px 5px rgba(52,152,219,0.2);
-            z-index: 2; /* 確保按鈕在最上層 */
+            box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2;
         }
         
-        /* 右側倒數 (絕對定位於右) */
         .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; }
         #countdown-text { color: #ff4757; font-weight: bold; }
 
@@ -186,10 +192,14 @@
 
     <div class="input-area">
         <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱..." autocomplete="off" oninput="unifiedSearch(this.value)">
-        <div id="search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: white; z-index: 99; border: 1px solid #ddd; display: none;"></div>
-        <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
-        <div id="sentiment-badge"></div>
+        
+        <div class="input-actions">
+            <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
+            <div id="sentiment-badge"></div>
+        </div>
     </div>
+
+    <div id="search-results" style="position: relative; z-index: 99; margin-top:-10px; margin-bottom:10px; background:white; border:1px solid #ddd; border-top:none; display:none;"></div>
 
     <table>
         <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th>刪</th></tr></thead>
@@ -223,7 +233,6 @@
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
 
-    // 🔴 關鍵修正：將 GAS URL 宣告為全域變數，確保大盤函式也能讀取
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
 
     // --- 2. 核心功能：抓取資料 ---
@@ -237,9 +246,9 @@
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
-                // GAS 成功
+                // GAS 成功：更新文字為 (即時報價)
                 document.getElementById('source-icon').innerText = '⚡';
-                document.getElementById('source-text').innerText = '(報價可能存在延遲)';
+                document.getElementById('source-text').innerText = '(即時報價)';
                 
                 const info = data.msgArray[0];
                 let price = parseFloat(info.z);
@@ -403,7 +412,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤修復】改用 GAS 抓取 t00 (價+量)
+            // 【大盤修復】處理成交量有逗號的問題
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -411,22 +420,27 @@
                         const info = data.msgArray[0];
                         const p = parseFloat(info.z); // 指數
                         const y = parseFloat(info.y);
-                        const v = parseInt(info.v) || 0; // 成交量 (單位通常是張或口，大盤單位較大)
+                        
+                        // 修復：先去掉逗號再轉數字
+                        let v_raw = info.v || "0";
+                        const v = parseInt(v_raw.replace(/,/g, '')) || 0; 
+
                         const chg = p - y;
                         
-                        let sentiment = "平靜 😐";
+                        // 心情指標：四字成語版
+                        let sentiment = "盤整觀望 😐";
                         let sentimentColor = "#888";
-                        if (chg > 50) { sentiment = "樂觀 🚀"; sentimentColor = "#e74c3c"; }
-                        else if (chg > 100) { sentiment = "狂歡 🔥"; sentimentColor = "#d35400"; }
-                        else if (chg < -50) { sentiment = "焦慮 📉"; sentimentColor = "#27ae60"; }
-                        else if (chg < -150) { sentiment = "恐慌 😱"; sentimentColor = "#16a085"; }
+                        if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
+                        else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
+                        else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
+                        else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 更新大盤卡片：顯示指數 + 成交量
+                        // 更新大盤卡片
                         const el = document.getElementById('tw-index-val');
                         el.innerHTML = `<div class="${chg>=0?'red':'green'}">${p.toLocaleString()}</div>
-                                        <div style="font-size:11px; color:#555; margin-top:2px;">量: ${(v/100).toLocaleString()}</div>`;
+                                        <div style="font-size:11px; color:#555; margin-top:2px;">量: ${Math.round(v/100000000)}億</div>`; // 換算成億
                         
-                        // 更新心情指標 (搬到搜尋列右側)
+                        // 更新心情指標 (在新增按鈕旁)
                         const badge = document.getElementById('sentiment-badge');
                         badge.style.display = 'block';
                         badge.innerText = sentiment;
@@ -485,30 +499,4 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
-        } else {
-            twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
-        }
-    }
-
-    let timeLeft = 60;
-    setInterval(() => {
-        updateMarketStatus();
-        document.getElementById('countdown-text').innerText = timeLeft--;
-        if (timeLeft < 0) location.reload();
-    }, 1000);
-
-    // 初始化啟動
-    window.onload = () => {
-        app.loadLogo();
-        updateMarketStatus();
-        updateHoliday();
-        renderTable();
-        myStocks.forEach(getStockPrice);
-        fetchExternalInfo();
-        fetchNews();
-        getAutoWeather();
-    };
-</script>
-</body>
-</html>
+            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px;
