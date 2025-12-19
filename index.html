@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.7 完美版)</title>
+    <title>📊 喵喵站長資訊看板 (v7.8 極致瘦身版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -27,36 +27,36 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 (Card 優化：高度鎖定) --- */
+        /* --- 儀表板 (Card 極致瘦身：高度鎖定 58px) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { 
-            padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
+            padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
             display: flex; flex-direction: column; justify-content: flex-start; /* 靠上對齊 */
-            align-items: center; height: 72px; /* 高度縮小並固定 */
-            overflow: hidden; /* 禁止撐高 */
+            align-items: center; height: 58px; /* 【修正1】高度大幅縮小 */
+            overflow: hidden; 
         }
         
-        /* 標題樣式 (12px) */
+        /* 標題樣式 (11px) */
         .dashboard .card h4 { 
             margin: 0 0 2px 0; 
-            font-size: 12px; /* 改回 12px */
-            height: 18px; line-height: 18px; /* 固定標題區 */
+            font-size: 11px; /* 【修正1】字體縮小 */
+            height: 16px; line-height: 16px; 
             display: flex; align-items: center; justify-content: center;
             width: 100%;
         }
 
         /* 內容區塊 */
         .card .val { 
-            font-size: 15px; font-weight: bold; line-height: 1.2; width: 100%; 
-            display: flex; flex-direction: column; justify-content: center; flex: 1; /* 垂直置中 */
+            font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
+            display: flex; flex-direction: column; justify-content: center; flex: 1; 
         }
         
         /* 卡片顏色 */
-        .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 4px solid #00bcd4; }
+        .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; } /* 邊框也變細 */
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
-        .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 4px solid #8bc34a; }
+        .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
-        .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 4px solid #fbc02d; }
+        .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
         /* --- 搜尋區 --- */
@@ -97,27 +97,26 @@
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
 
-        /* --- 底部更新列 (字體加大 12px) --- */
+        /* --- 底部更新列 --- */
         .update-bar { 
             position: relative; display: flex; justify-content: center; align-items: center; 
-            margin: 10px 0; height: 32px; /* 稍微增高一點點給字體空間 */
+            margin: 10px 0; height: 32px; 
         }
         .status-container {
             position: absolute; left: 0; display: flex; align-items: center; gap: 4px;
-            font-size: 12px; /* 字體加大 */
+            font-size: 12px; 
             color: #888;
         }
         #source-icon { font-size: 16px; line-height: 1; }
-        
         .refresh-btn { 
             background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; 
-            padding: 0 15px; height: 28px; line-height: 28px; /* 高度微調配合字體 */
+            padding: 0 15px; height: 28px; line-height: 28px; 
             border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px;
             box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2;
         }
         .timer-info { 
             position: absolute; right: 0; 
-            font-size: 12px; /* 字體加大 */
+            font-size: 12px; 
             color: #888; 
         }
         #countdown-text { color: #ff4757; font-weight: bold; }
@@ -225,7 +224,7 @@
 </div>
 
 <script>
-    // --- 1. 股票字典 ---
+    // --- 1. 股票字典整合 ---
     const stockDB = [
         { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
         { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
@@ -249,6 +248,7 @@
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
+                // GAS 成功
                 const iconEl = document.getElementById('source-icon');
                 if(iconEl) iconEl.innerText = '⚡';
                 
@@ -420,7 +420,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤修復 v7.7】
+            // 【大盤修復 v7.8】雙重備援：金額失敗改抓量
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -438,34 +438,39 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 先顯示 GAS 指數
+                        // 1. 先顯示 GAS 指數
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
-                        // 【UI修正】字體 18px，成交金額放下方
+                        // 【UI修正】字體 16px (極致瘦身)，高度 58px 不會撐開
                         el.innerHTML = `
-                            <div class="${colorClass}" style="font-size:18px; font-weight:bold; line-height:1.2;">
-                                ${p.toLocaleString()} <span style="font-size:13px;">${sign}${Math.abs(chg).toFixed(2)}</span>
+                            <div class="${colorClass}" style="font-size:16px; font-weight:bold; line-height:1.2;">
+                                ${p.toLocaleString()} <span style="font-size:12px;">${sign}${Math.abs(chg).toFixed(2)}</span>
                             </div>
-                            <div style="font-size:11px; color:#555; margin-top:2px;">成交金額: <span id="vol-real">--</span> (億)</div>
+                            <div style="font-size:11px; color:#555; margin-top:2px;"><span id="vol-label">成交金額</span>: <span id="vol-real">--</span></div>
                         `;
 
-                        // 【資料修正】雙重備援抓成交量
-                        // 第一重：抓 Yahoo Quote (金額)
+                        // 2. 異步抓取 Yahoo 補成交資料
                         const indexYahooQuoteUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^TWII')}`;
                         fetch(indexYahooQuoteUrl).then(ry => ry.json()).then(dy => {
                              const quote = dy.quoteResponse?.result?.[0];
-                             // 如果有成交金額 (regularMarketTurnover)
-                             if(quote && quote.regularMarketTurnover > 0) {
-                                 document.getElementById('vol-real').innerText = (quote.regularMarketTurnover/100000000).toFixed(2);
+                             const turnover = quote?.regularMarketTurnover || 0;
+                             const volume = quote?.regularMarketVolume || 0;
+
+                             // 【修正2】智慧判斷：有金額顯示金額，沒金額顯示成交量
+                             if(turnover > 0) {
+                                 document.getElementById('vol-label').innerText = "成交金額";
+                                 document.getElementById('vol-real').innerText = (turnover/100000000).toFixed(2) + " (億)";
+                             } else if(volume > 0) {
+                                 // 如果金額是 0，改顯示成交量
+                                 document.getElementById('vol-label').innerText = "成交量";
+                                 document.getElementById('vol-real').innerText = (volume/100000000).toFixed(2) + " (億股)";
                              } else {
-                                 // 第二重：Yahoo 沒資料，改抓 GAS (成交量/張數)
+                                 // 最後一招：Yahoo 什麼都沒有，用 GAS 的 v (張數)
                                  const gasVol = parseInt(info.v.replace(/,/g, '')) || 0;
                                  if(gasVol > 0) {
-                                     // 顯示張數，避免 0
+                                     document.getElementById('vol-label').innerText = "成交量";
                                      document.getElementById('vol-real').innerText = Math.round(gasVol/100) + " (萬張)";
-                                     // 偷偷把後面的 (億) 拿掉，因為單位變了
-                                     el.innerHTML = el.innerHTML.replace('(億)', '');
                                  }
                              }
                         });
