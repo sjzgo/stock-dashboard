@@ -3,50 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v9.1 終極搜尋)</title>
+    <title>📊 喵喵站長資訊看板 (v9.3 整合版)</title>
     <style>
         /* --- 全局設定 --- */
-        body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
+        body { 
+            font-family: '微軟正黑體', sans-serif; 
+            padding: 8px; 
+            color: #333; 
+            margin: 0; 
+            font-size: 15px;
+            /* 可愛化背景：暖米白 + 淡淡圓點 */
+            background-color: #fffbf0;
+            background-image: radial-gradient(#ffe0b2 15%, transparent 16%), radial-gradient(#ffe0b2 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: #fff; 
+            padding: 10px; 
+            /* 可愛化：更圓潤 + 粉橘陰影 */
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(255, 140, 100, 0.15);
+            border: 2px solid #fff;
+            position: relative; 
+        }
         
-        /* --- 頂部資訊欄 --- */
-        .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 1px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
+        /* --- 頂部資訊欄 (已瘦身) --- */
+        .top-info-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 1px; 
+            /* 瘦身修正：減少間距 */
+            margin-bottom: 4px; 
+            padding-bottom: 2px; 
+            min-height: 24px;
+            border-bottom: 1px solid #f0f0f0; 
+            width: 100%; 
+            overflow: hidden; 
+        }
+
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
-        .info-pill { background-color: #fff; padding: 2px 4px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        
+        .info-pill { 
+            background-color: #fff; 
+            padding: 2px 4px; 
+            border-radius: 12px; 
+            border: 1px solid #e1e8ed; 
+            display: flex; 
+            align-items: center; 
+            white-space: nowrap; 
+            font-size: 11px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Q彈特效 */
+        }
+        .info-pill:hover { transform: scale(1.05); }
+
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
+        
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
-        /* --- 標題區域 (已修改對齊方式) --- */
-        header { padding: 10px; background-color: #f0f8ff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #dbeafe; }
-        /* 讓整個內容維持在中間，但內部元件左右排列 */
+        /* --- 標題區域 (已瘦身 + 可愛化) --- */
+        header { 
+            /* 瘦身修正：減少內距與下邊距 */
+            padding: 5px 10px; 
+            margin-bottom: 8px;
+            /* 可愛化：虛線邊框 + 柔和藍底 */
+            background-color: #e3f2fd; 
+            border-radius: 10px; 
+            border: 2px dashed #90caf9; 
+        }
+
         .header-title-row { display: flex; justify-content: center; align-items: center; gap: 12px; }
-        .mascot-container { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0; }
+        
+        .mascot-container { 
+            /* 瘦身修正：縮小圖示 */
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            border: 3px solid #3498db; 
+            overflow: hidden; 
+            cursor: pointer; 
+            background: #fff; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            flex-shrink: 0; 
+            transition: all 0.3s;
+        }
+        .mascot-container:hover { transform: rotate(10deg) scale(1.1); } /* 互動特效 */
+
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 新增: 文字區塊容器，強制靠左對齊 */
         .header-text-col { text-align: left; }
-        h1 { margin: 0; color: #2c3e50; font-size: 1.4rem; line-height: 1.2; }
-        .analyst-title { font-size: 0.9rem; color: #7f8c8d; font-weight: bold; margin-top: 2px; margin-left: 2px; /* 微調一點點讓視覺更對齊圖案邊緣 */ }
+        
+        h1 { 
+            margin: 0; 
+            color: #2c3e50; 
+            /* 瘦身修正：字體稍微縮小 */
+            font-size: 1.25rem; 
+            line-height: 1.2; 
+        }
+        
+        .analyst-title { 
+            font-size: 0.8rem; /* 瘦身修正 */
+            color: #7f8c8d; 
+            font-weight: bold; 
+            margin-top: 0; 
+            margin-left: 2px; 
+        }
 
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-        .card { padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 58px; overflow: hidden; }
+        .card { 
+            padding: 4px 2px; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.03); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            align-items: center; 
+            height: 58px; 
+            overflow: hidden; 
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Q彈特效 */
+        }
+        /* 滑鼠移過去跳起來 */
+        .card:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(255, 165, 2, 0.15);
+        }
+
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .card .val { font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
         /* --- 搜尋區 --- */
-        .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; position: relative; border: 1px solid #eee; justify-content: space-between; }
-        #stock-input { flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; margin-right: 8px; }
+        .input-area { 
+            background-color: #fff; /* 改為純白 */
+            padding: 6px 12px; 
+            /* 可愛化：圓角 + 邊框 */
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            position: relative; 
+            border: 2px solid #ffeaa7; /* 鵝黃色邊框 */
+            justify-content: space-between; 
+        }
+        #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
         #sentiment-badge { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap; display: none; min-width: 60px; text-align: center; }
 
@@ -67,8 +186,14 @@
 
         /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
+        th { 
+            padding: 5px 2px; 
+            color: #d35400; /* 標題改為深橘色 */
+            border-bottom: 2px solid #ffcc80; /* 底線改為橘黃 */
+            font-size: 12px; 
+        }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+        
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
         th:nth-child(2) { width: 14%; text-align: center; } td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
         th:nth-child(3) { width: 16%; text-align: center; } td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
@@ -87,7 +212,25 @@
         .update-bar { position: relative; display: flex; justify-content: center; align-items: center; margin: 10px 0; height: 32px; }
         .status-container { position: absolute; left: 0; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888; }
         #source-icon { font-size: 16px; line-height: 1; }
-        .refresh-btn { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 0 15px; height: 28px; line-height: 28px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2; }
+        
+        /* 可愛化按鈕：橘紅肉球漸層 */
+        .refresh-btn { 
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b); 
+            color: white; 
+            border: none; 
+            padding: 0 15px; 
+            height: 28px; 
+            line-height: 28px; 
+            border-radius: 50px; /* 超圓 */
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 13px; 
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); 
+            z-index: 2; 
+            transition: transform 0.2s;
+        }
+        .refresh-btn:hover { transform: rotate(-2deg) scale(1.05); }
+
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
         .red { color: #e74c3c; font-weight: bold; } .green { color: #27ae60; font-weight: bold; }
@@ -97,6 +240,12 @@
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #eee; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .news-item a { text-decoration: none; color: #34495e; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
+
+        /* 可愛化：捲軸樣式 (Chrome/Edge) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #ffb8b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff9f9f; }
     </style>
 </head>
 <body>
@@ -141,7 +290,7 @@
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
-                        v9.1
+                        v9.3
                     </span>
                 </h1>
                 <div class="analyst-title">首席分析師：黑寶</div>
@@ -489,7 +638,7 @@
         if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
     }
     function fetchWeather(lat, lon) {
-         fetchExternalInfo(lat, lon);
+          fetchExternalInfo(lat, lon);
     }
 
     async function fetchNews() {
