@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.8 雲端搜尋)</title>
+    <title>📊 喵喵站長資訊看板 (v8.9 強力搜尋)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* --- 頂部資訊欄 --- */
+        /* --- 頂部資訊欄 (緊湊佈局) --- */
         .top-info-bar { 
             display: flex; justify-content: space-between; align-items: center; 
             gap: 1px; 
@@ -19,8 +19,18 @@
         .info-pill { background-color: #fff; padding: 2px 4px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
+        
+        /* 中間匯率區 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
-        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        
+        /* 日圓樣式 */
+        #jpy-rate { 
+            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
+            background: #ebfbee; 
+            padding: 2px 3px; 
+            border-radius: 10px; border: 1px solid #c3e6cb; 
+        }
+        
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
@@ -31,7 +41,7 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 --- */
+        /* --- 儀表板 (高度 58px) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { 
             padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
@@ -203,7 +213,6 @@
 </div>
 
 <script>
-    // --- 1. 股票字典整合 ---
     const stockDB = [
         { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
         { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
@@ -334,7 +343,6 @@
         let codeToAdd = val;
         let nameToAdd = val;
 
-        // 【修改】先查 stockDB，若無則預設用代號當名稱 (支援 Yahoo 搜尋結果的後續處理)
         let found = stockDB.find(s => s.id === val || s.name === val);
         if (found) {
             codeToAdd = found.id;
@@ -360,7 +368,7 @@
         }
     }
 
-    // 【核心修改】統一搜尋：使用 Yahoo Autocomplete API (雲端搜尋)
+    // 【搜尋修正：改用 Cnyes API】
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -369,26 +377,29 @@
         const query = val.trim();
         if (!query) return;
 
-        // 防抖動：停止打字 300ms 後才發送請求
+        // 防抖
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            const url = `https://corsproxy.io/?${encodeURIComponent(`https://tw.stock.yahoo.com/_td-stock/api/resource/Autocomplete.api;q=${query}`)}`;
+            // 使用鉅亨網 API 透過 Proxy
+            const url = `https://corsproxy.io/?${encodeURIComponent(`https://ws.api.cnyes.com/ws/api/v1/search/quote?keyword=${query}&type=Stock&page=1&limit=10`)}`;
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    const items = data.result || [];
-                    // 過濾出上市櫃 (2上市, 4上櫃) 且為台股
-                    const validItems = items.filter(i => i.typeStr === '上市' || i.typeStr === '上櫃' || i.typeStr === '興櫃');
+                    // 鉅亨網資料結構：data.stocks (或 data.data.items)
+                    // 這裡通常是 data.stocks
+                    let items = data.stocks || []; 
                     
-                    if(validItems.length > 0) {
-                        resDiv.innerHTML = validItems.slice(0, 10).map(s => 
-                            `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.symbol}', '${s.name}')">
-                                <b>${s.name}</b> <small>${s.symbol}</small> <span style="font-size:10px; color:#999; margin-left:5px;">${s.typeStr}</span>
-                            </div>`
-                        ).join('');
+                    if(items.length > 0) {
+                        resDiv.innerHTML = items.map(s => {
+                            // 清洗代號，移除 .TW
+                            const symbol = s.symbolId.split('.')[0]; 
+                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${symbol}', '${s.name}')">
+                                <b>${s.name}</b> <small>${symbol}</small>
+                            </div>`;
+                        }).join('');
                         resDiv.style.display = 'block';
                     } else {
-                        // 如果 Yahoo 沒結果，嘗試搜本地
+                        // 查不到顯示本地
                         const localResults = stockDB.filter(s => s.id.includes(query) || s.name.includes(query)).slice(0, 5);
                         if(localResults.length > 0) {
                              resDiv.innerHTML = localResults.map(s => 
@@ -406,7 +417,6 @@
     }
 
     function selectStock(c, n) { 
-        // 選擇後直接加到暫存 map，讓 addStock 可以抓到正確名稱
         dynamicStockMap[c] = n;
         document.getElementById('stock-input').value = c;
         addStock();
@@ -445,7 +455,7 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率 (Yahoo)
+            // 匯率
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -454,7 +464,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤】
+            // 大盤
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -502,7 +512,7 @@
          fetchExternalInfo(lat, lon);
     }
 
-    // --- 5. 新聞 與 時間 ---
+    // --- 5. 新聞 ---
     async function fetchNews() {
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
         try {
