@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.9 精簡版)</title>
+    <title>📊 喵喵站長資訊看板 (v8.0 爬蟲版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -27,31 +27,25 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 (Card 極致瘦身：高度鎖定 58px) --- */
+        /* --- 儀表板 (高度 58px) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { 
             padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
-            display: flex; flex-direction: column; justify-content: flex-start; /* 靠上對齊 */
-            align-items: center; height: 58px; 
-            overflow: hidden; 
+            display: flex; flex-direction: column; justify-content: flex-start; /* 靠上 */
+            align-items: center; height: 58px; overflow: hidden; 
         }
         
-        /* 標題樣式 (11px) */
         .dashboard .card h4 { 
-            margin: 0 0 2px 0; 
-            font-size: 11px; 
-            height: 16px; line-height: 16px; 
-            display: flex; align-items: center; justify-content: center;
-            width: 100%;
+            margin: 0 0 1px 0; /* 極小間距 */
+            font-size: 11px; height: 16px; line-height: 16px; 
+            display: flex; align-items: center; justify-content: center; width: 100%;
         }
 
-        /* 內容區塊 - 自動垂直置中 */
         .card .val { 
             font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
             display: flex; flex-direction: column; justify-content: center; flex: 1; 
         }
         
-        /* 卡片顏色 */
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
@@ -104,8 +98,7 @@
         }
         .status-container {
             position: absolute; left: 0; display: flex; align-items: center; gap: 4px;
-            font-size: 12px; 
-            color: #888;
+            font-size: 12px; color: #888;
         }
         #source-icon { font-size: 16px; line-height: 1; }
         .refresh-btn { 
@@ -114,11 +107,7 @@
             border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px;
             box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2;
         }
-        .timer-info { 
-            position: absolute; right: 0; 
-            font-size: 12px; 
-            color: #888; 
-        }
+        .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
 
         .red { color: #e74c3c; font-weight: bold; } 
@@ -248,7 +237,6 @@
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
-                // GAS 成功
                 const iconEl = document.getElementById('source-icon');
                 if(iconEl) iconEl.innerText = '⚡';
                 
@@ -420,7 +408,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤修復 v7.9】移除 Yahoo 成交金額，只用 GAS
+            // 【大盤】
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -438,19 +426,36 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 顯示大盤指數 (移除金額行)
+                        // 顯示 GAS 指數
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
-                        // 【UI修正】極簡化，只顯示兩行
                         el.innerHTML = `
-                            <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                                ${p.toLocaleString()}
+                            <div class="${colorClass}" style="font-size:16px; font-weight:bold; line-height:1.2;">
+                                ${p.toLocaleString()} <span style="font-size:12px;">${sign}${Math.abs(chg).toFixed(2)}</span>
                             </div>
-                            <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                                ${sign}${Math.abs(chg).toFixed(2)}
+                            <div style="font-size:11px; color:#555; margin-top:1px;">
+                                <span id="vol-label">成交金額</span>: <span id="vol-real">--</span>
                             </div>
                         `;
+
+                        // 【重點修正】網頁爬蟲抓取 Yahoo 網頁版金額
+                        const yahooWebUrl = `https://corsproxy.io/?https://tw.stock.yahoo.com/quote/^TWII`;
+                        fetch(yahooWebUrl).then(res => res.text()).then(html => {
+                            // 使用 Regex 暴力抓取 "regularMarketTurnover":{"raw":5519...
+                            const match = html.match(/"regularMarketTurnover":\{"raw":(\d+)/);
+                            if(match && match[1]) {
+                                const amount = parseInt(match[1]);
+                                document.getElementById('vol-real').innerText = (amount/100000000).toFixed(2) + " (億)";
+                            } else {
+                                // 爬不到？最後一招：顯示 GAS 的張數
+                                const gasVol = parseInt(info.v.replace(/,/g, '')) || 0;
+                                if(gasVol > 0) {
+                                    document.getElementById('vol-label').innerText = "成交量";
+                                    document.getElementById('vol-real').innerText = Math.round(gasVol/100) + " (萬張)";
+                                }
+                            }
+                        });
 
                         // 更新心情指標
                         const badge = document.getElementById('sentiment-badge');
