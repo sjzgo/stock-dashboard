@@ -3,34 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v9.0 鉅亨搜尋)</title>
+    <title>📊 喵喵站長資訊看板 (v9.1 終極搜尋)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* --- 頂部資訊欄 (緊湊佈局) --- */
-        .top-info-bar { 
-            display: flex; justify-content: space-between; align-items: center; 
-            gap: 1px; 
-            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; 
-        }
+        /* --- 頂部資訊欄 --- */
+        .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 1px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
         .info-pill { background-color: #fff; padding: 2px 4px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
-        
-        /* 中間匯率區 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
-        
-        /* 日圓樣式：緊湊版 */
-        #jpy-rate { 
-            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
-            background: #ebfbee; 
-            padding: 2px 3px; 
-            border-radius: 10px; border: 1px solid #c3e6cb; 
-        }
-        
+        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
@@ -41,25 +27,11 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 (高度 58px) --- */
+        /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-        .card { 
-            padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
-            display: flex; flex-direction: column; justify-content: flex-start; 
-            align-items: center; height: 58px; overflow: hidden; 
-        }
-        
-        .dashboard .card h4 { 
-            margin: 0 0 2px 0; 
-            font-size: 11px; height: 16px; line-height: 16px; 
-            display: flex; align-items: center; justify-content: center; width: 100%;
-        }
-
-        .card .val { 
-            font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
-            display: flex; flex-direction: column; justify-content: center; flex: 1; 
-        }
-        
+        .card { padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 58px; overflow: hidden; }
+        .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
+        .card .val { font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
@@ -68,35 +40,21 @@
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
         /* --- 搜尋區 --- */
-        .input-area { 
-            background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; 
-            display: flex; align-items: center; position: relative; border: 1px solid #eee; 
-            justify-content: space-between; 
-        }
+        .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; position: relative; border: 1px solid #eee; justify-content: space-between; }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
-        #sentiment-badge { 
-            font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
-            background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap;
-            display: none; min-width: 60px; text-align: center; 
-        }
+        #sentiment-badge { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap; display: none; min-width: 60px; text-align: center; }
 
-        /* --- 表格排版 --- */
+        /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
         th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
-        
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
-        th:nth-child(2) { width: 14%; text-align: center; } 
-        td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
-        th:nth-child(3) { width: 16%; text-align: center; } 
-        td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
-        th:nth-child(4) { width: 13%; text-align: center; } 
-        td:nth-child(4) { width: 13%; text-align: right; }
-        th:nth-child(5) { width: 12%; text-align: center; } 
-        td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
-        th:nth-child(6) { width: 22%; text-align: center; } 
-        td:nth-child(6) { width: 22%; text-align: right; padding-left: 8px; }  
+        th:nth-child(2) { width: 14%; text-align: center; } td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
+        th:nth-child(3) { width: 16%; text-align: center; } td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
+        th:nth-child(4) { width: 13%; text-align: center; } td:nth-child(4) { width: 13%; text-align: right; }
+        th:nth-child(5) { width: 12%; text-align: center; } td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
+        th:nth-child(6) { width: 22%; text-align: center; } td:nth-child(6) { width: 22%; text-align: right; padding-left: 8px; }  
         th:nth-child(7), td:nth-child(7) { width: 5%; text-align: center; padding-right: 0; }
 
         .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
@@ -105,29 +63,15 @@
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
 
-        /* --- 底部更新列 --- */
-        .update-bar { 
-            position: relative; display: flex; justify-content: center; align-items: center; 
-            margin: 10px 0; height: 32px; 
-        }
-        .status-container {
-            position: absolute; left: 0; display: flex; align-items: center; gap: 4px;
-            font-size: 12px; color: #888;
-        }
+        /* --- 底部 --- */
+        .update-bar { position: relative; display: flex; justify-content: center; align-items: center; margin: 10px 0; height: 32px; }
+        .status-container { position: absolute; left: 0; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888; }
         #source-icon { font-size: 16px; line-height: 1; }
-        .refresh-btn { 
-            background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; 
-            padding: 0 15px; height: 28px; line-height: 28px; 
-            border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px;
-            box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2;
-        }
+        .refresh-btn { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 0 15px; height: 28px; line-height: 28px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2; }
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
-
-        .red { color: #e74c3c; font-weight: bold; } 
-        .green { color: #27ae60; font-weight: bold; }
+        .red { color: #e74c3c; font-weight: bold; } .green { color: #27ae60; font-weight: bold; }
         
-        /* 新聞區 */
         .news-section { margin-top: 10px; border-top: 3px solid #3498db; padding-top: 8px; }
         .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #eee; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -228,11 +172,13 @@
 </div>
 
 <script>
-    // --- 1. 股票字典整合 ---
-    const stockDB = [
-        { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
-        { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
-        { id: "8069", name: "元太" }, { id: "5347", name: "世界先進" }, { id: "6488", name: "環球晶" }, { id: "5483", name: "中美晶" }, { id: "3105", name: "穩懋" }, { id: "3293", name: "鈊象" }, { id: "8299", name: "群聯" }, { id: "00669R", name: "國泰美國道瓊反1" }
+    // --- 1. 內建微型資料庫 (VIP 名單) ---
+    // 包含權值股、ETF、以及您提到的「聯昌」等聯字輩
+    const vipStocks = [
+        {id:"2330",n:"台積電"},{id:"2317",n:"鴻海"},{id:"2454",n:"聯發科"},{id:"2303",n:"聯電"},{id:"2308",n:"台達電"},{id:"2412",n:"中華電"},{id:"6505",n:"台塑化"},{id:"2382",n:"廣達"},{id:"2881",n:"富邦金"},{id:"2882",n:"國泰金"},
+        {id:"2431",n:"聯昌"},{id:"3034",n:"聯詠"},{id:"3081",n:"聯亞"},{id:"3227",n:"原相"},{id:"3231",n:"緯創"},{id:"6669",n:"緯穎"},{id:"2603",n:"長榮"},{id:"2609",n:"陽明"},{id:"2615",n:"萬海"},{id:"2618",n:"長榮航"},
+        {id:"0050",n:"元大台灣50"},{id:"0056",n:"元大高股息"},{id:"00878",n:"國泰永續高股息"},{id:"00929",n:"復華台灣科技優息"},{id:"00919",n:"群益台灣精選高息"},{id:"006208",n:"富邦台50"},{id:"00713",n:"元大台灣高息低波"},
+        {id:"2002",n:"中鋼"},{id:"2357",n:"華碩"},{id:"2301",n:"光寶科"},{id:"2376",n:"技嘉"},{id:"3711",n:"日月光投控"},{id:"8299",n:"群聯"},{id:"3293",n:"鈊象"},{id:"5347",n:"世界先進"},{id:"6488",n:"環球晶"},{id:"5483",n:"中美晶"},{id:"8069",n:"元太"},{id:"3105",n:"穩懋"}
     ];
 
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
@@ -334,10 +280,9 @@
         tbody.innerHTML = '';
         myStocks.forEach(c => {
             let name = dynamicStockMap[c] || c;
-            if (name === c) {
-                const found = stockDB.find(s => s.id === c);
-                if (found) name = found.name;
-            }
+            // 嘗試從 VIP 清單找中文名
+            let found = vipStocks.find(s => s.id === c);
+            if(found && name === c) name = found.n;
 
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
@@ -362,10 +307,10 @@
         if (dynamicStockMap[val]) {
             nameToAdd = dynamicStockMap[val];
         } else {
-            let found = stockDB.find(s => s.id === val || s.name === val);
+            let found = vipStocks.find(s => s.id === val || s.n === val);
             if (found) {
                 codeToAdd = found.id;
-                nameToAdd = found.name;
+                nameToAdd = found.n;
             }
         }
 
@@ -388,7 +333,7 @@
         }
     }
 
-    // 【搜尋修正：使用鉅亨網 API】
+    // 【核心修改】混合搜尋：1. 內建VIP清單 2. 鉅亨網API (修正路徑)
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -397,42 +342,65 @@
         const query = val.trim();
         if (!query) return;
 
+        // 1. 先搜內建 VIP 清單 (秒搜，最穩)
+        const localResults = vipStocks.filter(s => s.id.includes(query) || s.n.includes(query));
+        let html = '';
+        if(localResults.length > 0) {
+            html += localResults.map(s => 
+                `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer; background:#fff;" onclick="selectStock('${s.id}', '${s.n}')">
+                    <b>${s.n}</b> <small>${s.id}</small> <span style="font-size:10px; color:green; float:right;">(內建)</span>
+                </div>`
+            ).join('');
+        }
+
+        // 2. 防抖去搜網路 (鉅亨網，使用 AllOrigins Proxy 繞過阻擋)
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            // 使用 Cnyes 鉅亨網搜尋 API
-            const url = `https://corsproxy.io/?${encodeURIComponent(`https://ws.api.cnyes.com/ws/api/v1/search/quote?keyword=${query}&page=1&limit=20`)}`;
+            const encodedQuery = encodeURIComponent(query);
+            // 使用 AllOrigins 抓取鉅亨網，這是目前最穩的繞過 CORS 方法
+            const targetUrl = encodeURIComponent(`https://ws.api.cnyes.com/ws/api/v1/search/quote?keyword=${encodedQuery}&page=1&limit=10`);
+            const proxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
             
-            fetch(url)
+            fetch(proxyUrl)
                 .then(r => r.json())
-                .then(data => {
-                    // Cnyes 結構通常是 data.stocks
-                    let items = data.stocks || [];
+                .then(wrapper => {
+                    const data = JSON.parse(wrapper.contents); // AllOrigins 回傳字串，需 parse
+                    // 鉅亨網結構: data.stocks 或 data.data
+                    const items = data.stocks || data.data || [];
                     
                     if(items.length > 0) {
-                        resDiv.innerHTML = items.map(s => {
-                            // Cnyes 代號通常是 "2330.TW"
+                        const remoteHtml = items.map(s => {
                             const symbol = s.symbolId.split('.')[0]; 
-                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${symbol}', '${s.name}')">
-                                <b>${s.name}</b> <small>${symbol}</small>
+                            const name = s.name;
+                            // 避免跟內建清單重複
+                            if(localResults.some(l => l.id === symbol)) return '';
+                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${symbol}', '${name}')">
+                                <b>${name}</b> <small>${symbol}</small>
                             </div>`;
                         }).join('');
+                        html += remoteHtml;
+                    }
+                    
+                    if(html) {
+                        resDiv.innerHTML = html;
                         resDiv.style.display = 'block';
                     } else {
-                        // 查不到顯示本地
-                        const localResults = stockDB.filter(s => s.id.includes(query) || s.name.includes(query)).slice(0, 5);
-                        if(localResults.length > 0) {
-                             resDiv.innerHTML = localResults.map(s => 
-                                `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.name}')">
-                                    <b>${s.name}</b> <small>${s.id}</small>
-                                </div>`
-                            ).join('');
-                            resDiv.style.display = 'block';
-                        } else {
-                            resDiv.style.display = 'none';
-                        }
+                        resDiv.style.display = 'none';
                     }
-                }).catch(() => { resDiv.style.display = 'none'; });
+                }).catch(() => {
+                    // 網路失敗至少顯示內建結果
+                    if(html) {
+                        resDiv.innerHTML = html;
+                        resDiv.style.display = 'block';
+                    }
+                });
         }, 300);
+        
+        // 立即顯示內建結果 (不用等網路)
+        if(html) {
+            resDiv.innerHTML = html;
+            resDiv.style.display = 'block';
+        }
     }
 
     function selectStock(c, n) { 
@@ -458,14 +426,12 @@
     // --- 4. 外部資訊 ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
-            // 天氣
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
                 .then(r => r.json()).then(d => {
                     document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°";
                     document.getElementById('weather-icon').innerText = getWeatherIcon(d.current_weather.weathercode);
                 });
             
-            // AQI
             fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
                 .then(r => r.json()).then(d => {
                     const aqi = d.current.european_aqi;
@@ -474,7 +440,6 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -483,7 +448,6 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 大盤
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -531,7 +495,6 @@
          fetchExternalInfo(lat, lon);
     }
 
-    // --- 5. 新聞 ---
     async function fetchNews() {
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
         try {
@@ -596,7 +559,6 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
-    // 初始化啟動
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
