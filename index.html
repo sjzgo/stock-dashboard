@@ -21,8 +21,8 @@
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
         /* --- 標題區域 --- */
-        header { text-align: center; padding: 15px; background-color: #f0f8ff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #dbeafe; }
-        .header-title-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px; }
+        header { text-align: center; padding: 10px; background-color: #f0f8ff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #dbeafe; }
+        .header-title-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
         .mascot-container { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         h1 { margin: 0; color: #2c3e50; font-size: 1.4rem; line-height: 1.2; }
@@ -143,7 +143,6 @@
                 <div class="analyst-title">首席分析師：黑寶</div>
             </div>
         </div>
-        <p style="margin:5px 0 0 0; color:#666; font-size:13px;">歡迎回來，站長！今日市場數據載入中...</p>
     </header>
 
     <div class="dashboard">
@@ -354,7 +353,7 @@
         }
     }
 
-    // ★★★ 【重點修正】v9.1 終極搜尋：加入精美的載入動畫 ★★★
+    // ★★★ v9.1 終極搜尋：載入動畫 ★★★
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -367,7 +366,7 @@
         searchTimeout = setTimeout(() => {
             const url = `${gasUrl}?mode=search&q=${encodeURIComponent(query)}`;
             
-            // --- 這裡就是您要求的載入中特效 ---
+            // --- 搜尋中特效 ---
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="padding:15px; text-align:center;">
