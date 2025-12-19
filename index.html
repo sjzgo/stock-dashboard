@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.8 極致瘦身版)</title>
+    <title>📊 喵喵站長資訊看板 (v7.9 精簡版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -32,27 +32,27 @@
         .card { 
             padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
             display: flex; flex-direction: column; justify-content: flex-start; /* 靠上對齊 */
-            align-items: center; height: 58px; /* 【修正1】高度大幅縮小 */
+            align-items: center; height: 58px; 
             overflow: hidden; 
         }
         
         /* 標題樣式 (11px) */
         .dashboard .card h4 { 
             margin: 0 0 2px 0; 
-            font-size: 11px; /* 【修正1】字體縮小 */
+            font-size: 11px; 
             height: 16px; line-height: 16px; 
             display: flex; align-items: center; justify-content: center;
             width: 100%;
         }
 
-        /* 內容區塊 */
+        /* 內容區塊 - 自動垂直置中 */
         .card .val { 
             font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
             display: flex; flex-direction: column; justify-content: center; flex: 1; 
         }
         
         /* 卡片顏色 */
-        .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; } /* 邊框也變細 */
+        .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
@@ -420,7 +420,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤修復 v7.8】雙重備援：金額失敗改抓量
+            // 【大盤修復 v7.9】移除 Yahoo 成交金額，只用 GAS
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -438,42 +438,19 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 1. 先顯示 GAS 指數
+                        // 顯示大盤指數 (移除金額行)
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
-                        // 【UI修正】字體 16px (極致瘦身)，高度 58px 不會撐開
+                        // 【UI修正】極簡化，只顯示兩行
                         el.innerHTML = `
-                            <div class="${colorClass}" style="font-size:16px; font-weight:bold; line-height:1.2;">
-                                ${p.toLocaleString()} <span style="font-size:12px;">${sign}${Math.abs(chg).toFixed(2)}</span>
+                            <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                                ${p.toLocaleString()}
                             </div>
-                            <div style="font-size:11px; color:#555; margin-top:2px;"><span id="vol-label">成交金額</span>: <span id="vol-real">--</span></div>
+                            <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                                ${sign}${Math.abs(chg).toFixed(2)}
+                            </div>
                         `;
-
-                        // 2. 異步抓取 Yahoo 補成交資料
-                        const indexYahooQuoteUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^TWII')}`;
-                        fetch(indexYahooQuoteUrl).then(ry => ry.json()).then(dy => {
-                             const quote = dy.quoteResponse?.result?.[0];
-                             const turnover = quote?.regularMarketTurnover || 0;
-                             const volume = quote?.regularMarketVolume || 0;
-
-                             // 【修正2】智慧判斷：有金額顯示金額，沒金額顯示成交量
-                             if(turnover > 0) {
-                                 document.getElementById('vol-label').innerText = "成交金額";
-                                 document.getElementById('vol-real').innerText = (turnover/100000000).toFixed(2) + " (億)";
-                             } else if(volume > 0) {
-                                 // 如果金額是 0，改顯示成交量
-                                 document.getElementById('vol-label').innerText = "成交量";
-                                 document.getElementById('vol-real').innerText = (volume/100000000).toFixed(2) + " (億股)";
-                             } else {
-                                 // 最後一招：Yahoo 什麼都沒有，用 GAS 的 v (張數)
-                                 const gasVol = parseInt(info.v.replace(/,/g, '')) || 0;
-                                 if(gasVol > 0) {
-                                     document.getElementById('vol-label').innerText = "成交量";
-                                     document.getElementById('vol-real').innerText = Math.round(gasVol/100) + " (萬張)";
-                                 }
-                             }
-                        });
 
                         // 更新心情指標
                         const badge = document.getElementById('sentiment-badge');
