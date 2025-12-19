@@ -23,7 +23,7 @@
         /* 中間匯率區 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         
-        /* 日圓樣式 */
+        /* 日圓樣式：緊湊版 */
         #jpy-rate { 
             color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
             background: #ebfbee; 
@@ -48,8 +48,18 @@
             display: flex; flex-direction: column; justify-content: flex-start; 
             align-items: center; height: 58px; overflow: hidden; 
         }
-        .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
-        .card .val { font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        
+        .dashboard .card h4 { 
+            margin: 0 0 2px 0; 
+            font-size: 11px; height: 16px; line-height: 16px; 
+            display: flex; align-items: center; justify-content: center; width: 100%;
+        }
+
+        .card .val { 
+            font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
+            display: flex; flex-direction: column; justify-content: center; flex: 1; 
+        }
+        
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
@@ -75,6 +85,7 @@
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
         th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+        
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
         th:nth-child(2) { width: 14%; text-align: center; } 
         td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
@@ -99,7 +110,10 @@
             position: relative; display: flex; justify-content: center; align-items: center; 
             margin: 10px 0; height: 32px; 
         }
-        .status-container { position: absolute; left: 0; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888; }
+        .status-container {
+            position: absolute; left: 0; display: flex; align-items: center; gap: 4px;
+            font-size: 12px; color: #888;
+        }
         #source-icon { font-size: 16px; line-height: 1; }
         .refresh-btn { 
             background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; 
@@ -109,6 +123,7 @@
         }
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
+
         .red { color: #e74c3c; font-weight: bold; } 
         .green { color: #27ae60; font-weight: bold; }
         
@@ -343,10 +358,15 @@
         let codeToAdd = val;
         let nameToAdd = val;
 
-        let found = stockDB.find(s => s.id === val || s.name === val);
-        if (found) {
-            codeToAdd = found.id;
-            nameToAdd = found.name;
+        // 【修改】支援從動態 map 抓取名稱 (讓搜尋結果可以直接新增)
+        if (dynamicStockMap[val]) {
+            nameToAdd = dynamicStockMap[val];
+        } else {
+            let found = stockDB.find(s => s.id === val || s.name === val);
+            if (found) {
+                codeToAdd = found.id;
+                nameToAdd = found.name;
+            }
         }
 
         if (!myStocks.includes(codeToAdd)) {
@@ -368,7 +388,7 @@
         }
     }
 
-    // 【搜尋修正：改用 Cnyes API】
+    // 【核心修改】搜尋功能：使用 Yahoo 官方公開 API
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -380,21 +400,22 @@
         // 防抖
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            // 使用鉅亨網 API 透過 Proxy
-            const url = `https://corsproxy.io/?${encodeURIComponent(`https://ws.api.cnyes.com/ws/api/v1/search/quote?keyword=${query}&type=Stock&page=1&limit=10`)}`;
+            // 使用正規 Yahoo Search API (不會被擋)
+            const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${query}&lang=zh-Hant-TW&region=TW&quotesCount=10`)}`;
+            
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    // 鉅亨網資料結構：data.stocks (或 data.data.items)
-                    // 這裡通常是 data.stocks
-                    let items = data.stocks || []; 
+                    const quotes = data.quotes || [];
+                    // 過濾：只留台股 (代號結尾是 .TW 或 .TWO)
+                    const validItems = quotes.filter(q => q.symbol && (q.symbol.endsWith('.TW') || q.symbol.endsWith('.TWO')));
                     
-                    if(items.length > 0) {
-                        resDiv.innerHTML = items.map(s => {
-                            // 清洗代號，移除 .TW
-                            const symbol = s.symbolId.split('.')[0]; 
-                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${symbol}', '${s.name}')">
-                                <b>${s.name}</b> <small>${symbol}</small>
+                    if(validItems.length > 0) {
+                        resDiv.innerHTML = validItems.map(s => {
+                            const cleanSymbol = s.symbol.replace('.TW', '').replace('.TWO', '');
+                            const name = s.shortname || s.longname || cleanSymbol;
+                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${cleanSymbol}', '${name}')">
+                                <b>${name}</b> <small>${cleanSymbol}</small>
                             </div>`;
                         }).join('');
                         resDiv.style.display = 'block';
@@ -455,7 +476,7 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率
+            // 匯率 (Yahoo)
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -464,7 +485,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 大盤
+            // 【大盤】
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -577,7 +598,6 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
-    // 初始化啟動
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
