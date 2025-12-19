@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.9 最終定案)</title>
+    <title>📊 喵喵站長資訊看板 (v8.0 全功能版)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -27,11 +27,11 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 (高度 58px 精緻版) --- */
+        /* --- 儀表板 (Card 極致瘦身：高度鎖定 58px) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { 
             padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
-            display: flex; flex-direction: column; justify-content: flex-start; 
+            display: flex; flex-direction: column; justify-content: flex-start; /* 靠上對齊 */
             align-items: center; height: 58px; overflow: hidden; 
         }
         
@@ -222,9 +222,24 @@
 
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
+    let fullStockList = []; // 存放完整的上市櫃清單
 
     // GAS URL
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
+
+    // --- 初始化完整股票清單 (背景下載) ---
+    async function initFullStockList() {
+        try {
+            // 下載上市股票 (透過 Proxy)
+            const url = `https://corsproxy.io/?${encodeURIComponent('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL')}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            fullStockList = data.map(s => ({ id: s.Code, name: s.Name }));
+            console.log("完整股票清單下載完成，共 " + fullStockList.length + " 筆");
+        } catch (e) {
+            console.log("背景下載完整清單失敗，將使用基本清單");
+        }
+    }
 
     // --- 2. 核心功能：抓取資料 ---
     async function getStockPrice(stockId) {
@@ -237,7 +252,6 @@
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
-                // GAS 成功
                 const iconEl = document.getElementById('source-icon');
                 if(iconEl) iconEl.innerText = '⚡';
                 
@@ -311,9 +325,14 @@
         const tbody = document.getElementById('stock-list');
         tbody.innerHTML = '';
         myStocks.forEach(c => {
-            const stockInfo = stockDB.find(s => s.id === c);
-            const name = stockInfo ? stockInfo.name : (dynamicStockMap[c] || c);
-            
+            // 嘗試從動態 map 或 靜態 DB 找名稱
+            let name = dynamicStockMap[c] || c;
+            // 如果只有代號，嘗試去 DB 找中文名
+            if (name === c) {
+                const found = stockDB.find(s => s.id === c) || fullStockList.find(s => s.id === c);
+                if (found) name = found.name;
+            }
+
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
                 <td id="prev-${c}">-</td>
@@ -332,14 +351,21 @@
         if (!val) return;
         
         let codeToAdd = val;
-        const found = stockDB.find(s => s.id === val || s.name.includes(val));
+        let nameToAdd = val;
+
+        // 先在熱門清單找
+        let found = stockDB.find(s => s.id === val || s.name === val);
+        // 如果沒找到，去完整清單找
+        if (!found) found = fullStockList.find(s => s.id === val || s.name === val);
+
         if (found) {
             codeToAdd = found.id;
-            dynamicStockMap[codeToAdd] = found.name;
+            nameToAdd = found.name;
         }
 
         if (!myStocks.includes(codeToAdd)) {
             myStocks.push(codeToAdd);
+            dynamicStockMap[codeToAdd] = nameToAdd; // 記錄名稱
             localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
             localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
             location.reload();
@@ -359,10 +385,34 @@
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
-        const query = val.toLowerCase();
-        const results = stockDB.filter(s => s.id.includes(query) || s.name.includes(query)).slice(0, 10);
-        resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.name}')"><b>${s.name}</b> <small>${s.id}</small></div>`).join('');
-        resDiv.style.display = 'block';
+        
+        // 去空白並轉小寫
+        const query = val.trim().toLowerCase();
+        if (!query) return;
+
+        // 搜尋來源：熱門清單 + 完整清單
+        const source = [...stockDB, ...fullStockList];
+        
+        // 使用 Set 去除重複 (例如台積電在兩個清單都有)
+        const seen = new Set();
+        const results = [];
+        
+        for (const s of source) {
+            if (seen.has(s.id)) continue; // 已存在則跳過
+            
+            if (s.id.includes(query) || s.name.includes(query)) {
+                results.push(s);
+                seen.add(s.id);
+                if (results.length >= 10) break; // 最多顯示 10 筆
+            }
+        }
+
+        if (results.length > 0) {
+            resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.name}')"><b>${s.name}</b> <small>${s.id}</small></div>`).join('');
+            resDiv.style.display = 'block';
+        } else {
+            resDiv.style.display = 'none';
+        }
     }
 
     function selectStock(c, n) { 
@@ -427,11 +477,11 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 顯示 GAS 指數 (移除成交金額，縮小字體)
+                        // 顯示 GAS 指數 (移除成交金額)
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
-                        // 【UI】: 兩行式，完美垂直置中
+                        // 【UI修正】極簡化，只顯示兩行
                         el.innerHTML = `
                             <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
                                 ${p.toLocaleString()}
@@ -523,6 +573,7 @@
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
+        initFullStockList(); // 背景啟動下載完整清單
     };
 </script>
 </body>
