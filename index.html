@@ -163,6 +163,45 @@
 </div>
 
 <script>
+  const stockDB = [
+    // --- 【上市/上櫃 熱門 ETF】 ---
+    { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
+
+    // --- 【上市熱門股 (TSE)】 ---
+    { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
+
+    // --- 【上櫃熱門股 (OTC)】 ---
+    { id: "8069", name: "元太" },       // 電子紙龍頭
+    { id: "5347", name: "世界先進" },   // 半導體代工
+    { id: "6488", name: "環球晶" },     // 矽晶圓
+    { id: "5483", name: "中美晶" },     // 太陽能/半導體
+    { id: "3105", name: "穩懋" },       // 砷化鎵代工
+    { id: "6147", name: "紘康" },       // IC 設計
+    { id: "3293", name: "鈊象" },       // 遊戲龍頭
+    { id: "3529", name: "力旺" },       // IP 授權
+    { id: "6446", name: "藥華藥" },     // 生技熱門
+    { id: "8299", name: "群聯" },       // 記憶體控制
+    { id: "4966", name: "譜瑞-KY" },    // 高速傳輸
+    { id: "5274", name: "信驊" },       // 股王/伺服器管理
+    { id: "6510", name: "精測" },       // 測試介面
+    { id: "8046", name: "南電" },       // 載板
+    { id: "3081", name: "聯亞" },       // 光通訊
+    { id: "4147", name: "龍巖" },       // 傳產/殯葬
+    { id: "2754", name: "亞洲藏壽司" },  // 觀光餐飲
+    { id: "5289", name: "宜鼎" }        // 工控記憶體
+];
+    // ...之後可以繼續增加
+
+    function fuzzySearch(keyword) {
+        if (!keyword) return [];
+        let key = keyword.toLowerCase();
+        return stockDB.filter(stock => 
+            stock.id.includes(key) || 
+            stock.name.includes(key)
+        ).slice(0, 10);
+    }
+
+    // --- 2. 原本的節日倒數函式 (保留不動) ---
     function updateHoliday() {
         const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }, { name: "中秋節", date: "2026-10-06" }, { name: "國慶日", date: "2026-10-10" }];
         const now = new Date();
