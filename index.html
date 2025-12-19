@@ -202,6 +202,29 @@ function fuzzySearch(keyword) {
         stock.name.includes(key)
     ); 
 }
+   // 1. 股票字典 (您的上市櫃大清單)
+    const stockDB = [ ... ]; 
+
+    // 2. 搜尋邏輯
+    function fuzzySearch(keyword) { ... }
+
+    // ======= 【第三部分：加在這裡】 =======
+    // 記得把裡面的 gasUrl 換成您在 Google 部署後得到的網址
+    async function getStockPrice(stockId) {
+        const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
+        
+        // ... (中間的程式碼) ...
+        
+        try {
+            const response = await fetch(`${gasUrl}?stock=${stockId}`);
+            const data = await response.json();
+            // ... 更新畫面邏輯 ...
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    // =====================================
+    
     // --- 2. 原本的節日倒數函式 (保留不動) ---
     function updateHoliday() {
         const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }, { name: "中秋節", date: "2026-10-06" }, { name: "國慶日", date: "2026-10-10" }];
