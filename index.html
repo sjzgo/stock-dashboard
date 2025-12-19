@@ -3,20 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.1 精緻版)</title>
+    <title>📊 喵喵站長資訊看板 (v8.2)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* --- 頂部資訊欄 --- */
-        .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
+        /* --- 頂部資訊欄 (間距優化) --- */
+        .top-info-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            gap: 2px; /* 這裡控制整體元件的間距 */
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; 
+        }
         .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
         .info-pill { background-color: #fff; padding: 2px 5px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
+        
+        /* 中間匯率區 (置中) */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
-        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 8px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        
+        /* 【修改重點 1】日圓樣式瘦身：減少 padding */
+        #jpy-rate { 
+            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
+            background: #ebfbee; 
+            padding: 2px 4px; /* 從 8px 改為 4px，騰出更多空間 */
+            border-radius: 10px; border: 1px solid #c3e6cb; 
+        }
+        
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
@@ -27,29 +41,25 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 (Card 極致瘦身：高度鎖定 58px) --- */
+        /* --- 儀表板 (高度 58px) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { 
             padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
-            display: flex; flex-direction: column; justify-content: flex-start; /* 靠上對齊 */
+            display: flex; flex-direction: column; justify-content: flex-start; 
             align-items: center; height: 58px; overflow: hidden; 
         }
         
-        /* 標題樣式 (11px) */
         .dashboard .card h4 { 
             margin: 0 0 2px 0; 
-            font-size: 11px; 
-            height: 16px; line-height: 16px; 
+            font-size: 11px; height: 16px; line-height: 16px; 
             display: flex; align-items: center; justify-content: center; width: 100%;
         }
 
-        /* 內容區塊 */
         .card .val { 
             font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; 
             display: flex; flex-direction: column; justify-content: center; flex: 1; 
         }
         
-        /* 卡片顏色 */
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
@@ -150,7 +160,7 @@
             <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
         </div>
         <div class="middle-rate-group">
-            <div id="jpy-rate">1臺幣 = --日圓</div>
+            <div id="jpy-rate">1台幣=--日圓</div>
         </div>
         <div class="top-right-holiday">
             <div id="holiday-countdown">📅 載入中...</div>
@@ -229,7 +239,6 @@
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     let fullStockList = []; 
 
-    // GAS URL
     const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
 
     // --- 初始化完整股票清單 ---
@@ -242,7 +251,6 @@
         } catch (e) {}
     }
 
-    // --- 天氣圖示邏輯 ---
     function getWeatherIcon(code) {
         if (code === 0) return "☀️";
         if (code <= 3) return "⛅";
@@ -254,7 +262,7 @@
         return "⚡";
     }
 
-    // --- 2. 核心功能：抓取資料 ---
+    // --- 2. 核心功能 ---
     async function getStockPrice(stockId) {
         try {
             const controller = new AbortController();
@@ -267,7 +275,6 @@
             if (data.msgArray && data.msgArray.length > 0) {
                 const iconEl = document.getElementById('source-icon');
                 if(iconEl) iconEl.innerText = '⚡';
-                
                 const textEl = document.getElementById('source-text');
                 if(textEl) textEl.innerText = '(即時報價)';
                 
@@ -319,7 +326,6 @@
     function fetchPriceFallback(code) {
         const iconEl = document.getElementById('source-icon');
         if(iconEl) iconEl.innerText = '🐢';
-        
         const textEl = document.getElementById('source-text');
         if(textEl) textEl.innerText = '(報價延遲)';
 
@@ -463,11 +469,12 @@
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
                    const p = d.chart.result[0].meta.regularMarketPrice;
-                   document.getElementById('jpy-rate').innerText = `1臺幣 = ${p.toFixed(2)}日圓`;
+                   // 【修改重點】移除等號空白，更緊湊
+                   document.getElementById('jpy-rate').innerText = `1台幣=${p.toFixed(2)}日圓`;
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤】 只用 GAS (t00) - 移除成交金額
+            // 【大盤】
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -485,7 +492,7 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 顯示 GAS 指數 (移除成交金額)
+                        // 大盤 (移除成交金額)
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
                         
@@ -519,69 +526,4 @@
 
     // --- 5. 新聞 與 時間 ---
     async function fetchNews() {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
-        try {
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(data.contents, "text/xml");
-            const items = Array.from(xml.querySelectorAll("item")).slice(0, 20);
-            document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
-            document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
-        } catch(e) {}
-    }
-
-    function updateHoliday() {
-        const holidays = [{ name: "春節", date: "2026-01-28" }];
-        const now = new Date();
-        const next = holidays[0];
-        const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
-        document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
-    }
-
-    function updateMarketStatus() {
-        const now = new Date();
-        const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[now.getDay()]})`;
-        const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
-        
-        document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
-        
-        const twTimer = document.getElementById('market-timer');
-        const h = now.getHours();
-        const m = now.getMinutes();
-        const totalMin = h * 60 + m;
-        const closeMin = 13 * 60 + 30; // 13:30
-
-        if (h >= 9 && totalMin < closeMin) {
-            const leftMin = closeMin - totalMin;
-            const lh = Math.floor(leftMin / 60);
-            const lm = leftMin % 60;
-            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
-        } else {
-            twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
-        }
-    }
-
-    let timeLeft = 60;
-    setInterval(() => {
-        updateMarketStatus();
-        document.getElementById('countdown-text').innerText = timeLeft--;
-        if (timeLeft < 0) location.reload();
-    }, 1000);
-
-    // 初始化啟動
-    window.onload = () => {
-        app.loadLogo();
-        updateMarketStatus();
-        updateHoliday();
-        renderTable();
-        myStocks.forEach(getStockPrice);
-        fetchExternalInfo();
-        fetchNews();
-        getAutoWeather();
-        initFullStockList(); // 背景啟動下載完整清單
-    };
-</script>
-</body>
-</html>
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('
