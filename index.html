@@ -192,8 +192,19 @@
     // --- 2. 核心功能：抓取資料 ---
     async function getStockPrice(stockId) {
         const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
+        
+        // 介面提示：顯示讀取中...
+        const pEl = document.getElementById("p-" + stockId);
+        if(pEl) pEl.style.opacity = "0.5";
+
         try {
-            const response = await fetch(`${gasUrl}?stock=${stockId}`);
+            // 設定 3 秒超時，如果 GAS 太慢直接放棄，改用 Yahoo
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const response = await fetch(`${gasUrl}?stock=${stockId}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
             const data = await response.json();
             
             if (data.msgArray && data.msgArray.length > 0) {
@@ -207,20 +218,37 @@
                 if (price > 0 && yesterday > 0) {
                     const chg = price - yesterday;
                     const pct = (chg / yesterday) * 100;
-                    updateUI(stockId, price, yesterday, chg, pct);
+                    // ★ 這裡多傳一個參數 '⚡' 代表來自 GAS
+                    updateUI(stockId, price, yesterday, chg, pct, false, '⚡'); 
+                    console.log(`[GAS] ${stockInfo.n} 抓取成功`);
                 } else {
                      updateUI(stockId, 0, yesterday, 0, 0, true);
                 }
             } else {
+                console.warn(`[GAS] ${stockId} 回傳空值，切換備援`);
                 fetchPriceFallback(stockId);
             }
         } catch (e) {
-            console.error(e);
+            console.warn(`[GAS] ${stockId} 連線失敗/超時，切換備援`, e);
             fetchPriceFallback(stockId);
         }
     }
 
-    function updateUI(id, price, prev, chg, pct, isError=false) {
+    // 備援方案 (Yahoo API)
+    function fetchPriceFallback(code) {
+        const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d`)}`;
+        fetch(url).then(r => r.json()).then(d => {
+            if (d.chart?.result) {
+                let m = d.chart.result[0].meta;
+                const p = m.regularMarketPrice || m.chartPreviousClose;
+                // ★ 這裡多傳一個參數 '🐢' 代表來自 Yahoo
+                updateUI(code, p, m.chartPreviousClose, p - m.chartPreviousClose, ((p - m.chartPreviousClose)/m.chartPreviousClose)*100, false, '🐢');
+            }
+        }).catch(e => console.log("所有來源皆失敗"));
+    }
+
+    // 更新表格 UI (顯示來源標記)
+    function updateUI(id, price, prev, chg, pct, isError=false, sourceIcon='') {
         const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
         const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
         
@@ -229,14 +257,19 @@
         const elPct = document.getElementById("pct-" + id);
         const elPrev = document.getElementById("prev-" + id);
 
+        // 還原透明度
+        if(elP) elP.style.opacity = "1";
+
         if(isError) {
              if (elP) elP.innerText = "-";
-             if (elC) elC.innerText = "-";
-             if (elPct) elPct.innerText = "-";
              return;
         }
 
-        if (elP) { elP.innerText = price.toFixed(2); elP.className = clr; }
+        if (elP) { 
+            // ★ 在價格旁邊顯示來源圖示
+            elP.innerHTML = `${price.toFixed(2)} <span style="font-size:10px; color:#aaa;">${sourceIcon}</span>`; 
+            elP.className = clr; 
+        }
         if (elC) { elC.innerText = sign + Math.abs(chg).toFixed(2); elC.className = clr; }
         if (elPct) { elPct.innerText = pct.toFixed(2) + "%"; elPct.className = clr; }
         if (elPrev) { elPrev.innerText = prev.toFixed(2); }
