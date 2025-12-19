@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v7.5 客製版)</title>
+    <title>📊 喵喵站長資訊看板 (v7.6)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -27,16 +27,32 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* --- 儀表板 --- */
+        /* --- 儀表板 (Card 優化：對齊標題) --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-        .card { padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
+        .card { 
+            padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); 
+            display: flex; flex-direction: column; justify-content: flex-start; /* 改為靠上對齊 */
+            align-items: center; height: 75px; /* 固定高度，確保整齊 */
+        }
+        
+        /* 標題樣式 (固定高度與字體加大) */
+        .dashboard .card h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 14px; /* 字體加大 */
+            height: 20px; /* 固定標題區高度，防止跳動 */
+            line-height: 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; width: 100%; }
+        
+        /* 卡片顏色 */
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 4px solid #00bcd4; }
-        .dashboard .card:nth-child(1) h4 { margin: 0 0 4px; color: #00838f; font-size: 11px; }
+        .dashboard .card:nth-child(1) h4 { color: #00838f; }
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 4px solid #8bc34a; }
-        .dashboard .card:nth-child(2) h4 { margin: 0 0 4px; color: #33691e; font-size: 11px; }
+        .dashboard .card:nth-child(2) h4 { color: #33691e; }
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 4px solid #fbc02d; }
-        .dashboard .card:nth-child(3) h4 { margin: 0 0 4px; color: #f57f17; font-size: 11px; }
+        .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
         /* --- 搜尋區 --- */
         .input-area { 
@@ -44,14 +60,8 @@
             display: flex; align-items: center; position: relative; border: 1px solid #eee; 
             justify-content: space-between; 
         }
-        
-        #stock-input { 
-            flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; 
-            margin-right: 8px; 
-        }
-
+        #stock-input { flex: 1; min-width: 0; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
-        
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap;
@@ -82,31 +92,28 @@
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
 
-        /* --- 底部更新列 --- */
+        /* --- 底部更新列 (字體加大) --- */
         .update-bar { 
-            position: relative; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            margin: 10px 0; 
-            height: 30px;
+            position: relative; display: flex; justify-content: center; align-items: center; 
+            margin: 10px 0; height: 30px;
         }
-
         .status-container {
-            position: absolute; left: 0;
-            display: flex; align-items: center; gap: 4px;
-            font-size: 10px; color: #999;
+            position: absolute; left: 0; display: flex; align-items: center; gap: 4px;
+            font-size: 12px; /* 字體加大 */
+            color: #999;
         }
         #source-icon { font-size: 16px; line-height: 1; }
-        
         .refresh-btn { 
             background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; 
             padding: 0 15px; height: 26px; line-height: 26px;
             border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px;
             box-shadow: 0 3px 5px rgba(52,152,219,0.2); z-index: 2;
         }
-        
-        .timer-info { position: absolute; right: 0; font-size: 10px; color: #999; }
+        .timer-info { 
+            position: absolute; right: 0; 
+            font-size: 12px; /* 字體加大 */
+            color: #999; 
+        }
         #countdown-text { color: #ff4757; font-weight: bold; }
 
         .red { color: #e74c3c; font-weight: bold; } 
@@ -165,18 +172,18 @@
     <div class="dashboard">
         <div class="card">
             <h4>現在時間</h4>
-            <div class="val" id="clock-time" style="display:flex; flex-direction:column; align-items:center;">
+            <div class="val" id="clock-time" style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1;">
                 <div style="font-size:11px; color:#888;">--/--/--</div>
                 <div>--:--:--</div>
             </div>
         </div>
         <div class="card">
             <h4>台股狀態</h4>
-            <div class="val" id="market-timer">--</div>
+            <div class="val" id="market-timer" style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1;">--</div>
         </div>
         <div class="card">
             <h4>台股大盤</h4>
-            <div class="val" id="tw-index-val">--</div>
+            <div class="val" id="tw-index-val" style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1;">--</div>
         </div>
     </div>
 
@@ -201,7 +208,7 @@
             <span id="source-text">(檢查中)</span>
         </div>
         <button class="refresh-btn" onclick="location.reload()">↻ 立即更新資訊</button>
-        <div class="timer-info"><span id="countdown-text">60</span>秒後自動刷新</div>
+        <div class="timer-info"><span id="countdown-text">60</span>秒後自動同步</div>
     </div>
     
     <div class="news-section">
@@ -408,7 +415,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤修復 v7.5】混合雙引擎 (GAS抓指數 + Yahoo抓金額)
+            // 【大盤修復 v7.6】混合雙引擎 (GAS抓指數 + Yahoo Quote V7 抓金額)
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -417,6 +424,7 @@
                         const p = parseFloat(info.z); 
                         const y = parseFloat(info.y);
                         const chg = p - y;
+                        const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
                         
                         let sentiment = "盤整觀望 😐";
                         let sentimentColor = "#888";
@@ -425,21 +433,27 @@
                         else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                         else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
 
-                        // 1. 先顯示 GAS 指數，成交金額顯示"讀取中"
+                        // 1. 先顯示 GAS 指數
                         const el = document.getElementById('tw-index-val');
                         const colorClass = chg >= 0 ? 'red' : 'green';
+                        
+                        // 【UI修改】加權指數改為「大數字 + 箭頭 + 漲跌」，成交金額放下面
                         el.innerHTML = `
-                            <div style="font-size:12px; color:#555; margin-bottom:2px;">成交金額: <span id="vol-real">--</span> (億)</div>
-                            <div class="${colorClass}" style="font-size:15px; font-weight:bold;">加權指數: ${p.toLocaleString()}</div>
+                            <div class="${colorClass}" style="font-size:20px; font-weight:bold; line-height:1.1;">
+                                ${p.toLocaleString()} <span style="font-size:14px;">${sign}${Math.abs(chg).toFixed(2)}</span>
+                            </div>
+                            <div style="font-size:11px; color:#555; margin-top:4px;">成交金額: <span id="vol-real">--</span> (億)</div>
                         `;
 
-                        // 2. 異步抓取 Yahoo 補成交量
-                        const indexYahooUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1d&range=1d')}`;
-                        fetch(indexYahooUrl).then(ry => ry.json()).then(dy => {
-                             if(dy.chart?.result) {
-                                 const vol = dy.chart.result[0].meta.regularMarketVolume || 0;
+                        // 2. 異步抓取 Yahoo Quote API 補成交量 (Quote API 有 regularMarketTurnover，比 Chart API 準)
+                        const indexYahooQuoteUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^TWII')}`;
+                        fetch(indexYahooQuoteUrl).then(ry => ry.json()).then(dy => {
+                             const quote = dy.quoteResponse?.result?.[0];
+                             if(quote) {
+                                 // 優先使用 regularMarketTurnover (成交金額)，如果沒有則使用 volume
+                                 const turnover = quote.regularMarketTurnover || quote.regularMarketVolume || 0;
                                  const volEl = document.getElementById('vol-real');
-                                 if(volEl) volEl.innerText = (vol/100000000).toFixed(2);
+                                 if(volEl && turnover > 0) volEl.innerText = (turnover/100000000).toFixed(2);
                              }
                         });
 
