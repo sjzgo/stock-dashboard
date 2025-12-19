@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (完整修復版)</title>
+    <title>📊 喵喵站長資訊看板 (v6.1 版面優化)</title>
     <style>
-        /* --- 版面樣式保持不變 --- */
+        /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
         
-        /* 頂部資訊欄 */
+        /* --- 頂部資訊欄 --- */
         .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 2px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
         .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
         .info-pill { background-color: #fff; padding: 2px 5px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
@@ -20,14 +20,14 @@
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
-        /* 標題區域 */
+        /* --- 標題區域 --- */
         .header-area { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
         .mascot-container { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #3498db; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* 儀表板 */
+        /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
@@ -38,24 +38,38 @@
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 4px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { margin: 0 0 4px; color: #f57f17; font-size: 11px; }
 
-        /* 搜尋區 */
+        /* --- 搜尋區 --- */
         .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; border: 1px solid #eee; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
         
-        /* 表格排版 */
+        /* --- 表格排版 (關鍵修正區) --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
         th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         
+        /* 1. 名稱 (20%) */
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
-        th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
-        th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
-        th:nth-child(4), td:nth-child(4) { width: 12%; text-align: right; padding-right: 8px; }
+        
+        /* 2. 昨收 (12%) */
+        th:nth-child(2), td:nth-child(2) { width: 12%; text-align: right; }
+        
+        /* 3. 【修正】現價 (15%) - 增加寬度並加入 padding-right 把它與後面隔開 */
+        th:nth-child(3), td:nth-child(3) { width: 15%; text-align: right; padding-right: 8px; }
+        
+        /* 4. 漲跌 (13%) */
+        th:nth-child(4), td:nth-child(4) { width: 13%; text-align: right; }
+        
+        /* 5. 幅度 (12%) */
         th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
-        th:nth-child(6) { width: 22%; text-align: center; } 
-        td:nth-child(6) { width: 22%; text-align: right; }  
+        
+        /* 6. 資訊 (20%) - 稍微縮小給前面空間 */
+        th:nth-child(6) { width: 20%; text-align: center; } 
+        td:nth-child(6) { width: 20%; text-align: right; }  
+        
+        /* 7. 刪除 (8%) */
         th:nth-child(7), td:nth-child(7) { width: 8%; text-align: center; padding-right: 0; }
 
+        /* --- 按鈕與其他 --- */
         .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
@@ -317,14 +331,14 @@
         }
     }
 
-    // --- 4. 外部資訊 (修復 AQI、日期、倒數、大盤) ---
+    // --- 4. 外部資訊 ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
             // 天氣
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
                 .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
             
-            // 【修復 1】 AQI
+            // AQI
             fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
                 .then(r => r.json()).then(d => {
                     const aqi = d.current.european_aqi;
@@ -342,7 +356,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【修復 5】 大盤與情緒
+            // 大盤
             const indexUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`;
             fetch(indexUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -350,7 +364,6 @@
                     const p = m.regularMarketPrice;
                     const chg = p - m.chartPreviousClose;
                     
-                    // 心情指標邏輯
                     let sentiment = "平靜 😐";
                     if (chg > 50) sentiment = "樂觀 🚀";
                     else if (chg > 100) sentiment = "狂歡 🔥";
@@ -368,10 +381,10 @@
         if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
     }
     function fetchWeather(lat, lon) {
-         fetchExternalInfo(lat, lon); // 統一呼叫
+         fetchExternalInfo(lat, lon);
     }
 
-    // --- 5. 新聞 (修復筆數) 與 時間狀態 ---
+    // --- 5. 新聞 與 時間 ---
     async function fetchNews() {
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
         try {
@@ -379,7 +392,6 @@
             const data = await response.json();
             const parser = new DOMParser();
             const xml = parser.parseFromString(data.contents, "text/xml");
-            // 【修復 6】 增加到 20 筆
             const items = Array.from(xml.querySelectorAll("item")).slice(0, 20);
             document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
             document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
@@ -394,17 +406,14 @@
         document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
     }
 
-    // 【修復 3 & 4】 日期、星期、倒數計時
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[now.getDay()]})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
-        // 顯示日期與時間
         document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
         
-        // 倒數邏輯
         const twTimer = document.getElementById('market-timer');
         const h = now.getHours();
         const m = now.getMinutes();
@@ -412,7 +421,6 @@
         const closeMin = 13 * 60 + 30; // 13:30
 
         if (h >= 9 && totalMin < closeMin) {
-            // 盤中，計算剩餘時間
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
