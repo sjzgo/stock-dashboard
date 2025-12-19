@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長股票看板 (現行版)</title>
+    <title>📊 喵喵站長股票看板 (修復版)</title>
     <style>
         /* 全局設定 */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -27,7 +27,7 @@
         .header-text h2 { margin: 0; font-size: 1.5rem; line-height: 1.1; color: #2c3e50; }
         .analyst-title { font-size: 1rem; color: #7f8c8d; font-weight: bold; margin-top: 4px; white-space: nowrap; }
 
-        /* 儀表板 - 亮彩配色 */
+        /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         .card { padding: 8px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); }
         .card .val { font-size: 15px; font-weight: bold; line-height: 1.2; }
@@ -42,34 +42,24 @@
         .input-area { background-color: #f8f9fa; padding: 6px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; position: relative; border: 1px solid #eee; }
         #stock-input { flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; outline: none; }
         
-        /* 表格排版 - 最終微調版 */
+        /* 表格排版 */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
         th { padding: 5px 2px; color: #7f8c8d; border-bottom: 2px solid #3498db; font-size: 12px; }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         
-        /* 1. 名稱 (20%) - 允許換行 */
         th:nth-child(1), td:nth-child(1) { width: 20%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
-        /* 2-3. 昨收/現價 (13%) */
         th:nth-child(2), td:nth-child(2) { width: 13%; text-align: right; }
         th:nth-child(3), td:nth-child(3) { width: 13%; text-align: right; }
-        /* 4. 漲跌 (12%) - 右間距保持 */
         th:nth-child(4), td:nth-child(4) { width: 12%; text-align: right; padding-right: 8px; }
-        /* 5. 幅度 (12%) */
         th:nth-child(5), td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
-        /* 6. 資訊 (22%) - 標題置中，內容靠右 */
         th:nth-child(6) { width: 22%; text-align: center; } 
         td:nth-child(6) { width: 22%; text-align: right; }  
-        /* 7. 刪除 (8%) */
         th:nth-child(7), td:nth-child(7) { width: 8%; text-align: center; padding-right: 0; }
 
-        /* 按鈕容器 */
         .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
-        /* 亮橘色新聞按鈕 */
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
-        /* 吉利紅股利按鈕 */
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
-        
         .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
 
         .update-bar { display: flex; justify-content: center; align-items: center; margin: 10px 0; position: relative; }
@@ -163,20 +153,18 @@
 </div>
 
 <script>
-    // --- 1. 股票字典整合 (上市+上櫃) ---
+    // --- 1. 股票字典整合 ---
     const stockDB = [
         { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
         { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
-        { id: "8069", name: "元太" }, { id: "5347", name: "世界先進" }, { id: "6488", name: "環球晶" }, { id: "5483", name: "中美晶" }, { id: "3105", name: "穩懋" }, { id: "3293", name: "鈊象" }, { id: "8299", name: "群聯" }
+        { id: "8069", name: "元太" }, { id: "5347", name: "世界先進" }, { id: "6488", name: "環球晶" }, { id: "5483", name: "中美晶" }, { id: "3105", name: "穩懋" }, { id: "3293", name: "鈊象" }, { id: "8299", name: "群聯" }, { id: "00669R", name: "國泰美國道瓊反1" }
     ];
 
-    // 本地儲存變數
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
 
     // --- 2. 核心功能：抓取資料 ---
     async function getStockPrice(stockId) {
-        // 您提供的 GAS 網址
         const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
         try {
             const response = await fetch(`${gasUrl}?stock=${stockId}`);
@@ -184,25 +172,32 @@
             
             if (data.msgArray && data.msgArray.length > 0) {
                 const info = data.msgArray[0];
-                // 處理可能為 "-" 的字串
-                const price = parseFloat(info.z) || parseFloat(info.o) || 0;
+                // 【修復 NaN 問題】: 處理可能的空值或減號
+                let price = parseFloat(info.z);
+                if (isNaN(price)) price = parseFloat(info.o); // 如果沒有最新成交，抓開盤價
+                if (isNaN(price)) price = 0; // 真的沒有就歸零，避免網頁壞掉
+
                 const yesterday = parseFloat(info.y) || 0;
                 
                 if (price > 0 && yesterday > 0) {
                     const chg = price - yesterday;
                     const pct = (chg / yesterday) * 100;
                     updateUI(stockId, price, yesterday, chg, pct);
+                } else {
+                     // 顯示暫無資料，而不是 NaN
+                     updateUI(stockId, 0, yesterday, 0, 0, true);
                 }
             } else {
-                fetchPriceFallback(stockId); // GAS 沒資料則跑備援
+                fetchPriceFallback(stockId);
             }
         } catch (e) {
+            console.error(e);
             fetchPriceFallback(stockId);
         }
     }
 
-    // 更新表格 UI
-    function updateUI(id, price, prev, chg, pct) {
+    // 更新表格 UI (增加防呆機制)
+    function updateUI(id, price, prev, chg, pct, isError=false) {
         const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
         const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
         
@@ -211,32 +206,40 @@
         const elPct = document.getElementById("pct-" + id);
         const elPrev = document.getElementById("prev-" + id);
 
-        if (elP) { elP.innerText = price.toFixed(1); elP.className = clr; }
+        if(isError) {
+             if (elP) elP.innerText = "-";
+             if (elC) elC.innerText = "-";
+             if (elPct) elPct.innerText = "-";
+             return;
+        }
+
+        if (elP) { elP.innerText = price.toFixed(2); elP.className = clr; }
         if (elC) { elC.innerText = sign + Math.abs(chg).toFixed(2); elC.className = clr; }
         if (elPct) { elPct.innerText = pct.toFixed(2) + "%"; elPct.className = clr; }
-        if (elPrev) { elPrev.innerText = prev.toFixed(1); }
+        if (elPrev) { elPrev.innerText = prev.toFixed(2); }
     }
 
-    // 備援方案 (Yahoo API)
+    // 備援方案
     function fetchPriceFallback(code) {
         const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d`)}`;
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart?.result) {
                 let m = d.chart.result[0].meta;
-                updateUI(code, m.regularMarketPrice, m.chartPreviousClose, m.regularMarketPrice - m.chartPreviousClose, ((m.regularMarketPrice - m.chartPreviousClose)/m.chartPreviousClose)*100);
+                const p = m.regularMarketPrice || m.chartPreviousClose;
+                updateUI(code, p, m.chartPreviousClose, p - m.chartPreviousClose, ((p - m.chartPreviousClose)/m.chartPreviousClose)*100);
             }
         }).catch(e => console.log("所有來源皆失敗"));
     }
 
-    // --- 3. 介面渲染與搜尋 ---
+    // --- 3. 介面操作 (修復新增與刪除功能) ---
     function renderTable() {
         const tbody = document.getElementById('stock-list');
         tbody.innerHTML = '';
         myStocks.forEach(c => {
-            // 優先從字典找名稱，找不到再找暫存
             const stockInfo = stockDB.find(s => s.id === c);
             const name = stockInfo ? stockInfo.name : (dynamicStockMap[c] || c);
             
+            // 【修復刪除按鈕錯誤】: 變數改成 c (原本寫 code 是錯的)
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
                 <td id="prev-${c}">-</td>
@@ -244,9 +247,41 @@
                 <td id="c-${c}">-</td>
                 <td id="pct-${c}">-</td>
                 <td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td>
-                <td style="text-align:center;"><button onclick="removeStock('${code}')" class="del-btn">✖</button></td>
+                <td style="text-align:center;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td>
             </tr>`;
         });
+    }
+
+    // 【補回遺失的新增功能】
+    function addStock() {
+        const input = document.getElementById('stock-input');
+        const val = input.value.trim().toUpperCase(); // 自動轉大寫
+        if (!val) return;
+        
+        // 嘗試從字典找代號
+        let codeToAdd = val;
+        const found = stockDB.find(s => s.id === val || s.name.includes(val));
+        if (found) {
+            codeToAdd = found.id;
+            dynamicStockMap[codeToAdd] = found.name;
+        }
+
+        if (!myStocks.includes(codeToAdd)) {
+            myStocks.push(codeToAdd);
+            localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
+            localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
+            location.reload();
+        } else {
+            alert("這支股票已經在清單囉！");
+        }
+    }
+
+    function removeStock(code) { 
+        if(confirm("確定要刪除嗎？")) {
+            myStocks = myStocks.filter(s=>s!==code); 
+            localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); 
+            location.reload(); 
+        }
     }
 
     function unifiedSearch(val) {
@@ -259,38 +294,62 @@
     }
 
     function selectStock(c, n) { 
-        dynamicStockMap[c] = n; localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
-        if (!myStocks.includes(c)) { myStocks.push(c); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); }
-        location.reload(); 
+        document.getElementById('stock-input').value = c; // 填入輸入框
+        addStock(); // 直接新增
     }
 
-    function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
+    // 【補回遺失的 Logo 與城市功能】
+    const app = {
+        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
+        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } }
+    };
 
-    // --- 4. 外部資訊 (大盤、日幣、天氣) ---
+    function changeCityManually() { 
+        const val = document.getElementById('city-select').value;
+        if(val === 'auto') getAutoWeather();
+        else {
+            const [lat, lon] = val.split(','); 
+            fetchWeather(lat, lon); 
+        }
+    }
+
+    // --- 4. 外部資訊 ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
-        // 天氣
-        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-            .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+        try {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+                .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+            
+            // 使用更穩定的 API 抓匯率與大盤 (Yahoo Proxy 容易掛，這邊加強錯誤處理)
+            const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
+            fetch(jpyUrl).then(r => r.json()).then(d => {
+                if(d.chart?.result) {
+                   const p = d.chart.result[0].meta.regularMarketPrice;
+                   document.getElementById('jpy-rate').innerText = `1台幣 = ${p.toFixed(2)}日圓`;
+                }
+            }).catch(()=>console.log("匯率暫時無法讀取"));
 
-        // 日幣匯率
-        const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
-        fetch(jpyUrl).then(r => r.json()).then(d => {
-            const p = d.chart.result[0].meta.regularMarketPrice;
-            document.getElementById('jpy-rate').innerText = `1台幣 = ${p.toFixed(2)}日圓`;
-        });
-
-        // 台股大盤
-        const indexUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`;
-        fetch(indexUrl).then(r => r.json()).then(d => {
-            const m = d.chart.result[0].meta;
-            const p = m.regularMarketPrice;
-            const chg = p - m.chartPreviousClose;
-            const el = document.getElementById('tw-index-val');
-            el.innerHTML = `<div class="${chg>=0?'red':'green'}">${p.toLocaleString()}</div>`;
-        });
+            const indexUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`;
+            fetch(indexUrl).then(r => r.json()).then(d => {
+                if(d.chart?.result) {
+                    const m = d.chart.result[0].meta;
+                    const p = m.regularMarketPrice;
+                    const chg = p - m.chartPreviousClose;
+                    const el = document.getElementById('tw-index-val');
+                    el.innerHTML = `<div class="${chg>=0?'red':'green'}">${p.toLocaleString()}</div>`;
+                }
+            }).catch(()=>console.log("大盤暫時無法讀取"));
+        } catch(e) {}
     }
 
-    // --- 5. 新聞與倒數 ---
+    function getAutoWeather() {
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
+    }
+    function fetchWeather(lat, lon) {
+         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+    }
+
+    // --- 5. 新聞與時間 ---
     async function fetchNews() {
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
         try {
@@ -301,7 +360,7 @@
             const items = Array.from(xml.querySelectorAll("item")).slice(0, 8);
             document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
             document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
-        } catch(e) { console.log("新聞載入失敗"); }
+        } catch(e) {}
     }
 
     function updateHoliday() {
@@ -329,12 +388,14 @@
 
     // 初始化啟動
     window.onload = () => {
+        app.loadLogo();
         updateMarketStatus();
         updateHoliday();
         renderTable();
         myStocks.forEach(getStockPrice);
         fetchExternalInfo();
         fetchNews();
+        getAutoWeather();
     };
 </script>
 </body>
