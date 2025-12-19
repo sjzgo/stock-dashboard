@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v8.9 強力搜尋)</title>
+    <title>📊 喵喵站長資訊看板 (v9.0 鉅亨搜尋)</title>
     <style>
         /* --- 全局設定 --- */
         body { font-family: '微軟正黑體', sans-serif; background: #f4f7f9; padding: 8px; color: #333; margin: 0; font-size: 15px; }
@@ -228,6 +228,7 @@
 </div>
 
 <script>
+    // --- 1. 股票字典整合 ---
     const stockDB = [
         { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
         { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
@@ -358,7 +359,6 @@
         let codeToAdd = val;
         let nameToAdd = val;
 
-        // 【修改】支援從動態 map 抓取名稱 (讓搜尋結果可以直接新增)
         if (dynamicStockMap[val]) {
             nameToAdd = dynamicStockMap[val];
         } else {
@@ -388,7 +388,7 @@
         }
     }
 
-    // 【核心修改】搜尋功能：使用 Yahoo 官方公開 API
+    // 【搜尋修正：使用鉅亨網 API】
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -397,25 +397,23 @@
         const query = val.trim();
         if (!query) return;
 
-        // 防抖
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            // 使用正規 Yahoo Search API (不會被擋)
-            const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v1/finance/search?q=${query}&lang=zh-Hant-TW&region=TW&quotesCount=10`)}`;
+            // 使用 Cnyes 鉅亨網搜尋 API
+            const url = `https://corsproxy.io/?${encodeURIComponent(`https://ws.api.cnyes.com/ws/api/v1/search/quote?keyword=${query}&page=1&limit=20`)}`;
             
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    const quotes = data.quotes || [];
-                    // 過濾：只留台股 (代號結尾是 .TW 或 .TWO)
-                    const validItems = quotes.filter(q => q.symbol && (q.symbol.endsWith('.TW') || q.symbol.endsWith('.TWO')));
+                    // Cnyes 結構通常是 data.stocks
+                    let items = data.stocks || [];
                     
-                    if(validItems.length > 0) {
-                        resDiv.innerHTML = validItems.map(s => {
-                            const cleanSymbol = s.symbol.replace('.TW', '').replace('.TWO', '');
-                            const name = s.shortname || s.longname || cleanSymbol;
-                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${cleanSymbol}', '${name}')">
-                                <b>${name}</b> <small>${cleanSymbol}</small>
+                    if(items.length > 0) {
+                        resDiv.innerHTML = items.map(s => {
+                            // Cnyes 代號通常是 "2330.TW"
+                            const symbol = s.symbolId.split('.')[0]; 
+                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${symbol}', '${s.name}')">
+                                <b>${s.name}</b> <small>${symbol}</small>
                             </div>`;
                         }).join('');
                         resDiv.style.display = 'block';
@@ -476,7 +474,7 @@
                     el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
                 });
 
-            // 匯率 (Yahoo)
+            // 匯率
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -485,7 +483,7 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // 【大盤】
+            // 大盤
             fetch(`${gasUrl}?stock=t00`)
                 .then(r => r.json())
                 .then(data => {
@@ -598,6 +596,7 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
+    // 初始化啟動
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
