@@ -163,80 +163,100 @@
 </div>
 
 <script>
-    // --- 1. 股票大字典 (上市櫃合併) ---
+    // --- 1. 股票字典整合 (上市+上櫃) ---
     const stockDB = [
         { id: "0050", name: "元大台灣50" }, { id: "0056", name: "元大高股息" }, { id: "00878", name: "國泰永續高股息" }, { id: "00919", name: "群益台灣精選高息" }, { id: "00929", name: "復華台灣科技優息" }, { id: "006208", name: "富邦台50" }, { id: "00713", name: "元大台灣高息低波" },
         { id: "2330", name: "台積電" }, { id: "2317", name: "鴻海" }, { id: "2454", name: "聯發科" }, { id: "2303", name: "聯電" }, { id: "2382", name: "廣達" }, { id: "3231", name: "緯創" }, { id: "2603", name: "長榮" }, { id: "2609", name: "陽明" }, { id: "2618", name: "長榮航" }, { id: "2881", name: "富邦金" }, { id: "2882", name: "國泰金" }, { id: "2891", name: "中信金" }, { id: "2002", name: "中鋼" }, { id: "2412", name: "中華電" }, { id: "2357", name: "華碩" }, { id: "2301", name: "光寶科" }, { id: "2376", name: "技嘉" }, { id: "6669", name: "緯穎" }, { id: "3711", name: "日月光投控" },
-        { id: "8069", name: "元太" }, { id: "5347", name: "世界先進" }, { id: "6488", name: "環球晶" }, { id: "5483", name: "中美晶" }, { id: "3105", name: "穩懋" }, { id: "6147", name: "紘康" }, { id: "3293", name: "鈊象" }, { id: "3529", name: "力旺" }, { id: "6446", name: "藥華藥" }, { id: "8299", name: "群聯" }, { id: "4966", name: "譜瑞-KY" }, { id: "5274", name: "信驊" }, { id: "6510", name: "精測" }, { id: "8046", name: "南電" }, { id: "3081", name: "聯亞" }, { id: "4147", name: "龍巖" }, { id: "2754", name: "亞洲藏壽司" }, { id: "5289", name: "宜鼎" }
+        { id: "8069", name: "元太" }, { id: "5347", name: "世界先進" }, { id: "6488", name: "環球晶" }, { id: "5483", name: "中美晶" }, { id: "3105", name: "穩懋" }, { id: "3293", name: "鈊象" }, { id: "8299", name: "群聯" }
     ];
 
-    // --- 2. 抓取即時資料函式 (GAS 版本) ---
+    // 本地儲存變數
+    let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
+    let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
+
+    // --- 2. 核心功能：抓取資料 ---
     async function getStockPrice(stockId) {
+        // 您提供的 GAS 網址
         const gasUrl = "https://script.google.com/macros/s/AKfycbxGN4K23r64mJBUbvNLzaMcLv8r7mqLxBRxRV9MjsCPnzGroqdUTBdP11ExvZ_YfAXj/exec"; 
         try {
             const response = await fetch(`${gasUrl}?stock=${stockId}`);
             const data = await response.json();
+            
             if (data.msgArray && data.msgArray.length > 0) {
                 const info = data.msgArray[0];
-                const price = parseFloat(info.z || info.o); // z是現價, o是開盤
-                const yesterday = parseFloat(info.y);
-                const chg = price - yesterday;
-                const pct = (chg / yesterday) * 100;
+                // 處理可能為 "-" 的字串
+                const price = parseFloat(info.z) || parseFloat(info.o) || 0;
+                const yesterday = parseFloat(info.y) || 0;
                 
-                // 更新畫面中的元素
-                const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
-                const pEl = document.getElementById("p-"+stockId);
-                const cEl = document.getElementById("c-"+stockId);
-                const pctEl = document.getElementById("pct-"+stockId);
-                const prevEl = document.getElementById("prev-"+stockId);
-
-                if(pEl) { pEl.innerText = price.toFixed(1); pEl.className = clr; }
-                if(cEl) { cEl.innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2); cEl.className = clr; }
-                if(pctEl) { pctEl.innerText = pct.toFixed(2) + "%"; pctEl.className = clr; }
-                if(prevEl) { prevEl.innerText = yesterday.toFixed(1); }
+                if (price > 0 && yesterday > 0) {
+                    const chg = price - yesterday;
+                    const pct = (chg / yesterday) * 100;
+                    updateUI(stockId, price, yesterday, chg, pct);
+                }
+            } else {
+                fetchPriceFallback(stockId); // GAS 沒資料則跑備援
             }
         } catch (e) {
-            console.error("GAS 抓取失敗，嘗試備用來源", e);
-            fetchPrice(stockId); // 失敗時跑原本的 Yahoo 備援
+            fetchPriceFallback(stockId);
         }
     }
 
-    // --- 3. 原本的功能函式 (整合與修復) ---
-    function updateHoliday() {
-        const holidays = [{ name: "春節", date: "2026-01-28" }, { name: "和平紀念日", date: "2026-02-28" }, { name: "清明節", date: "2026-04-04" }, { name: "端午節", date: "2026-06-20" }, { name: "中秋節", date: "2026-10-06" }, { name: "國慶日", date: "2026-10-10" }];
-        const now = new Date();
-        let next = holidays.find(h => new Date(h.date) > now) || { name: "新年", date: "2027-01-01" };
-        const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
-        document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
+    // 更新表格 UI
+    function updateUI(id, price, prev, chg, pct) {
+        const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
+        const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
+        
+        const elP = document.getElementById("p-" + id);
+        const elC = document.getElementById("c-" + id);
+        const elPct = document.getElementById("pct-" + id);
+        const elPrev = document.getElementById("prev-" + id);
+
+        if (elP) { elP.innerText = price.toFixed(1); elP.className = clr; }
+        if (elC) { elC.innerText = sign + Math.abs(chg).toFixed(2); elC.className = clr; }
+        if (elPct) { elPct.innerText = pct.toFixed(2) + "%"; elPct.className = clr; }
+        if (elPrev) { elPrev.innerText = prev.toFixed(1); }
     }
 
-    function updateMarketStatus() {
-        const now = new Date();
-        const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
-        const dayName = daysArr[now.getDay()];
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${dayName})`;
-        document.getElementById('clock-time').innerHTML = `<div style="font-size:11px; color:#95a5a6; margin-bottom:1px;">${dateStr}</div><div>${now.toLocaleTimeString('zh-TW', {hour12: false})}</div>`;
-        const twTimer = document.getElementById('market-timer');
-        const day = now.getDay(), h = now.getHours(), m = now.getMinutes();
-        if (day === 0 || day === 6) twTimer.innerText = "休市";
-        else if (h < 9) twTimer.innerText = "未開盤";
-        else if (h >= 13 && m >= 30 || h > 13) twTimer.innerText = "已收盤";
-        else twTimer.innerHTML = `<span class="red">盤中交易</span>`;
+    // 備援方案 (Yahoo API)
+    function fetchPriceFallback(code) {
+        const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d`)}`;
+        fetch(url).then(r => r.json()).then(d => {
+            if (d.chart?.result) {
+                let m = d.chart.result[0].meta;
+                updateUI(code, m.regularMarketPrice, m.chartPreviousClose, m.regularMarketPrice - m.chartPreviousClose, ((m.regularMarketPrice - m.chartPreviousClose)/m.chartPreviousClose)*100);
+            }
+        }).catch(e => console.log("所有來源皆失敗"));
+    }
+
+    // --- 3. 介面渲染與搜尋 ---
+    function renderTable() {
+        const tbody = document.getElementById('stock-list');
+        tbody.innerHTML = '';
+        myStocks.forEach(c => {
+            // 優先從字典找名稱，找不到再找暫存
+            const stockInfo = stockDB.find(s => s.id === c);
+            const name = stockInfo ? stockInfo.name : (dynamicStockMap[c] || c);
+            
+            tbody.innerHTML += `<tr>
+                <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
+                <td id="prev-${c}">-</td>
+                <td id="p-${c}">-</td>
+                <td id="c-${c}">-</td>
+                <td id="pct-${c}">-</td>
+                <td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td>
+                <td style="text-align:center;"><button onclick="removeStock('${code}')" class="del-btn">✖</button></td>
+            </tr>`;
+        });
     }
 
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
         const query = val.toLowerCase();
-        // 優先從 stockDB 搜尋，再加上 API 抓到的資料
         const results = stockDB.filter(s => s.id.includes(query) || s.name.includes(query)).slice(0, 10);
         resDiv.innerHTML = results.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.name}')"><b>${s.name}</b> <small>${s.id}</small></div>`).join('');
         resDiv.style.display = 'block';
     }
-
-    // 沿用您的原有變數與函式
-    let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
-    let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
 
     function selectStock(c, n) { 
         dynamicStockMap[c] = n; localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
@@ -246,55 +266,75 @@
 
     function removeStock(code) { myStocks = myStocks.filter(s=>s!==code); localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks)); location.reload(); }
 
-    function renderTable() {
-        const tbody = document.getElementById('stock-list'); tbody.innerHTML = '';
-        myStocks.forEach(c => {
-            const name = dynamicStockMap[c] || c; 
-            tbody.innerHTML += `<tr><td><b>${name}</b><br><small style="color:#999">${c}</small></td><td id="prev-${c}">-</td><td id="p-${c}">-</td><td id="c-${c}">-</td><td id="pct-${c}">-</td><td><div class="links"><a href="https://tw.stock.yahoo.com/quote/${c}/news" target="_blank" class="link-btn news-btn">新聞</a><a onclick="window.open('https://www.wantgoo.com/stock/${c}/dividend-policy/ex-dividend')" class="link-btn div-btn">股利</a></div></td><td style="text-align:center;"><button onclick="removeStock('${c}')" class="del-btn">✖</button></td></tr>`;
-        });
-    }
-
-    // 您原本的備援 FetchPrice
-    function fetchPrice(code) {
-        const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d`)}`;
-        fetch(url).then(r => r.json()).then(d => {
-            if (d.chart && d.chart.result) {
-                let m = d.chart.result[0].meta, p = m.regularMarketPrice, prev = m.chartPreviousClose, chg = p - prev, pct = (chg/prev)*100;
-                const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
-                if(document.getElementById("prev-"+code)) document.getElementById("prev-"+code).innerText = prev.toFixed(1);
-                if(document.getElementById("p-"+code)) { document.getElementById("p-"+code).innerText = p.toFixed(1); document.getElementById("p-"+code).className = clr; }
-                if(document.getElementById("c-"+code)) { document.getElementById("c-"+code).innerText = (chg > 0 ? "▲" : "▼") + Math.abs(chg).toFixed(2); document.getElementById("c-"+code).className = clr; }
-                if(document.getElementById("pct-"+code)) { document.getElementById("pct-"+code).innerText = pct.toFixed(2) + "%"; document.getElementById("pct-"+code).className = clr; }
-            }
-        });
-    }
-
-    // ... 其他天氣與新聞函式 (保留原本邏輯) ...
-    function fetchWeather(lat, lon) {
+    // --- 4. 外部資訊 (大盤、日幣、天氣) ---
+    async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
+        // 天氣
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-        .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+            .then(r => r.json()).then(d => document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°");
+
+        // 日幣匯率
+        const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
+        fetch(jpyUrl).then(r => r.json()).then(d => {
+            const p = d.chart.result[0].meta.regularMarketPrice;
+            document.getElementById('jpy-rate').innerText = `1台幣 = ${p.toFixed(2)}日圓`;
+        });
+
+        // 台股大盤
+        const indexUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m&range=1d')}`;
+        fetch(indexUrl).then(r => r.json()).then(d => {
+            const m = d.chart.result[0].meta;
+            const p = m.regularMarketPrice;
+            const chg = p - m.chartPreviousClose;
+            const el = document.getElementById('tw-index-val');
+            el.innerHTML = `<div class="${chg>=0?'red':'green'}">${p.toLocaleString()}</div>`;
+        });
     }
 
-    const app = {
-        loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
-        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } }
-    };
+    // --- 5. 新聞與倒數 ---
+    async function fetchNews() {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
+        try {
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(data.contents, "text/xml");
+            const items = Array.from(xml.querySelectorAll("item")).slice(0, 8);
+            document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
+            document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
+        } catch(e) { console.log("新聞載入失敗"); }
+    }
+
+    function updateHoliday() {
+        const holidays = [{ name: "春節", date: "2026-01-28" }];
+        const now = new Date();
+        const next = holidays[0];
+        const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
+        document.getElementById('holiday-countdown').innerText = `📅 ${next.name}${days}天`;
+    }
+
+    function updateMarketStatus() {
+        const now = new Date();
+        document.getElementById('clock-time').innerHTML = `<div>${now.toLocaleTimeString('zh-TW', {hour12: false})}</div>`;
+        const twTimer = document.getElementById('market-timer');
+        const h = now.getHours(), m = now.getMinutes();
+        twTimer.innerHTML = (h >= 9 && (h < 13 || (h==13 && m<=30))) ? `<span class="red">盤中交易</span>` : `<span>已收盤</span>`;
+    }
 
     let timeLeft = 60;
     setInterval(() => {
         updateMarketStatus();
-        if (timeLeft <= 0) location.reload();
         document.getElementById('countdown-text').innerText = timeLeft--;
+        if (timeLeft < 0) location.reload();
     }, 1000);
 
-    window.onload = async () => { 
-        app.loadLogo(); 
-        updateMarketStatus(); 
-        updateHoliday(); 
-        renderTable(); 
-        // 核心改動：改跑 GAS 抓即時資料，失敗才跑 Yahoo
-        myStocks.forEach(getStockPrice); 
-        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
+    // 初始化啟動
+    window.onload = () => {
+        updateMarketStatus();
+        updateHoliday();
+        renderTable();
+        myStocks.forEach(getStockPrice);
+        fetchExternalInfo();
+        fetchNews();
     };
 </script>
 </body>
