@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.9 全能相容版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.10 雙重保險版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -346,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.9</div>
+        <div class="version-tag">v10.10</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -437,7 +437,7 @@
         return "⚡";
     }
 
-    // --- 2. 核心功能: 全能相容版 (v10.9) ---
+    // --- 2. 核心功能: 高速批次抓取 ---
     async function getBatchStockPrices() {
         if (myStocks.length === 0) return;
 
@@ -445,9 +445,8 @@
         
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); 
+            const timeoutId = setTimeout(() => controller.abort(), 5000); 
 
-            // 呼叫 GAS
             const response = await fetch(`${gasUrl}?stock=${stockParam}`, { signal: controller.signal });
             clearTimeout(timeoutId);
             const data = await response.json();
@@ -455,35 +454,21 @@
             const iconEl = document.getElementById('source-icon');
             if(iconEl) iconEl.innerText = '⚡';
             
-            // ★★★ 防呆與相容機制 ★★★
-            // 情境 1: GAS 更新了，回傳 Array (高速模式)
-            if (Array.isArray(data)) {
-                data.forEach(info => {
-                    if (info && !info.error && info.z) {
-                        const price = parseFloat(info.z);
-                        const yesterday = parseFloat(info.y);
-                        const chg = price - yesterday;
-                        const pct = (chg / yesterday) * 100;
-                        updateUI(info.c, price, yesterday, chg, pct);
-                    } else {
-                        fetchPriceFallback(info.c || "unknown");
-                    }
-                });
-            } 
-            // 情境 2: GAS 沒更新，回傳 {msgArray: []} (舊模式)
-            else if (data.msgArray) {
-                console.log("偵測到舊版 GAS，切換回慢速模式");
-                // 舊版不支援批次，這裡只能當作失敗，改用 Fallback 逐一抓取
-                myStocks.forEach(fetchPriceFallback);
-            }
-            // 情境 3: 未知錯誤
-            else {
-                console.error("資料格式無法識別", data);
-                myStocks.forEach(fetchPriceFallback);
-            }
+            data.forEach(info => {
+                if (info && !info.error && info.z) {
+                    const price = parseFloat(info.z);
+                    const yesterday = parseFloat(info.y);
+                    const chg = price - yesterday;
+                    const pct = (chg / yesterday) * 100;
+                    
+                    updateUI(info.c, price, yesterday, chg, pct);
+                } else {
+                    fetchPriceFallback(info.c || "unknown");
+                }
+            });
 
         } catch (e) {
-            console.error("連線失敗，改用備案", e);
+            console.error("批次失敗", e);
             myStocks.forEach(fetchPriceFallback);
         }
     }
@@ -658,7 +643,7 @@
         }
     }
 
-    // --- 4. 外部資訊 (修復台股大盤不顯示問題) ---
+    // --- 4. 外部資訊 (修復台股大盤不顯示問題 v10.10) ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
@@ -683,53 +668,75 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
-            // ★★★ 修復：同時支援新舊 GAS 格式 ★★★
-            fetch(`${gasUrl}?stock=t00`)
-                .then(r => r.json())
-                .then(data => {
-                    let p, y, chg;
-                    // 檢查是否為新版 GAS (Array)
+            // ★★★ v10.10 大盤專屬抓取邏輯 (含雙重保險) ★★★
+            const fetchIndex = async () => {
+                try {
+                    // 1. 優先嘗試 GAS
+                    const res = await fetch(`${gasUrl}?stock=t00`);
+                    const data = await res.json();
+                    let p, y;
+
+                    // 判斷新舊 GAS 格式
                     if (Array.isArray(data) && data.length > 0 && !data[0].error) {
                         p = parseFloat(data[0].z);
                         y = parseFloat(data[0].y);
-                    } 
-                    // 檢查是否為舊版 GAS (Object with msgArray)
-                    else if (data.msgArray && data.msgArray.length > 0) {
-                        const info = data.msgArray[0];
-                        p = parseFloat(info.z);
-                        y = parseFloat(info.y);
+                    } else if (data.msgArray && data.msgArray.length > 0) {
+                        p = parseFloat(data.msgArray[0].z);
+                        y = parseFloat(data.msgArray[0].y);
                     }
 
-                    if (p && y) {
-                        chg = p - y;
-                        const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-                        
-                        let sentiment = "盤整觀望 😐";
-                        let sentimentColor = "#888";
-                        if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
-                        else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
-                        else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
-                        else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
-
-                        const el = document.getElementById('tw-index-val');
-                        const colorClass = chg >= 0 ? 'red' : 'green';
-                        
-                        el.innerHTML = `
-                            <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                                ${p.toLocaleString()}
-                            </div>
-                            <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                                ${sign}${Math.abs(chg).toFixed(2)}
-                            </div>
-                        `;
-
-                        const badge = document.getElementById('sentiment-badge');
-                        badge.style.display = 'block';
-                        badge.innerText = sentiment;
-                        badge.style.color = sentimentColor;
-                        badge.style.borderColor = sentimentColor;
+                    if (!isNaN(p) && !isNaN(y)) return { p, y };
+                    throw new Error("GAS 無資料");
+                } catch (e) {
+                    // 2. 備案：直接抓 Yahoo Chart API (透過 Proxy)
+                    console.log("大盤切換備用來源");
+                    const backupUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1d')}`;
+                    const res = await fetch(backupUrl);
+                    const json = await res.json();
+                    if (json.chart && json.chart.result) {
+                        const meta = json.chart.result[0].meta;
+                        return {
+                            p: meta.regularMarketPrice || meta.chartPreviousClose,
+                            y: meta.chartPreviousClose
+                        };
                     }
-                }).catch(()=>console.log("大盤讀取失敗"));
+                    return null;
+                }
+            };
+
+            // 執行抓取並更新 UI
+            fetchIndex().then(data => {
+                if (data) {
+                    const { p, y } = data;
+                    const chg = p - y;
+                    const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
+                    
+                    let sentiment = "盤整觀望 😐";
+                    let sentimentColor = "#888";
+                    if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
+                    else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
+                    else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
+                    else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+
+                    const el = document.getElementById('tw-index-val');
+                    const colorClass = chg >= 0 ? 'red' : 'green';
+                    
+                    el.innerHTML = `
+                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                            ${p.toLocaleString()}
+                        </div>
+                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                            ${sign}${Math.abs(chg).toFixed(2)}
+                        </div>
+                    `;
+
+                    const badge = document.getElementById('sentiment-badge');
+                    badge.style.display = 'block';
+                    badge.innerText = sentiment;
+                    badge.style.color = sentimentColor;
+                    badge.style.borderColor = sentimentColor;
+                }
+            });
 
         } catch(e) {}
     }
@@ -807,10 +814,8 @@
         }
 
         const el = document.getElementById('cat-quote-text');
-        if (el) {
-            const r = Math.floor(Math.random() * pool.length);
-            el.innerText = pool[r];
-        }
+        const r = Math.floor(Math.random() * pool.length);
+        el.innerText = pool[r];
     }
 
     function updateMarketStatus() {
@@ -820,10 +825,7 @@
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[day]})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
-        const el = document.getElementById('clock-time');
-        if (el) {
-            el.innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
-        }
+        document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
         
         const twTimer = document.getElementById('market-timer');
         const h = now.getHours();
@@ -831,24 +833,21 @@
         const totalMin = h * 60 + m;
         const closeMin = 13 * 60 + 30; 
 
-        if (twTimer) {
-            // 判斷：必須是週一(1)到週五(5) 且 時間在 9:00~13:30 之間
-            if (day >= 1 && day <= 5 && h >= 9 && totalMin < closeMin) {
-                const leftMin = closeMin - totalMin;
-                const lh = Math.floor(leftMin / 60);
-                const lm = leftMin % 60;
-                twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
-            } else {
-                twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
-            }
+        // 判斷：必須是週一(1)到週五(5) 且 時間在 9:00~13:30 之間
+        if (day >= 1 && day <= 5 && h >= 9 && totalMin < closeMin) {
+            const leftMin = closeMin - totalMin;
+            const lh = Math.floor(leftMin / 60);
+            const lm = leftMin % 60;
+            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
+        } else {
+            twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
         }
     }
 
     let timeLeft = 60;
     setInterval(() => {
         updateMarketStatus();
-        const cd = document.getElementById('countdown-text');
-        if(cd) cd.innerText = timeLeft--;
+        document.getElementById('countdown-text').innerText = timeLeft--;
         if (timeLeft < 0) location.reload();
     }, 1000);
 
@@ -856,12 +855,12 @@
     setInterval(rotateQuotes, 6000);
 
     window.onload = () => {
-        try { app.loadLogo(); } catch(e){}
+        app.loadLogo();
         updateMarketStatus();
         rotateQuotes();
         updateHoliday();
         renderTable();
-        getBatchStockPrices(); 
+        getBatchStockPrices(); // ★★★ 使用高速引擎抓取 ★★★
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
