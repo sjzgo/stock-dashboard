@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.7 高速完整版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.8 搜尋優化版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -348,7 +348,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.7</div>
+        <div class="version-tag">v10.8</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -439,18 +439,16 @@
         return "⚡";
     }
 
-    // --- 2. 核心功能: 高速批次抓取 (v11.0 支援) ---
+    // --- 2. 核心功能: 高速批次抓取 ---
     async function getBatchStockPrices() {
         if (myStocks.length === 0) return;
 
-        // 轉成字串: "2330,0050,0056"
         const stockParam = myStocks.join(","); 
         
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); 
 
-            // 呼叫 GAS (參數是 stock=... )
             const response = await fetch(`${gasUrl}?stock=${stockParam}`, { signal: controller.signal });
             clearTimeout(timeoutId);
             const data = await response.json();
@@ -467,7 +465,6 @@
                     
                     updateUI(info.c, price, yesterday, chg, pct);
                 } else {
-                    // 備案
                     fetchPriceFallback(info.c || "unknown");
                 }
             });
@@ -574,8 +571,10 @@
         }
     }
 
-    // ★★★ v9.1 終極搜尋：載入動畫 ★★★
+    // ★★★ v10.8 搜尋優化 (解決閃爍問題) ★★★
     let searchTimeout;
+    let searchController = null; // 控制器：用來取消舊的請求
+
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
@@ -583,11 +582,14 @@
         const query = val.trim();
         if (!query) return;
 
+        // 1. 清除上一次的計時器
         clearTimeout(searchTimeout);
+
+        // 2. 設定新的計時器，延遲 0.8 秒後執行 (Debounce)
         searchTimeout = setTimeout(() => {
             const url = `${gasUrl}?mode=search&q=${encodeURIComponent(query)}`;
             
-            // --- 搜尋中特效 ---
+            // UI: 顯示搜尋中
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="padding:15px; text-align:center;">
@@ -599,7 +601,13 @@
                     </div>
                 </div>`;
 
-            fetch(url)
+            // 3. 如果有舊的請求還在跑，馬上取消它 (Abort)
+            if (searchController) {
+                searchController.abort();
+            }
+            searchController = new AbortController(); // 建立新控制器
+
+            fetch(url, { signal: searchController.signal })
                 .then(r => r.json())
                 .then(data => {
                     if(data.length > 0) {
@@ -611,10 +619,14 @@
                     } else {
                         resDiv.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">找不到相符股票 🐱</div>';
                     }
-                }).catch(() => { 
-                    resDiv.innerHTML = '<div style="padding:10px; color:red; text-align:center;">連線失敗，請檢查網路 ❌</div>';
+                }).catch((e) => { 
+                    if (e.name === 'AbortError') {
+                        console.log('舊搜尋已取消'); // 這是正常的，不用理會
+                    } else {
+                        resDiv.innerHTML = '<div style="padding:10px; color:red; text-align:center;">連線失敗，請檢查網路 ❌</div>';
+                    }
                 });
-        }, 500); 
+        }, 800); // 延遲 800ms
     }
 
     function selectStock(c, n) { 
@@ -740,43 +752,6 @@
         const next = holidays.find(h => new Date(h.date) > now) || holidays[0];
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
-    }
-
-    // [v10.6] 自動輪播語錄
-    function rotateQuotes() {
-        const now = new Date();
-        const day = now.getDay();
-        const h = now.getHours();
-        const m = now.getMinutes();
-        const totalMin = h * 60 + m;
-        
-        let pool = [
-            "本喵覺得這支會漲！📈",
-            "不要追高，會摔下來喵 🙀",
-            "鏟屎官，快去賺錢！💰",
-            "今天的罐罐有著落了嗎？🐟"
-        ];
-
-        // 週末
-        if (day === 0 || day === 6) {
-            pool.push("週末是拿來睡覺的~ 💤");
-            pool.push("股市沒開，陪我玩！⚽");
-        } 
-        // 盤中 (09:00 - 13:30)
-        else if (h >= 9 && totalMin < 810) { 
-            pool.push("盯盤好累... 🙀");
-            pool.push("波動好大，怕怕 📉");
-            pool.push("衝啊！多頭戰車！🚀");
-        } 
-        // 收盤後
-        else {
-            pool.push("收盤了，朕要休息了 🌙");
-            pool.push("明天再戰吧！💪");
-        }
-
-        const el = document.getElementById('cat-quote-text');
-        const r = Math.floor(Math.random() * pool.length);
-        el.innerText = pool[r];
     }
 
     function updateMarketStatus() {
