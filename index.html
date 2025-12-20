@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.4 完美並排版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.5 長體字特效版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -114,7 +114,7 @@
             flex-direction: column;
             justify-content: center;
             flex: 1; 
-            min-width: 0; /* 關鍵：防止內容撐開容器導致跑版 */
+            min-width: 0; 
         }
         
         h1 { 
@@ -122,39 +122,48 @@
             color: #2c3e50; 
             font-size: 1.25rem; 
             line-height: 1.1; 
-            white-space: nowrap; /* 標題也不換行 */
+            white-space: nowrap; 
         }
 
-        /* [v10.4] 副標題列設定 */
+        /* 副標題列設定 */
         .subtitle-row {
             display: flex;
             align-items: center;
-            gap: 4px; /* 間距縮小 */
-            flex-wrap: nowrap; /* 強制不換行 */
+            gap: 4px; 
+            flex-wrap: nowrap; 
             width: 100%;
+            /* 讓這行稍微往下移一點點，因為字體拉長了 */
+            margin-top: 2px; 
         }
         
         .analyst-title { 
-            font-size: 11px; /* 縮小字體 */
+            font-size: 11px; 
             color: #7f8c8d; 
             font-weight: bold; 
             margin: 0;
-            white-space: nowrap; /* 名字絕對不換行 */
-            flex-shrink: 0; /* 名字絕對不被壓縮 */
+            white-space: nowrap; 
+            flex-shrink: 0; 
+            /* [v10.5] 拉長字體特效 */
+            display: inline-block; /* 必須設定為區塊才能變形 */
+            transform: scale(1, 1.15); /* 寬度1倍，高度1.15倍 */
+            transform-origin: left center; /* 保持靠左對齊 */
         }
 
-        /* [v10.4] 貓語錄框框優化 */
         .cat-quote-box {
             border: 1px dotted #ffcc80; 
             background-color: #fffcf5;
             border-radius: 10px;
-            padding: 1px 4px; /* 內距極小化 */
-            font-size: 10px; /* 字體縮小以容納更多字 */
+            padding: 1px 4px; 
+            font-size: 10px; 
             color: #d35400;
-            white-space: nowrap; /* 不換行 */
-            overflow: hidden; /* 超出隱藏 */
-            text-overflow: ellipsis; /* 萬一真的太長顯示... */
-            flex-grow: 1; /* 自動填滿剩下的寬度 */
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            flex-grow: 1; 
+            /* [v10.5] 拉長字體特效 */
+            display: inline-block;
+            transform: scale(1, 1.15); /* 寬度1倍，高度1.15倍 */
+            transform-origin: left center;
         }
 
         /* --- 儀表板 --- */
@@ -347,7 +356,7 @@
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.5em; color: #aaa; vertical-align: bottom; font-weight: normal; margin-left: 4px;">
-                        v10.4
+                        v10.5
                     </span>
                 </h1>
                 <div class="subtitle-row">
@@ -733,7 +742,7 @@
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
-    // [v10.4] 自動輪播語錄
+    // [v10.5] 自動輪播語錄
     function rotateQuotes() {
         const now = new Date();
         const day = now.getDay();
