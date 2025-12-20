@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.5 長體字特效版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.6 加大清晰版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -92,8 +92,8 @@
             100% { transform: translateY(2px); }
         }
         .mascot-container { 
-            width: 45px; 
-            height: 45px; 
+            width: 48px; /* 稍微再加大一點點配合大字體 */
+            height: 48px; 
             border-radius: 50%; 
             border: 3px solid #ff9f43; 
             overflow: hidden; 
@@ -118,9 +118,9 @@
         }
         
         h1 { 
-            margin: 0 0 2px 0; 
+            margin: 0 0 4px 0; /* 增加一點下間距 */
             color: #2c3e50; 
-            font-size: 1.25rem; 
+            font-size: 1.35rem; /* 標題也稍微加大 */
             line-height: 1.1; 
             white-space: nowrap; 
         }
@@ -129,41 +129,34 @@
         .subtitle-row {
             display: flex;
             align-items: center;
-            gap: 4px; 
-            flex-wrap: nowrap; 
+            gap: 6px; /* 間距稍微拉開 */
+            flex-wrap: nowrap; /* 關鍵：強制不換行 */
             width: 100%;
-            /* 讓這行稍微往下移一點點，因為字體拉長了 */
-            margin-top: 2px; 
         }
         
+        /* [v10.6 修改] 分析師標題加大 */
         .analyst-title { 
-            font-size: 11px; 
+            font-size: 13px; /* 從 11px 加大到 13px */
             color: #7f8c8d; 
             font-weight: bold; 
             margin: 0;
-            white-space: nowrap; 
-            flex-shrink: 0; 
-            /* [v10.5] 拉長字體特效 */
-            display: inline-block; /* 必須設定為區塊才能變形 */
-            transform: scale(1, 1.15); /* 寬度1倍，高度1.15倍 */
-            transform-origin: left center; /* 保持靠左對齊 */
+            white-space: nowrap; /* 絕對不換行 */
+            flex-shrink: 0; /* 關鍵：絕對不被壓縮，確保完整顯示 */
+            /* 移除之前的變形拉伸，直接用字號控制 */
         }
 
+        /* [v10.6 修改] 貓語錄框框加大 */
         .cat-quote-box {
             border: 1px dotted #ffcc80; 
             background-color: #fffcf5;
             border-radius: 10px;
-            padding: 1px 4px; 
-            font-size: 10px; 
+            padding: 2px 6px; /* 內距稍微增加 */
+            font-size: 12px; /* 從 10px 加大到 12px */
             color: #d35400;
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            flex-grow: 1; 
-            /* [v10.5] 拉長字體特效 */
-            display: inline-block;
-            transform: scale(1, 1.15); /* 寬度1倍，高度1.15倍 */
-            transform-origin: left center;
+            white-space: nowrap; /* 不換行 */
+            overflow: hidden; /* 關鍵：超出範圍隱藏 */
+            text-overflow: ellipsis; /* 關鍵：太長顯示...，防止重疊 */
+            flex-grow: 1; /* 自動填滿剩下空間 */
         }
 
         /* --- 儀表板 --- */
@@ -356,7 +349,7 @@
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.5em; color: #aaa; vertical-align: bottom; font-weight: normal; margin-left: 4px;">
-                        v10.5
+                        v10.6
                     </span>
                 </h1>
                 <div class="subtitle-row">
@@ -742,7 +735,7 @@
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
-    // [v10.5] 自動輪播語錄
+    // [v10.6] 自動輪播語錄
     function rotateQuotes() {
         const now = new Date();
         const day = now.getDay();
