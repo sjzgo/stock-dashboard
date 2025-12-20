@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v9.8 冷靜靠左版)</title>
+    <title>📊 喵喵站長資訊看板 (v9.8 精緻版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -70,24 +70,37 @@
 
         /* --- 標題區域 --- */
         header { 
-            /* [v9.8 修改] 這裡原本是 5px 10px，改為 5px 4px，讓左邊更貼齊邊緣 */
             padding: 5px 4px; 
             margin-bottom: 8px;
             background-color: #e3f2fd; 
             border-radius: 10px; 
             border: 2px dashed #90caf9; 
+            /* [v9.8 修改] 設為相對定位，讓裡面的版本號可以絕對定位 */
+            position: relative; 
         }
 
         .header-title-row { 
             display: flex; 
             justify-content: flex-start; 
             align-items: center; 
-            /* [v9.8 修改] 間距從 12px 縮小為 6px，讓字更靠近貓 */
             gap: 6px; 
             height: 48px; 
         }
         
-        /* 漂浮黑寶 (保留) */
+        /* [v9.8 新增] 版本號標籤樣式：右下角 + 小字 */
+        .version-tag {
+            position: absolute;
+            bottom: 2px;
+            right: 5px;
+            font-size: 10px; /* 字變小 */
+            color: #aaa;     /* 顏色淡一點不搶眼 */
+            background: rgba(255,255,255,0.6);
+            padding: 0 4px;
+            border-radius: 4px;
+            font-family: monospace; /* 稍微有點科技感 */
+        }
+
+        /* 漂浮黑寶 */
         @keyframes floatMascot {
             0% { transform: translateY(2px); }
             50% { transform: translateY(-2px); }
@@ -105,7 +118,6 @@
             flex-shrink: 0; 
             animation: floatMascot 3s ease-in-out infinite; 
             margin-top: 2px;
-            /* [v9.8 修改] 加一點左邊距修正視覺 */
             margin-left: 2px;
         }
         .mascot-container:active { transform: scale(0.9); animation: none; }
@@ -183,12 +195,10 @@
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
         
-        /* [v9.8 修改] 移除動畫，只保留基本樣式，避免心情不好時看它動很煩 */
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; 
             white-space: nowrap; display: none; min-width: 60px; text-align: center; 
-            /* animation: heartBeat 2s infinite;  <-- 已移除 */
         }
 
         /* --- 搜尋結果下拉選單 --- */
@@ -320,13 +330,11 @@
             <div class="header-text-col">
                 <h1>
                     📊 喵喵站長資訊看板 
-                    <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
-                        v9.8
-                    </span>
                 </h1>
                 <div class="analyst-title">首席分析師：黑寶</div>
             </div>
         </div>
+        <div class="version-tag">v9.8</div>
     </header>
 
     <div class="dashboard">
