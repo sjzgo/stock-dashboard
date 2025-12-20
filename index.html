@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.7 空間管理大師版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.7 高速完整版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -75,17 +75,17 @@
             background-color: #e3f2fd; 
             border-radius: 10px; 
             border: 2px dashed #90caf9; 
-            position: relative; /* 為了讓版本號定位 */
+            position: relative; 
         }
 
-        /* [v10.7 新增] 版本號定位到右上角 */
+        /* 版本號定位到右上角 */
         .version-tag {
             position: absolute;
             top: 4px;
             right: 6px;
             font-size: 10px;
             color: #aaa;
-            font-family: monospace; /* 用等寬字體看起來更有科技感 */
+            font-family: monospace; 
         }
 
         .header-title-row { 
@@ -439,42 +439,42 @@
         return "⚡";
     }
 
-    // --- 2. 核心功能 ---
-    async function getStockPrice(stockId) {
+    // --- 2. 核心功能: 高速批次抓取 (v11.0 支援) ---
+    async function getBatchStockPrices() {
+        if (myStocks.length === 0) return;
+
+        // 轉成字串: "2330,0050,0056"
+        const stockParam = myStocks.join(","); 
+        
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const timeoutId = setTimeout(() => controller.abort(), 5000); 
 
-            const response = await fetch(`${gasUrl}?stock=${stockId}`, { signal: controller.signal });
+            // 呼叫 GAS (參數是 stock=... )
+            const response = await fetch(`${gasUrl}?stock=${stockParam}`, { signal: controller.signal });
             clearTimeout(timeoutId);
             const data = await response.json();
-            
-            if (data.msgArray && data.msgArray.length > 0) {
-                const iconEl = document.getElementById('source-icon');
-                if(iconEl) iconEl.innerText = '⚡';
-                const textEl = document.getElementById('source-text');
-                if(textEl) textEl.innerText = '(即時報價)';
-                
-                const info = data.msgArray[0];
-                let price = parseFloat(info.z);
-                if (isNaN(price)) price = parseFloat(info.o);
-                if (isNaN(price)) price = 0;
 
-                const yesterday = parseFloat(info.y) || 0;
-                
-                if (price > 0 && yesterday > 0) {
+            const iconEl = document.getElementById('source-icon');
+            if(iconEl) iconEl.innerText = '⚡';
+            
+            data.forEach(info => {
+                if (info && !info.error && info.z) {
+                    const price = parseFloat(info.z);
+                    const yesterday = parseFloat(info.y);
                     const chg = price - yesterday;
                     const pct = (chg / yesterday) * 100;
-                    updateUI(stockId, price, yesterday, chg, pct);
+                    
+                    updateUI(info.c, price, yesterday, chg, pct);
                 } else {
-                     updateUI(stockId, 0, yesterday, 0, 0, true);
+                    // 備案
+                    fetchPriceFallback(info.c || "unknown");
                 }
-            } else {
-                fetchPriceFallback(stockId);
-            }
+            });
+
         } catch (e) {
-            console.error(e);
-            fetchPriceFallback(stockId);
+            console.error("批次失敗", e);
+            myStocks.forEach(fetchPriceFallback);
         }
     }
 
@@ -821,7 +821,7 @@
         rotateQuotes();
         updateHoliday();
         renderTable();
-        myStocks.forEach(getStockPrice);
+        getBatchStockPrices(); // ★★★ 使用高速引擎抓取 ★★★
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
