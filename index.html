@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.2 新手導覽版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.0 週末休假版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -75,7 +75,6 @@
             background-color: #e3f2fd; 
             border-radius: 10px; 
             border: 2px dashed #90caf9; 
-            position: relative; 
         }
 
         .header-title-row { 
@@ -86,39 +85,6 @@
             height: 48px; 
         }
         
-        /* 氣泡樣式 */
-        .fortune-bubble {
-            position: absolute;
-            left: 55px; 
-            top: 5px;   
-            background: #fff;
-            border: 2px solid #81ecec; 
-            border-radius: 12px;
-            padding: 4px 10px;
-            font-size: 12px;
-            color: #00b894; 
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            z-index: 100;
-            white-space: nowrap;
-            display: none; 
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .fortune-bubble::after {
-            content: '';
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-width: 6px 6px 6px 0;
-            border-style: solid;
-            border-color: transparent #81ecec transparent transparent;
-        }
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.5) translateY(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
         /* 漂浮黑寶 */
         @keyframes floatMascot {
             0% { transform: translateY(2px); }
@@ -138,7 +104,6 @@
             animation: floatMascot 3s ease-in-out infinite; 
             margin-top: 2px;
             margin-left: 2px;
-            transition: transform 0.1s;
         }
         .mascot-container:active { transform: scale(0.9); animation: none; }
 
@@ -159,20 +124,6 @@
             font-weight: bold; 
             margin-top: 0; 
             margin-left: 2px; 
-            cursor: pointer;
-        }
-        .analyst-title:active { color: #3498db; }
-
-        .version-tag {
-            position: absolute;
-            bottom: 2px;
-            right: 5px;
-            font-size: 10px;
-            color: #aaa;
-            background: rgba(255,255,255,0.6);
-            padding: 0 4px;
-            border-radius: 4px;
-            font-family: monospace;
         }
 
         /* --- 儀表板 --- */
@@ -207,8 +158,10 @@
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
@@ -226,6 +179,7 @@
         }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
+        
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; 
@@ -249,9 +203,15 @@
 
         /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th { padding: 5px 2px; color: #d35400; border-bottom: 2px solid #ffcc80; font-size: 12px; }
+        th { 
+            padding: 5px 2px; 
+            color: #d35400; 
+            border-bottom: 2px solid #ffcc80; 
+            font-size: 12px; 
+        }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         tr:active td { background-color: #fcf3cf; }
+
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
         th:nth-child(2) { width: 14%; text-align: center; } td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
         th:nth-child(3) { width: 16%; text-align: center; } td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
@@ -264,7 +224,11 @@
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; transition: transform 0.1s; }
+        
+        .del-btn { 
+            background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; 
+            transition: transform 0.1s;
+        }
         .del-btn:active { transform: scale(1.5); color: red; } 
 
         /* --- 底部 --- */
@@ -274,9 +238,24 @@
         
         .refresh-btn { 
             background: linear-gradient(135deg, #ff9f43, #ff6b6b); 
-            color: white; border: none; padding: 0 15px; height: 28px; line-height: 28px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); z-index: 2; transition: transform 0.1s, filter 0.1s; 
+            color: white; 
+            border: none; 
+            padding: 0 15px; 
+            height: 28px; 
+            line-height: 28px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 13px; 
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); 
+            z-index: 2; 
+            transition: transform 0.1s, filter 0.1s; 
         }
-        .refresh-btn:active { transform: scale(0.95); filter: brightness(0.9); box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2); }
+        .refresh-btn:active { 
+            transform: scale(0.95); 
+            filter: brightness(0.9);
+            box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2);
+        }
 
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
@@ -288,43 +267,11 @@
         .news-item a { text-decoration: none; color: #34495e; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
 
+        /* 可愛化：捲軸 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #ffb8b8; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ff9f9f; }
-
-        /* [v10.2] 歡迎彈窗樣式 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 999;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(3px); /* 背景模糊特效 */
-        }
-        .modal-card {
-            background: #fff; width: 85%; max-width: 320px;
-            padding: 20px; border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border: 4px solid #fffbf0;
-            animation: bounceIn 0.5s;
-        }
-        @keyframes bounceIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            60% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); }
-        }
-        .modal-title { font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 15px; }
-        .modal-list { text-align: left; font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.6; }
-        .modal-btn {
-            background: #3498db; color: white; border: none;
-            padding: 8px 20px; border-radius: 20px;
-            font-size: 14px; font-weight: bold; cursor: pointer;
-            width: 100%;
-        }
-        .modal-btn:active { transform: scale(0.95); }
-        .help-icon {
-            text-align: center; margin-top: 10px; font-size: 11px; color: #aaa; cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -361,20 +308,20 @@
 
     <header>
         <div class="header-title-row">
-            <div class="mascot-container" onclick="app.showFortune()">
+            <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
                 <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
             </div>
-            <div id="fortune-bubble" class="fortune-bubble"></div>
-            
             <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
             <div class="header-text-col">
                 <h1>
                     📊 喵喵站長資訊看板 
+                    <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
+                        v10.0
+                    </span>
                 </h1>
-                <div class="analyst-title" onclick="document.getElementById('file-upload').click()">首席分析師：黑寶</div>
+                <div class="analyst-title">首席分析師：黑寶</div>
             </div>
         </div>
-        <div class="version-tag">v10.2</div>
     </header>
 
     <div class="dashboard">
@@ -424,20 +371,6 @@
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">最後載入: --:--:--</div>
-    
-    <div class="help-icon" onclick="app.showWelcome(true)">[?] 使用說明</div>
-</div>
-
-<div id="welcome-modal" class="modal-overlay">
-    <div class="modal-card">
-        <div class="modal-title">😺 歡迎來到喵喵看板！</div>
-        <div class="modal-list">
-            <div>🐾 <b>點擊黑寶頭像</b>：<br>聽聽站長的療癒貓語錄。</div>
-            <div style="margin-top:8px;">📸 <b>點擊「首席分析師」</b>：<br>可以幫站長換大頭貼喔！</div>
-            <div style="margin-top:8px;">🔍 <b>搜尋股票</b>：<br>輸入代號，建立你的觀察清單。</div>
-        </div>
-        <button class="modal-btn" onclick="app.closeWelcome()">我知道了喵！</button>
-    </div>
 </div>
 
 <script>
@@ -647,43 +580,7 @@
 
     const app = {
         loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
-        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
-        
-        // 療癒貓語錄
-        showFortune: () => {
-            const catQuotes = [
-                "喵～今天天氣真好，適合睡懶覺 💤",
-                "肚子餓了...奴才快上罐罐！🐟",
-                "朕允許你摸摸我的頭 😽",
-                "呼嚕呼嚕...聽說呼嚕聲可以治癒人類 🐾",
-                "今天運勢：大吉！適合曬太陽 ☀️",
-                "看到那邊的紅點點了嗎？抓不到！🔴",
-                "紙箱比幾萬塊的貓窩好睡多了 📦",
-                "偶爾也要放空一下，像本喵一樣 😶",
-                "你今天工作辛苦了，給你吸一口貓 🐈",
-                "朕覺得你今天特別帥 (雖然沒我帥) 😼"
-            ];
-            const bubble = document.getElementById('fortune-bubble');
-            const randomText = catQuotes[Math.floor(Math.random() * catQuotes.length)];
-            
-            bubble.innerText = randomText;
-            bubble.style.display = 'block';
-            
-            setTimeout(() => {
-                bubble.style.display = 'none';
-            }, 3000);
-        },
-
-        // [v10.2] 新手導覽邏輯
-        showWelcome: (force = false) => {
-            if (force || !localStorage.getItem('visited_v10')) {
-                document.getElementById('welcome-modal').style.display = 'flex';
-            }
-        },
-        closeWelcome: () => {
-            document.getElementById('welcome-modal').style.display = 'none';
-            localStorage.setItem('visited_v10', 'true');
-        }
+        uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } }
     };
 
     function changeCityManually() { 
@@ -803,7 +700,8 @@
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
-        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[now.getDay()]})`;
+        const day = now.getDay(); // 0 是週日, 6 是週六
+        const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[day]})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
         document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
@@ -814,7 +712,8 @@
         const totalMin = h * 60 + m;
         const closeMin = 13 * 60 + 30; 
 
-        if (h >= 9 && totalMin < closeMin) {
+        // [v10.0 修正] 增加判斷：必須是週一(1)到週五(5) 且 時間在 9:00~13:30 之間
+        if (day >= 1 && day <= 5 && h >= 9 && totalMin < closeMin) {
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
@@ -840,8 +739,6 @@
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
-        // 檢查是否初次訪問
-        app.showWelcome();
     };
 </script>
 </body>
