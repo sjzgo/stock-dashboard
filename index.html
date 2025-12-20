@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.0 玄學大師版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.1 療癒貓語錄版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -86,25 +86,24 @@
             height: 48px; 
         }
         
-        /* [v10.0] 賜籤氣泡樣式 */
+        /* 氣泡樣式 (顏色改溫柔一點) */
         .fortune-bubble {
             position: absolute;
-            left: 55px; /* 在貓頭右邊 */
-            top: 5px;   /* 稍微靠上 */
+            left: 55px; 
+            top: 5px;   
             background: #fff;
-            border: 2px solid #f39c12; /* 金色邊框代表運氣 */
+            border: 2px solid #81ecec; /* 改成清爽的藍綠色 */
             border-radius: 12px;
             padding: 4px 10px;
             font-size: 12px;
-            color: #d35400;
+            color: #00b894; /* 文字也改深綠 */
             font-weight: bold;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             z-index: 100;
             white-space: nowrap;
-            display: none; /* 預設隱藏 */
+            display: none; 
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        /* 氣泡的小三角形 */
         .fortune-bubble::after {
             content: '';
             position: absolute;
@@ -113,7 +112,7 @@
             transform: translateY(-50%);
             border-width: 6px 6px 6px 0;
             border-style: solid;
-            border-color: transparent #f39c12 transparent transparent;
+            border-color: transparent #81ecec transparent transparent;
         }
         @keyframes popIn {
             0% { opacity: 0; transform: scale(0.5) translateY(10px); }
@@ -139,7 +138,6 @@
             animation: floatMascot 3s ease-in-out infinite; 
             margin-top: 2px;
             margin-left: 2px;
-            /* [v10.0] 點擊時要有回饋感 */
             transition: transform 0.1s;
         }
         .mascot-container:active { transform: scale(0.9); animation: none; }
@@ -155,7 +153,6 @@
             line-height: 1.2; 
         }
         
-        /* [v10.0] 為了讓使用者知道可以點文字換圖，加個游標手勢 */
         .analyst-title { 
             font-size: 0.8rem; 
             color: #7f8c8d; 
@@ -166,7 +163,6 @@
         }
         .analyst-title:active { color: #3498db; }
 
-        /* 版本號標籤 */
         .version-tag {
             position: absolute;
             bottom: 2px;
@@ -345,7 +341,7 @@
                 <div class="analyst-title" onclick="document.getElementById('file-upload').click()">首席分析師：黑寶</div>
             </div>
         </div>
-        <div class="version-tag">v10.0</div>
+        <div class="version-tag">v10.1</div>
     </header>
 
     <div class="dashboard">
@@ -606,21 +602,22 @@
         loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
         uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
         
-        // [v10.0] 黑寶賜籤功能
+        // [v10.1] 療癒貓語錄
         showFortune: () => {
-            const fortunes = [
-                "上上籤：歐印 (All in)！🚀",
-                "中吉：耐心持有，必有收穫 💰",
-                "小吉：適合當沖賺便當 🍱",
-                "平籤：大盤盤整，不如睡覺 💤",
-                "下下籤：快逃啊～塊陶～ 🏃",
-                "黑寶說：今天適合開罐罐 🐟",
-                "黑寶說：不要追高，會摔下來 📉",
-                "黑寶說：朕覺得...魚價會漲 😼",
-                "建議：把手機關掉，出門走走 🌳"
+            const catQuotes = [
+                "喵～今天天氣真好，適合睡懶覺 💤",
+                "肚子餓了...奴才快上罐罐！🐟",
+                "朕允許你摸摸我的頭 😽",
+                "呼嚕呼嚕...聽說呼嚕聲可以治癒人類 🐾",
+                "今天運勢：大吉！適合曬太陽 ☀️",
+                "看到那邊的紅點點了嗎？抓不到！🔴",
+                "紙箱比幾萬塊的貓窩好睡多了 📦",
+                "偶爾也要放空一下，像本喵一樣 😶",
+                "你今天工作辛苦了，給你吸一口貓 🐈",
+                "朕覺得你今天特別帥 (雖然沒我帥) 😼"
             ];
             const bubble = document.getElementById('fortune-bubble');
-            const randomText = fortunes[Math.floor(Math.random() * fortunes.length)];
+            const randomText = catQuotes[Math.floor(Math.random() * catQuotes.length)];
             
             bubble.innerText = randomText;
             bubble.style.display = 'block';
@@ -790,5 +787,3 @@
 </script>
 </body>
 </html>
-
-```
