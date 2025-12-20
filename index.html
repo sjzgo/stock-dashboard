@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.2 精緻微調版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.4 完美並排版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -80,10 +80,9 @@
         .header-title-row { 
             display: flex; 
             justify-content: flex-start; 
-            /* align-items: center; <-- 移除這個，讓文字可以自然換行排列 */
-            gap: 6px; 
-            /* height: 48px; <-- 移除固定高度，讓內容自適應 */
-            padding-top: 2px;
+            align-items: center; 
+            gap: 8px; 
+            padding: 2px 0;
         }
         
         /* 漂浮黑寶 */
@@ -93,7 +92,7 @@
             100% { transform: translateY(2px); }
         }
         .mascot-container { 
-            width: 45px; /* 稍微加大一點點 */
+            width: 45px; 
             height: 45px; 
             border-radius: 50%; 
             border: 3px solid #ff9f43; 
@@ -103,7 +102,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
             flex-shrink: 0; 
             animation: floatMascot 3s ease-in-out infinite; 
-            margin-top: 2px;
             margin-left: 2px;
         }
         .mascot-container:active { transform: scale(0.9); animation: none; }
@@ -113,38 +111,50 @@
         .header-text-col { 
             text-align: left; 
             display: flex;
-            flex-direction: column; /* 讓內容垂直排列 */
+            flex-direction: column;
             justify-content: center;
+            flex: 1; 
+            min-width: 0; /* 關鍵：防止內容撐開容器導致跑版 */
         }
         
         h1 { 
-            margin: 0; 
+            margin: 0 0 2px 0; 
             color: #2c3e50; 
             font-size: 1.25rem; 
-            line-height: 1.2; 
+            line-height: 1.1; 
+            white-space: nowrap; /* 標題也不換行 */
+        }
+
+        /* [v10.4] 副標題列設定 */
+        .subtitle-row {
+            display: flex;
+            align-items: center;
+            gap: 4px; /* 間距縮小 */
+            flex-wrap: nowrap; /* 強制不換行 */
+            width: 100%;
         }
         
         .analyst-title { 
-            font-size: 0.8rem; 
+            font-size: 11px; /* 縮小字體 */
             color: #7f8c8d; 
             font-weight: bold; 
-            margin-top: 2px; 
-            margin-left: 2px; 
+            margin: 0;
+            white-space: nowrap; /* 名字絕對不換行 */
+            flex-shrink: 0; /* 名字絕對不被壓縮 */
         }
 
-        /* [v10.2 新增] 貓咪語錄的可愛框框 */
+        /* [v10.4] 貓語錄框框優化 */
         .cat-quote-box {
-            margin-top: 4px;
-            text-align: left;
-            border: 2px dotted #ffcc80; /* 橘色點點框 */
-            background-color: #fffcf5; /* 暖暖背景 */
-            border-radius: 12px;
-            padding: 3px 8px;
-            font-size: 0.85rem;
+            border: 1px dotted #ffcc80; 
+            background-color: #fffcf5;
+            border-radius: 10px;
+            padding: 1px 4px; /* 內距極小化 */
+            font-size: 10px; /* 字體縮小以容納更多字 */
             color: #d35400;
-            display: inline-block; /* 讓框框包住文字就好 */
-            align-self: flex-start; /* 靠左對齊 */
-            box-shadow: 0 2px 5px rgba(255, 140, 100, 0.1);
+            white-space: nowrap; /* 不換行 */
+            overflow: hidden; /* 超出隱藏 */
+            text-overflow: ellipsis; /* 萬一真的太長顯示... */
+            flex-grow: 1; /* 自動填滿剩下的寬度 */
         }
 
         /* --- 儀表板 --- */
@@ -337,12 +347,14 @@
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.5em; color: #aaa; vertical-align: bottom; font-weight: normal; margin-left: 4px;">
-                        v10.2
+                        v10.4
                     </span>
                 </h1>
-                <div class="analyst-title">首席分析師：黑寶</div>
-                <div class="cat-quote-box">
-                    🐾 <span id="cat-quote-text">載入中...</span>
+                <div class="subtitle-row">
+                    <div class="analyst-title">首席分析師：黑寶</div>
+                    <div class="cat-quote-box">
+                        🐾 <span id="cat-quote-text">載入中...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -721,10 +733,47 @@
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
+    // [v10.4] 自動輪播語錄
+    function rotateQuotes() {
+        const now = new Date();
+        const day = now.getDay();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const totalMin = h * 60 + m;
+        
+        let pool = [
+            "本喵覺得這支會漲！📈",
+            "不要追高，會摔下來喵 🙀",
+            "鏟屎官，快去賺錢！💰",
+            "今天的罐罐有著落了嗎？🐟"
+        ];
+
+        // 週末
+        if (day === 0 || day === 6) {
+            pool.push("週末是拿來睡覺的~ 💤");
+            pool.push("股市沒開，陪我玩！⚽");
+        } 
+        // 盤中 (09:00 - 13:30)
+        else if (h >= 9 && totalMin < 810) { 
+            pool.push("盯盤好累... 🙀");
+            pool.push("波動好大，怕怕 📉");
+            pool.push("衝啊！多頭戰車！🚀");
+        } 
+        // 收盤後
+        else {
+            pool.push("收盤了，朕要休息了 🌙");
+            pool.push("明天再戰吧！💪");
+        }
+
+        const el = document.getElementById('cat-quote-text');
+        const r = Math.floor(Math.random() * pool.length);
+        el.innerText = pool[r];
+    }
+
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
-        const day = now.getDay(); // 0 是週日, 6 是週六
+        const day = now.getDay(); 
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[day]})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
         
@@ -735,16 +784,6 @@
         const m = now.getMinutes();
         const totalMin = h * 60 + m;
         const closeMin = 13 * 60 + 30; 
-        
-        // [v10.2 新增] 貓咪語錄邏輯
-        const quoteEl = document.getElementById('cat-quote-text');
-        if (day === 0 || day === 6) {
-            quoteEl.innerText = "週末是拿來睡覺的，不要吵我喵。💤";
-        } else if (h >= 9 && totalMin < closeMin) {
-             quoteEl.innerText = "盯盤好累...罐罐什麼時候來？🐟";
-        } else {
-            quoteEl.innerText = "收盤了，快去鏟屎，朕要休息了。";
-        }
 
         // 判斷：必須是週一(1)到週五(5) 且 時間在 9:00~13:30 之間
         if (day >= 1 && day <= 5 && h >= 9 && totalMin < closeMin) {
@@ -764,9 +803,13 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
+    // 啟動輪播
+    setInterval(rotateQuotes, 6000);
+
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
+        rotateQuotes();
         updateHoliday();
         renderTable();
         myStocks.forEach(getStockPrice);
