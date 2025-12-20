@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.10 雙重保險版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.12 頂部增高版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -29,44 +29,52 @@
             position: relative; 
         }
         
-        /* --- 頂部資訊欄 --- */
+        /* --- 頂部資訊欄 (v10.12 修改) --- */
         .top-info-bar { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             gap: 1px; 
             margin-bottom: 2px; 
-            padding-bottom: 2px; 
-            min-height: 24px;
+            padding-bottom: 3px; /* 增加一點底部留白 */
+            min-height: 28px;   /* 增加最小高度以容納大字體 */
             border-bottom: 1px solid #f0f0f0; 
             width: 100%; 
             overflow: hidden; 
         }
 
-        .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
+        .top-left-group { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
         
+        /* [v10.12 修改] 橢圓形藥丸樣式：字變大、變粗，但內距縮小以控制寬度 */
         .info-pill { 
             background-color: #fff; 
-            padding: 2px 4px; 
+            padding: 2px 3px; /* 內距稍微縮小 */
             border-radius: 12px; 
             border: 1px solid #e1e8ed; 
             display: flex; 
             align-items: center; 
             white-space: nowrap; 
-            font-size: 11px; 
+            font-size: 13px;    /* 字體加大到 13px */
+            font-weight: 700;   /* 字體加粗 */
             box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
             transition: transform 0.1s; 
         }
         .info-pill:active { transform: scale(0.95); background: #f0f0f0; }
 
-        #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
-        #weather-val { font-weight: bold; color: #f39c12; }
+        /* [v10.12 修改] 下拉選單與數值：極粗體，看起來更高 */
+        #city-select { border: none; background: transparent; font-size: 13px; outline: none; cursor: pointer; font-weight: 800; color: #3498db; padding: 0; margin-right: 1px; }
+        #weather-val { font-weight: 800; color: #f39c12; }
+        #aqi-val { font-weight: 800; margin-left:2px; }
+        /* [v10.12 修改] 天氣圖示加大 */
+        #weather-icon { margin-left:2px; font-size:15px !important; }
         
+        /* [v10.12 修改] 中間匯率：字加大加粗 */
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
-        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        #jpy-rate { color: #27ae60; font-weight: 800; font-size: 13px; white-space: nowrap; background: #ebfbee; padding: 2px 5px; border-radius: 10px; border: 1px solid #c3e6cb; }
         
+        /* [v10.12 修改] 右側倒數：字加大加粗 */
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
-        #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
+        #holiday-countdown { color: #e67e22; font-weight: 800; font-size: 13px; white-space: nowrap; }
 
         /* --- 標題區域 --- */
         header { 
@@ -332,10 +340,10 @@
                     <option value="22.75,121.14">台東</option><option value="23.57,119.57">澎湖</option>
                     <option value="24.43,118.32">金門</option><option value="26.15,119.93">連江</option>
                 </select>
-                <span id="weather-icon" style="margin-left:2px; font-size:12px;"></span>
+                <span id="weather-icon"></span>
                 <span id="weather-val" style="margin-left:1px;">--°</span>
             </div>
-            <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
+            <div class="info-pill">空氣品質:<span id="aqi-val">--</span></div>
         </div>
         <div class="middle-rate-group">
             <div id="jpy-rate">1台幣=--日圓</div>
@@ -346,7 +354,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.10</div>
+        <div class="version-tag">v10.12</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
