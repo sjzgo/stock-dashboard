@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v9.5 萌力全開版)</title>
+    <title>📊 喵喵站長資訊看板 (v9.6 手機動感版)</title>
     <style>
-        /* --- 🐭 全局與游標設定 (v9.5 新增) --- */
+        /* --- 全局設定 --- */
         body { 
             font-family: '微軟正黑體', sans-serif; 
-            padding: 20px 4px 4px 4px; /* 上方留點空間給貓耳朵 */
+            padding: 4px; 
             color: #333; 
             margin: 0; 
             font-size: 15px;
@@ -16,13 +16,6 @@
             background-image: radial-gradient(#ffe0b2 15%, transparent 16%), radial-gradient(#ffe0b2 15%, transparent 16%);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
-            /* 預設游標改為貓掌 */
-            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'  width='32' height='32' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>🐾</text></svg>") 16 16, auto;
-        }
-
-        /* 連結與按鈕改為手指貓掌 */
-        a, button, .mascot-container, select, input {
-            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'  width='32' height='32' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>👆</text></svg>") 16 16, pointer;
         }
 
         .container { 
@@ -34,33 +27,8 @@
             box-shadow: 0 10px 25px rgba(255, 140, 100, 0.15);
             border: 2px solid #fff;
             position: relative; 
-            z-index: 1; /* 確保內容在耳朵上面 */
         }
-
-        /* --- 🐱 貓耳朵 CSS (v9.5 新增) --- */
-        .container::before, .container::after {
-            content: '';
-            position: absolute;
-            top: -12px;
-            width: 50px;
-            height: 40px;
-            background: #fff;
-            border-radius: 15px 50px 0 0; /* 耳朵形狀 */
-            border: 4px solid #fffbf0; /* 與背景融合的邊框 */
-            box-shadow: 0 -4px 10px rgba(255, 140, 100, 0.1);
-            z-index: -1; /* 藏在卡片後面 */
-        }
-        .container::before { 
-            left: 30px; 
-            transform: rotate(-10deg); 
-            border-left: 5px solid #ffccbc; /* 耳朵內粉色 */
-        }
-        .container::after { 
-            right: 30px; 
-            transform: rotate(10deg) scaleX(-1); /* 鏡像 */
-            border-left: 5px solid #ffccbc; 
-        }
-
+        
         /* --- 頂部資訊欄 --- */
         .top-info-bar { 
             display: flex; 
@@ -77,6 +45,7 @@
 
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
         
+        /* [v9.6 特效] 按壓回饋：手機按下去會縮小 */
         .info-pill { 
             background-color: #fff; 
             padding: 2px 4px; 
@@ -87,9 +56,9 @@
             white-space: nowrap; 
             font-size: 11px; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            transition: transform 0.1s; /* 快速反應 */
         }
-        .info-pill:hover { transform: scale(1.05); }
+        .info-pill:active { transform: scale(0.95); background: #f0f0f0; }
 
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
@@ -107,7 +76,6 @@
             background-color: #e3f2fd; 
             border-radius: 10px; 
             border: 2px dashed #90caf9; 
-            position: relative;
         }
 
         .header-title-row { 
@@ -117,47 +85,28 @@
             gap: 12px; 
         }
         
+        /* [v9.6 特效] 漂浮黑寶：不用碰，自己會上下飄動 */
+        @keyframes floatMascot {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
         .mascot-container { 
-            width: 45px; 
-            height: 45px; 
+            width: 40px; 
+            height: 40px; 
             border-radius: 50%; 
-            border: 3px solid #3498db; 
+            border: 3px solid #ff9f43; /* 改成橘色邊框比較亮 */
             overflow: hidden; 
             cursor: pointer; 
             background: #fff; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
             flex-shrink: 0; 
-            transition: all 0.3s;
-            position: relative;
-            z-index: 2;
+            animation: floatMascot 3s ease-in-out infinite; /* 啟動漂浮動畫 */
         }
-        .mascot-container:hover { transform: rotate(10deg) scale(1.1); }
+        .mascot-container:active { transform: scale(0.9) rotate(10deg); animation: none; } /* 按下去會停止漂浮並縮小 */
+
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 💬 黑寶氣泡框 (v9.5 新增) */
-        .speech-bubble {
-            position: absolute;
-            left: 55px; /* 在頭像右邊 */
-            top: -15px;
-            background: #fff;
-            border: 2px solid #3498db;
-            border-radius: 15px;
-            padding: 2px 8px;
-            font-size: 10px;
-            color: #2980b9;
-            white-space: nowrap;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            animation: floatBubble 3s ease-in-out infinite;
-            z-index: 10;
-            pointer-events: none; /* 讓點擊穿透 */
-        }
-        .speech-bubble::after {
-            content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
-            border-width: 6px 6px 6px 0; border-style: solid; border-color: transparent #3498db transparent transparent;
-        }
-        @keyframes floatBubble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-
         .header-text-col { text-align: left; }
         
         h1 { 
@@ -177,6 +126,13 @@
 
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        
+        /* [v9.6 特效] 卡片呼吸感 + 按壓回饋 */
+        @keyframes pulseBorder {
+            0% { border-color: rgba(0,0,0,0.03); }
+            50% { border-color: rgba(52, 152, 219, 0.3); } /* 邊框微微發光 */
+            100% { border-color: rgba(0,0,0,0.03); }
+        }
         .card { 
             padding: 4px 2px; 
             border-radius: 8px; 
@@ -188,20 +144,25 @@
             align-items: center; 
             height: 58px; 
             overflow: hidden; 
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            transition: transform 0.1s; 
+            animation: pulseBorder 4s infinite; /* 邊框呼吸 */
         }
-        .card:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 5px 15px rgba(255, 165, 2, 0.15);
+        /* 手機按下去的特效 */
+        .card:active {
+            transform: scale(0.96);
+            background-color: #fafafa !important;
         }
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
-        .card .val { font-size: 13px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        /* 讓大盤數字稍微大一點點，強調重點 */
+        .card .val { font-size: 14px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
@@ -219,9 +180,23 @@
         }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
-        #sentiment-badge { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap; display: none; min-width: 60px; text-align: center; }
+        
+        /* [v9.6 特效] 這是「多頭狂歡」那個標籤，加上強烈的心跳特效 */
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+        #sentiment-badge { 
+            font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
+            background: #fff; border: 1px solid #ddd; color: #666; 
+            white-space: nowrap; display: none; min-width: 60px; text-align: center; 
+            animation: heartBeat 2s infinite; /* 心跳特效 */
+        }
 
-        /* --- 搜尋結果 --- */
+        /* --- 搜尋結果下拉選單 --- */
         #search-results { 
             position: relative; 
             z-index: 99; 
@@ -238,8 +213,17 @@
 
         /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th { padding: 5px 2px; color: #d35400; border-bottom: 2px solid #ffcc80; font-size: 12px; }
+        th { 
+            padding: 5px 2px; 
+            color: #d35400; 
+            border-bottom: 2px solid #ffcc80; 
+            font-size: 12px; 
+        }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+        
+        /* 讓股票列被點擊時也有回饋感 */
+        tr:active td { background-color: #fcf3cf; }
+
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
         th:nth-child(2) { width: 14%; text-align: center; } td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
         th:nth-child(3) { width: 16%; text-align: center; } td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
@@ -252,7 +236,12 @@
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; }
+        
+        .del-btn { 
+            background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; 
+            transition: transform 0.1s;
+        }
+        .del-btn:active { transform: scale(1.5); color: red; } /* 按刪除時會變大變紅 */
 
         /* --- 底部 --- */
         .update-bar { position: relative; display: flex; justify-content: center; align-items: center; margin: 10px 0; height: 32px; }
@@ -272,9 +261,10 @@
             font-size: 13px; 
             box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); 
             z-index: 2; 
-            transition: transform 0.2s;
+            transition: transform 0.1s;
         }
-        .refresh-btn:hover { transform: rotate(-2deg) scale(1.05); }
+        /* 按鈕按下去的Q彈感 */
+        .refresh-btn:active { transform: scale(0.9) rotate(5deg); }
 
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
@@ -327,17 +317,15 @@
 
     <header>
         <div class="header-title-row">
-            <div class="mascot-container" onclick="handleMascotClick()">
+            <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
                 <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
             </div>
-            <div id="mascot-bubble" class="speech-bubble">喵！今天適合賺罐罐 🐟</div>
-            
             <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
             <div class="header-text-col">
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
-                        v9.5
+                        v9.6
                     </span>
                 </h1>
                 <div class="analyst-title">首席分析師：黑寶</div>
@@ -403,50 +391,6 @@
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     const gasUrl = "https://script.google.com/macros/s/AKfycbxOaln9DyAI-EhsuTK8qawgX3-5kWMer0OzxONkDLAetks25pV_KuGb2JNeXHByj8zS/exec"; 
-
-    // --- v9.5 新增：黑寶講話邏輯 ---
-    const catQuotes = [
-        "喵！今天適合賺罐罐 🐟",
-        "本喵覺得這支會漲！😼",
-        "不要追高，會摔下來喵 📉",
-        "有魚吃嗎？我是說股利 🍣",
-        "睡覺比較重要...💤",
-        "盤整中，來玩逗貓棒？🌾",
-        "奴才，快去工作賺錢！😿"
-    ];
-
-    function handleMascotClick() {
-        // 點擊黑寶切換台詞，長按或雙擊(這裡簡化為如果用戶想換圖，還是保留功能但藏在confirm裡)
-        // 為了趣味，我們讓它講話，如果要換圖，可以設計長按，但簡單起見，我們讓它講話優先
-        // 如果想換圖，請使用右鍵或另一個隱藏按鈕，或者這裡我們做一個確認視窗
-        
-        // 隨機換台詞
-        const bubble = document.getElementById('mascot-bubble');
-        const randomQuote = catQuotes[Math.floor(Math.random() * catQuotes.length)];
-        bubble.innerText = randomQuote;
-
-        // 稍微延遲後詢問是否換圖，避免影響體驗
-        // 這裡為了不打擾 "玩黑寶"，我們把換圖功能改為：
-        // 只有當 confirm 為 true 時才觸發 upload
-        // setTimeout(() => {
-        //     if(confirm("要幫黑寶換張照片嗎？(取消則繼續摸頭)")) {
-        //         document.getElementById('file-upload').click();
-        //     }
-        // }, 100);
-        
-        // v9.5 修正：為了讓使用者更容易體驗互動，點擊只切換台詞。
-        // 想換圖的人：請長按圖片(手機)或另外加按鈕，這裡為了可愛度先隱藏換圖觸發
-        // 甚至...我們可以把換圖藏在「分析師：黑寶」這個文字點擊上！
-        // (下方程式碼修改了 HTML onclick)
-    }
-
-    // 恢復換圖功能的替代方案：點擊「首席分析師：黑寶」文字
-    document.querySelector('.analyst-title').onclick = function() {
-        if(confirm("要更換站長照片嗎？")) {
-             document.getElementById('file-upload').click();
-        }
-    };
-    document.querySelector('.analyst-title').style.cursor = "pointer"; // 增加手勢提示
 
     function getWeatherIcon(code) {
         if (code === 0) return "☀️";
