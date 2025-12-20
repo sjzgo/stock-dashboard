@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.1 療癒貓語錄版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.2 新手導覽版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -86,17 +86,17 @@
             height: 48px; 
         }
         
-        /* 氣泡樣式 (顏色改溫柔一點) */
+        /* 氣泡樣式 */
         .fortune-bubble {
             position: absolute;
             left: 55px; 
             top: 5px;   
             background: #fff;
-            border: 2px solid #81ecec; /* 改成清爽的藍綠色 */
+            border: 2px solid #81ecec; 
             border-radius: 12px;
             padding: 4px 10px;
             font-size: 12px;
-            color: #00b894; /* 文字也改深綠 */
+            color: #00b894; 
             font-weight: bold;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             z-index: 100;
@@ -292,6 +292,39 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #ffb8b8; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ff9f9f; }
+
+        /* [v10.2] 歡迎彈窗樣式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px); /* 背景模糊特效 */
+        }
+        .modal-card {
+            background: #fff; width: 85%; max-width: 320px;
+            padding: 20px; border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 4px solid #fffbf0;
+            animation: bounceIn 0.5s;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .modal-title { font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 15px; }
+        .modal-list { text-align: left; font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.6; }
+        .modal-btn {
+            background: #3498db; color: white; border: none;
+            padding: 8px 20px; border-radius: 20px;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            width: 100%;
+        }
+        .modal-btn:active { transform: scale(0.95); }
+        .help-icon {
+            text-align: center; margin-top: 10px; font-size: 11px; color: #aaa; cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -341,7 +374,7 @@
                 <div class="analyst-title" onclick="document.getElementById('file-upload').click()">首席分析師：黑寶</div>
             </div>
         </div>
-        <div class="version-tag">v10.1</div>
+        <div class="version-tag">v10.2</div>
     </header>
 
     <div class="dashboard">
@@ -391,6 +424,20 @@
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">最後載入: --:--:--</div>
+    
+    <div class="help-icon" onclick="app.showWelcome(true)">[?] 使用說明</div>
+</div>
+
+<div id="welcome-modal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-title">😺 歡迎來到喵喵看板！</div>
+        <div class="modal-list">
+            <div>🐾 <b>點擊黑寶頭像</b>：<br>聽聽站長的療癒貓語錄。</div>
+            <div style="margin-top:8px;">📸 <b>點擊「首席分析師」</b>：<br>可以幫站長換大頭貼喔！</div>
+            <div style="margin-top:8px;">🔍 <b>搜尋股票</b>：<br>輸入代號，建立你的觀察清單。</div>
+        </div>
+        <button class="modal-btn" onclick="app.closeWelcome()">我知道了喵！</button>
+    </div>
 </div>
 
 <script>
@@ -602,7 +649,7 @@
         loadLogo: () => { let s=localStorage.getItem('my_logo'); if(s) document.getElementById('mascot-img').src=s; },
         uploadLogo: (i) => { if(i.files[0]){ let r=new FileReader(); r.onload=(e)=>{document.getElementById('mascot-img').src=e.target.result; localStorage.setItem('my_logo', e.target.result);}; r.readAsDataURL(i.files[0]); } },
         
-        // [v10.1] 療癒貓語錄
+        // 療癒貓語錄
         showFortune: () => {
             const catQuotes = [
                 "喵～今天天氣真好，適合睡懶覺 💤",
@@ -622,10 +669,20 @@
             bubble.innerText = randomText;
             bubble.style.display = 'block';
             
-            // 3秒後自動消失
             setTimeout(() => {
                 bubble.style.display = 'none';
             }, 3000);
+        },
+
+        // [v10.2] 新手導覽邏輯
+        showWelcome: (force = false) => {
+            if (force || !localStorage.getItem('visited_v10')) {
+                document.getElementById('welcome-modal').style.display = 'flex';
+            }
+        },
+        closeWelcome: () => {
+            document.getElementById('welcome-modal').style.display = 'none';
+            localStorage.setItem('visited_v10', 'true');
         }
     };
 
@@ -783,6 +840,8 @@
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
+        // 檢查是否初次訪問
+        app.showWelcome();
     };
 </script>
 </body>
