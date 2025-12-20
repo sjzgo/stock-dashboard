@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v9.6 手機動感版)</title>
+    <title>📊 喵喵站長資訊看板 (v9.7 手機優化版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -45,7 +45,6 @@
 
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
         
-        /* [v9.6 特效] 按壓回饋：手機按下去會縮小 */
         .info-pill { 
             background-color: #fff; 
             padding: 2px 4px; 
@@ -56,7 +55,7 @@
             white-space: nowrap; 
             font-size: 11px; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
-            transition: transform 0.1s; /* 快速反應 */
+            transition: transform 0.1s; 
         }
         .info-pill:active { transform: scale(0.95); background: #f0f0f0; }
 
@@ -83,27 +82,29 @@
             justify-content: flex-start; 
             align-items: center; 
             gap: 12px; 
+            height: 48px; /* 固定高度，確保垂直置中 */
         }
         
-        /* [v9.6 特效] 漂浮黑寶：不用碰，自己會上下飄動 */
+        /* [v9.7 修改] 優化漂浮：上下移動範圍縮小，確保在框框正中間 */
         @keyframes floatMascot {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-            100% { transform: translateY(0px); }
+            0% { transform: translateY(2px); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(2px); }
         }
         .mascot-container { 
             width: 40px; 
             height: 40px; 
             border-radius: 50%; 
-            border: 3px solid #ff9f43; /* 改成橘色邊框比較亮 */
+            border: 3px solid #ff9f43; 
             overflow: hidden; 
             cursor: pointer; 
             background: #fff; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
             flex-shrink: 0; 
-            animation: floatMascot 3s ease-in-out infinite; /* 啟動漂浮動畫 */
+            animation: floatMascot 3s ease-in-out infinite; 
+            margin-top: 2px; /* 微調初始位置 */
         }
-        .mascot-container:active { transform: scale(0.9) rotate(10deg); animation: none; } /* 按下去會停止漂浮並縮小 */
+        .mascot-container:active { transform: scale(0.9); animation: none; }
 
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
@@ -127,10 +128,9 @@
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
         
-        /* [v9.6 特效] 卡片呼吸感 + 按壓回饋 */
         @keyframes pulseBorder {
             0% { border-color: rgba(0,0,0,0.03); }
-            50% { border-color: rgba(52, 152, 219, 0.3); } /* 邊框微微發光 */
+            50% { border-color: rgba(52, 152, 219, 0.3); } 
             100% { border-color: rgba(0,0,0,0.03); }
         }
         .card { 
@@ -145,16 +145,14 @@
             height: 58px; 
             overflow: hidden; 
             transition: transform 0.1s; 
-            animation: pulseBorder 4s infinite; /* 邊框呼吸 */
+            animation: pulseBorder 4s infinite; 
         }
-        /* 手機按下去的特效 */
         .card:active {
             transform: scale(0.96);
             background-color: #fafafa !important;
         }
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
-        /* 讓大盤數字稍微大一點點，強調重點 */
         .card .val { font-size: 14px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
@@ -181,7 +179,6 @@
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
         
-        /* [v9.6 特效] 這是「多頭狂歡」那個標籤，加上強烈的心跳特效 */
         @keyframes heartBeat {
             0% { transform: scale(1); }
             14% { transform: scale(1.1); }
@@ -193,7 +190,7 @@
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
             background: #fff; border: 1px solid #ddd; color: #666; 
             white-space: nowrap; display: none; min-width: 60px; text-align: center; 
-            animation: heartBeat 2s infinite; /* 心跳特效 */
+            animation: heartBeat 2s infinite; 
         }
 
         /* --- 搜尋結果下拉選單 --- */
@@ -220,8 +217,6 @@
             font-size: 12px; 
         }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
-        
-        /* 讓股票列被點擊時也有回饋感 */
         tr:active td { background-color: #fcf3cf; }
 
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
@@ -241,7 +236,7 @@
             background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; 
             transition: transform 0.1s;
         }
-        .del-btn:active { transform: scale(1.5); color: red; } /* 按刪除時會變大變紅 */
+        .del-btn:active { transform: scale(1.5); color: red; } 
 
         /* --- 底部 --- */
         .update-bar { position: relative; display: flex; justify-content: center; align-items: center; margin: 10px 0; height: 32px; }
@@ -261,10 +256,15 @@
             font-size: 13px; 
             box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); 
             z-index: 2; 
-            transition: transform 0.1s;
+            /* [v9.7 修改] 移除旋轉，改為單純縮放 */
+            transition: transform 0.1s, filter 0.1s; 
         }
-        /* 按鈕按下去的Q彈感 */
-        .refresh-btn:active { transform: scale(0.9) rotate(5deg); }
+        /* [v9.7 修改] 按下去縮小一點 + 稍微變暗 (紮實手感) */
+        .refresh-btn:active { 
+            transform: scale(0.95); 
+            filter: brightness(0.9);
+            box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2);
+        }
 
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
@@ -305,7 +305,7 @@
                 <span id="weather-icon" style="margin-left:2px; font-size:12px;"></span>
                 <span id="weather-val" style="margin-left:1px;">--°</span>
             </div>
-            <div class="info-pill">空品:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
+            <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
         </div>
         <div class="middle-rate-group">
             <div id="jpy-rate">1台幣=--日圓</div>
@@ -325,7 +325,7 @@
                 <h1>
                     📊 喵喵站長資訊看板 
                     <span style="font-size: 0.6em; color: #ff6b6b; vertical-align: middle; background:#fff0f0; padding:2px 6px; border-radius:10px;">
-                        v9.6
+                        v9.7
                     </span>
                 </h1>
                 <div class="analyst-title">首席分析師：黑寶</div>
