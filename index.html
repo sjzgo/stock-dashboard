@@ -26,7 +26,8 @@
             border-radius: 20px; 
             box-shadow: 0 10px 25px rgba(255, 140, 100, 0.15);
             border: 2px solid #fff;
-            position: relative; 
+            position: relative; /* 關鍵：讓絕對定位的版本號參考這裡 */
+            padding-bottom: 25px; /* 底部留一點空間給版本號，避免蓋住內容 */
         }
         
         /* --- 頂部資訊欄 --- */
@@ -109,7 +110,7 @@
 
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
         
-        .header-text-col { text-align: left; }
+        .header-text-col { text-align: left; width: 100%; overflow: hidden; }
         
         h1 { 
             margin: 0; 
@@ -118,12 +119,29 @@
             line-height: 1.2; 
         }
         
+        /* --- 修改：分析師與語錄樣式 --- */
         .analyst-title { 
             font-size: 0.8rem; 
             color: #7f8c8d; 
             font-weight: bold; 
             margin-top: 0; 
             margin-left: 2px; 
+            
+            /* 新增：彈性佈局與不換行設定 */
+            display: flex; 
+            align-items: center;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 新增：語錄樣式 */
+        #cat-quote {
+            margin-left: 10px; /* 與黑寶保持距離 */
+            font-weight: normal;
+            font-style: italic;
+            color: #95a5a6;
+            font-size: 0.9em;
         }
 
         /* --- 儀表板 --- */
@@ -265,13 +283,27 @@
         .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #eee; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .news-item a { text-decoration: none; color: #34495e; }
-        #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
+        #last-update-time { font-size: 10px; color: #aaa; text-align: center; margin-top: 4px; }
 
         /* 可愛化：捲軸 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #ffb8b8; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ff9f9f; }
+
+        /* --- 新增：版本號碼樣式 (框框右下方) --- */
+        .version-tag {
+            position: absolute; /* 絕對定位 */
+            bottom: 5px;        /* 距離底部 5px */
+            right: 10px;        /* 距離右邊 10px */
+            font-size: 10px;    /* 字變小 */
+            color: #ccc;        /* 顏色極淡，不搶眼 */
+            font-family: Arial, sans-serif;
+            background-color: rgba(255, 255, 255, 0.8); /* 半透明背景，防止文字重疊看不清 */
+            padding: 2px 4px;
+            border-radius: 4px;
+            pointer-events: none; /* 讓滑鼠點擊穿透 */
+        }
     </style>
 </head>
 <body>
@@ -319,7 +351,9 @@
                         v10.1
                     </span>
                 </h1>
-                <div class="analyst-title">首席分析師：黑寶</div>
+                <div class="analyst-title">
+                    首席分析師：黑寶 <span id="cat-quote"></span>
+                </div>
             </div>
         </div>
     </header>
@@ -371,6 +405,8 @@
         <div id="news-list-container"></div>
     </div>
     <div id="last-update-time">最後載入: --:--:--</div>
+
+    <div class="version-tag">Ver 1.0.2</div>
 </div>
 
 <script>
@@ -730,6 +766,39 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
+    // --- 新增：貓語錄功能 ---
+    const quotes = [
+        "「今天的罐罐好像縮水了...」",
+        "「人類，你的操作手速太慢了。」",
+        "「我看多，因為飼料盆是滿的。」",
+        "「現在是午睡時間，請勿打擾。」",
+        "「鍵盤是用來踩的，不是用來按的。」",
+        "「大膽！竟敢質疑本喵的分析？」",
+        "「快點去鏟屎，別看盤了。」",
+        "「這波行情跟逗貓棒一樣刺激。」",
+        "「喵～（意味深長）」",
+        "「技術線型顯示：像一條魚骨頭。」",
+        "「不要追高，除非那是櫃子上的零食。」",
+        "「本喵覺得這支股票缺乏『貓』膩。」",
+        "「根據我的肉球感應，大盤要變天了。」",
+        "「先把那個紅色的雷射點抓到再說。」",
+        "「長期投資？我只在乎下一餐。」",
+        "「聽說隔壁大黃狗被套牢了，呵。」",
+        "「比起股票，我更喜歡抓老鼠。」",
+        "「所有的線圖最後都會變成毛線球。」",
+        "「你有看過凌晨四點的貓砂盆嗎？」",
+        "「無論漲跌，都要保持優雅。」"
+    ];
+
+    const quoteElement = document.getElementById('cat-quote');
+
+    function updateQuote() {
+        if(quoteElement) {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteElement.innerText = quotes[randomIndex];
+        }
+    }
+
     window.onload = () => {
         app.loadLogo();
         updateMarketStatus();
@@ -739,6 +808,10 @@
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
+        
+        // 啟動貓語錄
+        updateQuote();
+        setInterval(updateQuote, 6000);
     };
 </script>
 </body>
