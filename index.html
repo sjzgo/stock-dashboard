@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.12 美股傳送門版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.13 美股右移版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -218,8 +218,8 @@
         }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         
-        /* [v10.12 修改] 縮小按鈕間距，容納美股按鈕 */
-        .input-actions { display: flex; align-items: center; gap: 5px; } 
+        /* [v10.13 修改] 確保間距合適 */
+        .input-actions { display: flex; align-items: center; gap: 5px; }
         
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
@@ -348,7 +348,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.12</div>
+        <div class="version-tag">v10.13</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -390,10 +390,9 @@
     <div class="input-area">
         <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div class="input-actions">
-            <button onclick="window.open('https://tw.stock.yahoo.com/us-market')" style="padding:6px 12px; border-radius:6px; border:none; background:#8e44ad; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">🇺🇸 美股</button>
-            
             <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
             <div id="sentiment-badge"></div>
+            <button onclick="window.open('https://tw.stock.yahoo.com/us-market')" style="padding:6px 12px; border-radius:6px; border:none; background:#8e44ad; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">🇺🇸 美股</button>
         </div>
     </div>
 
