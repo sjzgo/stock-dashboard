@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.11 經典高速版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.12 美股傳送門版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -217,7 +217,9 @@
             justify-content: space-between; 
         }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
-        .input-actions { display: flex; align-items: center; gap: 12px; }
+        
+        /* [v10.12 修改] 縮小按鈕間距，容納美股按鈕 */
+        .input-actions { display: flex; align-items: center; gap: 5px; } 
         
         #sentiment-badge { 
             font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
@@ -332,7 +334,7 @@
                     <option value="22.75,121.14">台東</option><option value="23.57,119.57">澎湖</option>
                     <option value="24.43,118.32">金門</option><option value="26.15,119.93">連江</option>
                 </select>
-                <span id="weather-icon" style="margin-left:2px; font-size:12px;"></span>
+                <span id="weather-icon"></span>
                 <span id="weather-val" style="margin-left:1px;">--°</span>
             </div>
             <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
@@ -346,7 +348,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.11</div>
+        <div class="version-tag">v10.12</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -386,8 +388,10 @@
     </div>
 
     <div class="input-area">
-        <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱 (支援模糊搜尋)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
         <div class="input-actions">
+            <button onclick="window.open('https://tw.stock.yahoo.com/us-market')" style="padding:6px 12px; border-radius:6px; border:none; background:#8e44ad; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">🇺🇸 美股</button>
+            
             <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
             <div id="sentiment-badge"></div>
         </div>
@@ -454,23 +458,18 @@
             const iconEl = document.getElementById('source-icon');
             if(iconEl) iconEl.innerText = '⚡';
             
-            // 兼容舊版 GAS (物件) 和新版 GAS (陣列)
-            if (Array.isArray(data)) {
-                data.forEach(info => {
-                    if (info && !info.error && info.z) {
-                        const price = parseFloat(info.z);
-                        const yesterday = parseFloat(info.y);
-                        const chg = price - yesterday;
-                        const pct = (chg / yesterday) * 100;
-                        updateUI(info.c, price, yesterday, chg, pct);
-                    } else {
-                        fetchPriceFallback(info.c || "unknown");
-                    }
-                });
-            } else if (data.msgArray) {
-                // 如果後端還是舊版，走這裡
-                myStocks.forEach(fetchPriceFallback);
-            }
+            data.forEach(info => {
+                if (info && !info.error && info.z) {
+                    const price = parseFloat(info.z);
+                    const yesterday = parseFloat(info.y);
+                    const chg = price - yesterday;
+                    const pct = (chg / yesterday) * 100;
+                    
+                    updateUI(info.c, price, yesterday, chg, pct);
+                } else {
+                    fetchPriceFallback(info.c || "unknown");
+                }
+            });
 
         } catch (e) {
             console.error("批次失敗", e);
