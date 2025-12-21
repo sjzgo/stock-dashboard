@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v11.0 App分頁版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.11 經典高速版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
             font-family: '微軟正黑體', sans-serif; 
-            padding: 4px 4px 60px 4px; /* [修改] 底部留白 60px 給導覽列 */
+            padding: 4px; 
             color: #333; 
             margin: 0; 
             font-size: 15px;
@@ -27,109 +27,230 @@
             box-shadow: 0 10px 25px rgba(255, 140, 100, 0.15);
             border: 2px solid #fff;
             position: relative; 
-            min-height: 80vh; /* 讓卡片至少佔畫面 80% 高度 */
-        }
-
-        /* --- [v11.0] 分頁控制 --- */
-        .page-section {
-            display: none; /* 預設全部隱藏 */
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        .page-section.active {
-            display: block; /* 只有加了 active 的才顯示 */
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- [v11.0] 底部導覽列 --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 55px;
-            background: #fff;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 1000;
-        }
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            font-size: 10px;
-            color: #999;
-            cursor: pointer;
-            padding: 5px 0;
-            transition: color 0.2s;
-        }
-        .nav-item span {
-            display: block;
-            font-size: 20px;
-            margin-bottom: 2px;
-        }
-        .nav-item.active {
-            color: #e67e22; /* 橘色 */
-            font-weight: bold;
-        }
-        .nav-item.active span {
-            transform: scale(1.1); /* 圖示放大 */
         }
         
         /* --- 頂部資訊欄 --- */
-        .top-info-bar { display: flex; justify-content: space-between; align-items: center; gap: 1px; margin-bottom: 2px; padding-bottom: 2px; min-height: 24px; border-bottom: 1px solid #f0f0f0; width: 100%; overflow: hidden; }
+        .top-info-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 1px; 
+            margin-bottom: 2px; 
+            padding-bottom: 2px; 
+            min-height: 24px;
+            border-bottom: 1px solid #f0f0f0; 
+            width: 100%; 
+            overflow: hidden; 
+        }
+
         .top-left-group { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
-        .info-pill { background-color: #fff; padding: 2px 4px; border-radius: 12px; border: 1px solid #e1e8ed; display: flex; align-items: center; white-space: nowrap; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: transform 0.1s; }
+        
+        .info-pill { 
+            background-color: #fff; 
+            padding: 2px 4px; 
+            border-radius: 12px; 
+            border: 1px solid #e1e8ed; 
+            display: flex; 
+            align-items: center; 
+            white-space: nowrap; 
+            font-size: 11px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            transition: transform 0.1s; 
+        }
         .info-pill:active { transform: scale(0.95); background: #f0f0f0; }
+
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         #weather-val { font-weight: bold; color: #f39c12; }
+        
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
 
         /* --- 標題區域 --- */
-        header { padding: 5px 4px; margin-bottom: 8px; background-color: #e3f2fd; border-radius: 10px; border: 2px dashed #90caf9; position: relative; }
-        .version-tag { position: absolute; top: 4px; right: 6px; font-size: 10px; color: #aaa; font-family: monospace; }
-        .header-title-row { display: flex; justify-content: flex-start; align-items: center; gap: 8px; padding: 2px 0; }
-        @keyframes floatMascot { 0% { transform: translateY(2px); } 50% { transform: translateY(-2px); } 100% { transform: translateY(2px); } }
-        .mascot-container { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #ff9f43; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.15); flex-shrink: 0; animation: floatMascot 3s ease-in-out infinite; margin-left: 2px; }
+        header { 
+            padding: 5px 4px; 
+            margin-bottom: 8px;
+            background-color: #e3f2fd; 
+            border-radius: 10px; 
+            border: 2px dashed #90caf9; 
+            position: relative; 
+        }
+
+        .version-tag {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 10px;
+            color: #aaa;
+            font-family: monospace; 
+        }
+
+        .header-title-row { 
+            display: flex; 
+            justify-content: flex-start; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 2px 0;
+        }
+        
+        /* 漂浮黑寶 */
+        @keyframes floatMascot {
+            0% { transform: translateY(2px); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(2px); }
+        }
+        .mascot-container { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            border: 3px solid #ff9f43; 
+            overflow: hidden; 
+            cursor: pointer; 
+            background: #fff; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+            flex-shrink: 0; 
+            animation: floatMascot 3s ease-in-out infinite; 
+            margin-left: 2px;
+        }
         .mascot-container:active { transform: scale(0.9); animation: none; }
+
         .mascot-img { width: 100%; height: 100%; object-fit: cover; }
-        .header-text-col { text-align: left; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
-        h1 { margin: 0 0 4px 0; color: #2c3e50; font-size: 1.35rem; line-height: 1.1; white-space: nowrap; }
-        .subtitle-row { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; width: 100%; }
-        .analyst-title { font-size: 13px; color: #7f8c8d; font-weight: bold; margin: 0; white-space: nowrap; flex-shrink: 0; }
-        .cat-quote-box { border: 1px dotted #ffcc80; background-color: #fffcf5; border-radius: 10px; padding: 2px 6px; font-size: 12px; color: #d35400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
+        
+        .header-text-col { 
+            text-align: left; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1; 
+            min-width: 0; 
+        }
+        
+        h1 { 
+            margin: 0 0 4px 0; 
+            color: #2c3e50; 
+            font-size: 1.35rem; 
+            line-height: 1.1; 
+            white-space: nowrap; 
+        }
+
+        .subtitle-row {
+            display: flex;
+            align-items: center;
+            gap: 6px; 
+            flex-wrap: nowrap; 
+            width: 100%;
+        }
+        
+        .analyst-title { 
+            font-size: 13px; 
+            color: #7f8c8d; 
+            font-weight: bold; 
+            margin: 0;
+            white-space: nowrap; 
+            flex-shrink: 0; 
+        }
+
+        .cat-quote-box {
+            border: 1px dotted #ffcc80; 
+            background-color: #fffcf5;
+            border-radius: 10px;
+            padding: 2px 6px; 
+            font-size: 12px; 
+            color: #d35400;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            flex-grow: 1; 
+        }
 
         /* --- 儀表板 --- */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-        @keyframes pulseBorder { 0% { border-color: rgba(0,0,0,0.03); } 50% { border-color: rgba(52, 152, 219, 0.3); } 100% { border-color: rgba(0,0,0,0.03); } }
-        .card { padding: 4px 2px; border-radius: 8px; text-align: center; border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 58px; overflow: hidden; transition: transform 0.1s; animation: pulseBorder 4s infinite; }
-        .card:active { transform: scale(0.96); background-color: #fafafa !important; }
+        
+        @keyframes pulseBorder {
+            0% { border-color: rgba(0,0,0,0.03); }
+            50% { border-color: rgba(52, 152, 219, 0.3); } 
+            100% { border-color: rgba(0,0,0,0.03); }
+        }
+        .card { 
+            padding: 4px 2px; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.03); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start; 
+            align-items: center; 
+            height: 58px; 
+            overflow: hidden; 
+            transition: transform 0.1s; 
+            animation: pulseBorder 4s infinite; 
+        }
+        .card:active {
+            transform: scale(0.96);
+            background-color: #fafafa !important;
+        }
+
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .card .val { font-size: 14px; font-weight: bold; line-height: 1.1; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
-        /* --- 搜尋與表格 --- */
-        .input-area { background-color: #fff; padding: 6px 12px; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; position: relative; border: 2px solid #ffeaa7; justify-content: space-between; }
+        /* --- 搜尋區 --- */
+        .input-area { 
+            background-color: #fff; 
+            padding: 6px 12px; 
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            position: relative; 
+            border: 2px solid #ffeaa7; 
+            justify-content: space-between; 
+        }
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 12px; }
-        #sentiment-badge { font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; background: #fff; border: 1px solid #ddd; color: #666; white-space: nowrap; display: none; min-width: 60px; text-align: center; }
-        #search-results { position: relative; z-index: 99; margin-top: -10px; margin-bottom: 10px; background: white; border: 1px solid #3498db; border-top: none; display: none; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        #sentiment-badge { 
+            font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
+            background: #fff; border: 1px solid #ddd; color: #666; 
+            white-space: nowrap; display: none; min-width: 60px; text-align: center; 
+        }
+
+        /* --- 搜尋結果下拉選單 --- */
+        #search-results { 
+            position: relative; 
+            z-index: 99; 
+            margin-top: -10px; 
+            margin-bottom: 10px; 
+            background: white; 
+            border: 1px solid #3498db;
+            border-top: none; 
+            display: none; 
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* --- 表格 --- */
         table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-        th { padding: 5px 2px; color: #d35400; border-bottom: 2px solid #ffcc80; font-size: 12px; }
+        th { 
+            padding: 5px 2px; 
+            color: #d35400; 
+            border-bottom: 2px solid #ffcc80; 
+            font-size: 12px; 
+        }
         td { padding: 4px 2px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
         tr:active td { background-color: #fcf3cf; }
+
         th:nth-child(1), td:nth-child(1) { width: 18%; text-align: left; padding-left: 2px; white-space: normal; line-height: 1.2; word-wrap: break-word; } 
         th:nth-child(2) { width: 14%; text-align: center; } td:nth-child(2) { width: 14%; text-align: right; padding-right: 5px; } 
         th:nth-child(3) { width: 16%; text-align: center; } td:nth-child(3) { width: 16%; text-align: right; padding-right: 2px; }
@@ -137,34 +258,55 @@
         th:nth-child(5) { width: 12%; text-align: center; } td:nth-child(5) { width: 12%; text-align: right; padding-right: 0px; }
         th:nth-child(6) { width: 22%; text-align: center; } td:nth-child(6) { width: 22%; text-align: right; padding-left: 8px; }  
         th:nth-child(7), td:nth-child(7) { width: 5%; text-align: center; padding-right: 0; }
+
         .links { display: flex; gap: 3px; justify-content: flex-end; align-items: center; }
         .link-btn { text-decoration: none; padding: 2px 4px; border-radius: 3px; font-size: 11px; line-height: 1; color: white; white-space: nowrap; font-weight: bold; }
         .news-btn { background: #ff9f43; text-shadow: 0 1px 1px rgba(0,0,0,0.1); } 
         .div-btn { background: #ff4757; text-shadow: 0 1px 1px rgba(0,0,0,0.1); }  
-        .del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; transition: transform 0.1s; }
+        
+        .del-btn { 
+            background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 0; width: 100%; text-align: center; 
+            transition: transform 0.1s;
+        }
         .del-btn:active { transform: scale(1.5); color: red; } 
 
-        /* --- 底部更新與新聞 --- */
+        /* --- 底部 --- */
         .update-bar { position: relative; display: flex; justify-content: center; align-items: center; margin: 10px 0; height: 32px; }
         .status-container { position: absolute; left: 0; display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888; }
         #source-icon { font-size: 16px; line-height: 1; }
-        .refresh-btn { background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: white; border: none; padding: 0 15px; height: 28px; line-height: 28px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); z-index: 2; transition: transform 0.1s, filter 0.1s; }
-        .refresh-btn:active { transform: scale(0.95); filter: brightness(0.9); box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2); }
+        
+        .refresh-btn { 
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b); 
+            color: white; 
+            border: none; 
+            padding: 0 15px; 
+            height: 28px; 
+            line-height: 28px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 13px; 
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); 
+            z-index: 2; 
+            transition: transform 0.1s, filter 0.1s; 
+        }
+        .refresh-btn:active { 
+            transform: scale(0.95); 
+            filter: brightness(0.9);
+            box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2);
+        }
+
         .timer-info { position: absolute; right: 0; font-size: 12px; color: #888; }
         #countdown-text { color: #ff4757; font-weight: bold; }
         .red { color: #e74c3c; font-weight: bold; } .green { color: #27ae60; font-weight: bold; }
         
-        .news-section { margin-top: 10px; padding-top: 8px; }
+        .news-section { margin-top: 10px; border-top: 3px solid #3498db; padding-top: 8px; }
         .news-header { font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
         .news-item { font-size: 13px; margin-bottom: 6px; border-bottom: 1px dashed #eee; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .news-item a { text-decoration: none; color: #34495e; }
         #last-update-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 4px; }
 
-        /* [v11.0] 分析頁專用樣式 */
-        .analysis-box { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px; border: 1px dashed #ccc; }
-        .analysis-title { font-size: 14px; font-weight: bold; color: #34495e; margin-bottom: 5px; }
-        .analysis-val { font-size: 12px; color: #7f8c8d; }
-
+        /* 可愛化：捲軸 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #ffb8b8; border-radius: 4px; }
@@ -190,7 +332,7 @@
                     <option value="22.75,121.14">台東</option><option value="23.57,119.57">澎湖</option>
                     <option value="24.43,118.32">金門</option><option value="26.15,119.93">連江</option>
                 </select>
-                <span id="weather-icon"></span>
+                <span id="weather-icon" style="margin-left:2px; font-size:12px;"></span>
                 <span id="weather-val" style="margin-left:1px;">--°</span>
             </div>
             <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
@@ -204,17 +346,22 @@
     </div>
 
     <header>
-        <div class="version-tag">v11.0</div>
+        <div class="version-tag">v10.11</div>
+        
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
                 <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
             </div>
             <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
             <div class="header-text-col">
-                <h1>📊 喵喵站長資訊看板</h1>
+                <h1>
+                    📊 喵喵站長資訊看板 
+                </h1>
                 <div class="subtitle-row">
                     <div class="analyst-title">首席分析師: 黑寶</div>
-                    <div class="cat-quote-box">🐾 <span id="cat-quote-text">載入中...</span></div>
+                    <div class="cat-quote-box">
+                        🐾 <span id="cat-quote-text">載入中...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -238,97 +385,43 @@
         </div>
     </div>
 
-    <div id="page-home" class="page-section active">
-        <div class="input-area">
-            <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱 (支援模糊搜尋)" autocomplete="off" oninput="unifiedSearch(this.value)">
-            <div class="input-actions">
-                <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
-                <div id="sentiment-badge"></div>
-            </div>
-        </div>
-
-        <div id="search-results"></div>
-
-        <table>
-            <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th>刪</th></tr></thead>
-            <tbody id="stock-list"></tbody>
-        </table>
-
-        <div class="update-bar">
-            <div class="status-container"><span id="source-icon">⚡</span><span id="source-text">(檢查中)</span></div>
-            <button class="refresh-btn" onclick="location.reload()">↻ 立即更新資訊</button>
-            <div class="timer-info"><span id="countdown-text">60</span>秒後自動同步</div>
-        </div>
-        <div id="last-update-time">最後載入: --:--:--</div>
-    </div>
-
-    <div id="page-analysis" class="page-section">
-        <div class="news-header">📈 市場趨勢分析</div>
-        <div class="analysis-box">
-            <div class="analysis-title">喵喵大數據</div>
-            <div class="analysis-val">目前這裡還在裝修中，黑寶正在努力學習技術分析... 🐾</div>
-        </div>
-        <div class="analysis-box">
-            <div class="analysis-title">觀察名單狀態</div>
-            <div class="analysis-val" id="analysis-summary">載入中...</div>
+    <div class="input-area">
+        <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱 (支援模糊搜尋)" autocomplete="off" oninput="unifiedSearch(this.value)">
+        <div class="input-actions">
+            <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
+            <div id="sentiment-badge"></div>
         </div>
     </div>
 
-    <div id="page-news" class="page-section">
-        <div class="news-section" style="border-top:none;">
-            <div class="news-header">📰 即時財經新聞</div>
-            <div id="news-list-container"></div>
-        </div>
-    </div>
+    <div id="search-results"></div>
 
+    <table>
+        <thead><tr><th>名稱</th><th>昨收</th><th>現價</th><th>漲跌</th><th>幅度%</th><th>資訊</th><th>刪</th></tr></thead>
+        <tbody id="stock-list"></tbody>
+    </table>
+
+    <div class="update-bar">
+        <div class="status-container">
+            <span id="source-icon">⚡</span>
+            <span id="source-text">(檢查中)</span>
+        </div>
+        <button class="refresh-btn" onclick="location.reload()">↻ 立即更新資訊</button>
+        <div class="timer-info"><span id="countdown-text">60</span>秒後自動同步</div>
+    </div>
+    
+    <div class="news-section">
+        <div class="news-header">📰 即時新聞 (如未顯示請手動更新)</div>
+        <div id="news-list-container"></div>
+    </div>
+    <div id="last-update-time">最後載入: --:--:--</div>
 </div>
 
-<nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchPage('home', this)">
-        <span>🏠</span>首頁
-    </div>
-    <div class="nav-item" onclick="switchPage('analysis', this)">
-        <span>📊</span>分析
-    </div>
-    <div class="nav-item" onclick="switchPage('news', this)">
-        <span>📰</span>新聞
-    </div>
-</nav>
-
 <script>
-    // --- [v11.0] 分頁切換邏輯 ---
-    function switchPage(pageId, btn) {
-        // 1. 隱藏所有頁面
-        document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-        // 2. 顯示目標頁面
-        document.getElementById('page-' + pageId).classList.add('active');
-        
-        // 3. 更新按鈕狀態
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
+    // --- 1. 股票字典整合 ---
+    const stockDB = [
+        { id: "0050", name: "元大台灣50" }, { id: "2330", name: "台積電" }
+    ];
 
-        // 額外功能：如果是分析頁，計算簡單數據
-        if (pageId === 'analysis') updateAnalysis();
-    }
-
-    function updateAnalysis() {
-        // 簡單統計目前清單中的上漲下跌家數
-        let up = 0, down = 0, flat = 0;
-        myStocks.forEach(c => {
-            const elC = document.getElementById("c-" + c);
-            if(elC) {
-                if(elC.classList.contains("red")) up++;
-                else if(elC.classList.contains("green")) down++;
-                else flat++;
-            }
-        });
-        document.getElementById('analysis-summary').innerHTML = 
-            `追蹤個股：<b style='color:#333'>${myStocks.length}</b> 檔<br>` +
-            `上漲 <b style='color:#e74c3c'>${up}</b> | 下跌 <b style='color:#27ae60'>${down}</b> | 平盤 <b>${flat}</b>`;
-    }
-
-    // --- 以下為 v10.11 原有核心邏輯 (完全保留) ---
-    const stockDB = [ { id: "0050", name: "元大台灣50" }, { id: "2330", name: "台積電" } ];
     let myStocks = JSON.parse(localStorage.getItem('stocks_final_v5') || '["2330"]');
     let dynamicStockMap = JSON.parse(localStorage.getItem('dynamic_stock_names') || '{}');
     const gasUrl = "https://script.google.com/macros/s/AKfycbxOaln9DyAI-EhsuTK8qawgX3-5kWMer0OzxONkDLAetks25pV_KuGb2JNeXHByj8zS/exec"; 
@@ -344,18 +437,24 @@
         return "⚡";
     }
 
+    // --- 2. 核心功能: 高速批次抓取 ---
     async function getBatchStockPrices() {
         if (myStocks.length === 0) return;
+
         const stockParam = myStocks.join(","); 
+        
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); 
+            const timeoutId = setTimeout(() => controller.abort(), 5000); 
+
             const response = await fetch(`${gasUrl}?stock=${stockParam}`, { signal: controller.signal });
             clearTimeout(timeoutId);
             const data = await response.json();
+
             const iconEl = document.getElementById('source-icon');
             if(iconEl) iconEl.innerText = '⚡';
             
+            // 兼容舊版 GAS (物件) 和新版 GAS (陣列)
             if (Array.isArray(data)) {
                 data.forEach(info => {
                     if (info && !info.error && info.z) {
@@ -364,22 +463,37 @@
                         const chg = price - yesterday;
                         const pct = (chg / yesterday) * 100;
                         updateUI(info.c, price, yesterday, chg, pct);
-                    } else { fetchPriceFallback(info.c || "unknown"); }
+                    } else {
+                        fetchPriceFallback(info.c || "unknown");
+                    }
                 });
             } else if (data.msgArray) {
+                // 如果後端還是舊版，走這裡
                 myStocks.forEach(fetchPriceFallback);
             }
-        } catch (e) { myStocks.forEach(fetchPriceFallback); }
+
+        } catch (e) {
+            console.error("批次失敗", e);
+            myStocks.forEach(fetchPriceFallback);
+        }
     }
 
     function updateUI(id, price, prev, chg, pct, isError=false) {
         const clr = chg > 0 ? "red" : (chg < 0 ? "green" : "");
         const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
+        
         const elP = document.getElementById("p-" + id);
         const elC = document.getElementById("c-" + id);
         const elPct = document.getElementById("pct-" + id);
         const elPrev = document.getElementById("prev-" + id);
-        if(isError) { if (elP) elP.innerText = "-"; if (elC) elC.innerText = "-"; if (elPct) elPct.innerText = "-"; return; }
+
+        if(isError) {
+             if (elP) elP.innerText = "-";
+             if (elC) elC.innerText = "-";
+             if (elPct) elPct.innerText = "-";
+             return;
+        }
+
         if (elP) { elP.innerText = price.toFixed(2); elP.className = clr; }
         if (elC) { elC.innerText = sign + Math.abs(chg).toFixed(2); elC.className = clr; }
         if (elPct) { elPct.innerText = pct.toFixed(2) + "%"; elPct.className = clr; }
@@ -389,6 +503,9 @@
     function fetchPriceFallback(code) {
         const iconEl = document.getElementById('source-icon');
         if(iconEl) iconEl.innerText = '🐢';
+        const textEl = document.getElementById('source-text');
+        if(textEl) textEl.innerText = '(報價延遲)';
+
         const url = `https://corsproxy.io/?${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.TW?interval=1d`)}`;
         fetch(url).then(r => r.json()).then(d => {
             if (d.chart?.result) {
@@ -399,6 +516,7 @@
         }).catch(e => console.log("所有來源皆失敗"));
     }
 
+    // --- 3. 介面操作 ---
     function renderTable() {
         const tbody = document.getElementById('stock-list');
         tbody.innerHTML = '';
@@ -406,6 +524,7 @@
             let name = dynamicStockMap[c] || c;
             let found = stockDB.find(s => s.id === c);
             if (found && name === c) name = found.name;
+
             tbody.innerHTML += `<tr>
                 <td><b>${name}</b><br><small style="color:#999">${c}</small></td>
                 <td id="prev-${c}">-</td>
@@ -422,20 +541,29 @@
         const input = document.getElementById('stock-input');
         const val = input.value.trim().toUpperCase();
         if (!val) return;
+        
         let codeToAdd = val;
         let nameToAdd = val;
-        if (dynamicStockMap[val]) { nameToAdd = dynamicStockMap[val]; } 
-        else {
+
+        if (dynamicStockMap[val]) {
+            nameToAdd = dynamicStockMap[val];
+        } else {
             let found = stockDB.find(s => s.id === val || s.name === val);
-            if (found) { codeToAdd = found.id; nameToAdd = found.name; }
+            if (found) {
+                codeToAdd = found.id;
+                nameToAdd = found.name;
+            }
         }
+
         if (!myStocks.includes(codeToAdd)) {
             myStocks.push(codeToAdd);
             dynamicStockMap[codeToAdd] = nameToAdd;
             localStorage.setItem('stocks_final_v5', JSON.stringify(myStocks));
             localStorage.setItem('dynamic_stock_names', JSON.stringify(dynamicStockMap));
             location.reload();
-        } else { alert("這支股票已經在清單囉！"); }
+        } else {
+            alert("這支股票已經在清單囉！");
+        }
     }
 
     function removeStock(code) { 
@@ -446,29 +574,57 @@
         }
     }
 
+    // ★★★ v10.8 搜尋優化 (解決閃爍問題) ★★★
     let searchTimeout;
     let searchController = null; 
+
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
         if (!val) { resDiv.style.display = 'none'; return; }
+        
         const query = val.trim();
         if (!query) return;
+
         clearTimeout(searchTimeout);
+
         searchTimeout = setTimeout(() => {
             const url = `${gasUrl}?mode=search&q=${encodeURIComponent(query)}`;
+            
             resDiv.style.display = 'block';
-            resDiv.innerHTML = `<div style="padding:15px; text-align:center;"><div style="font-size:14px; color:#2980b9; font-weight:bold; margin-bottom:5px;">⏳ 喵喵搜尋中...</div><div style="font-size:11px; color:#95a5a6;">正在呼叫 Google 財經資料庫，請稍候</div></div>`;
-            if (searchController) searchController.abort();
+            resDiv.innerHTML = `
+                <div style="padding:15px; text-align:center;">
+                    <div style="font-size:14px; color:#2980b9; font-weight:bold; margin-bottom:5px;">
+                        ⏳ 喵喵搜尋中...
+                    </div>
+                    <div style="font-size:11px; color:#95a5a6;">
+                        正在呼叫 Google 財經資料庫，請稍候
+                    </div>
+                </div>`;
+
+            if (searchController) {
+                searchController.abort();
+            }
             searchController = new AbortController(); 
+
             fetch(url, { signal: searchController.signal })
                 .then(r => r.json())
                 .then(data => {
                     if(data.length > 0) {
                         resDiv.innerHTML = data.map(s => {
-                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.n}')"><b>${s.n}</b> <small style="color:#666; margin-left:5px;">${s.id}</small></div>`;
+                            return `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.n}')">
+                                <b>${s.n}</b> <small style="color:#666; margin-left:5px;">${s.id}</small>
+                            </div>`;
                         }).join('');
-                    } else { resDiv.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">找不到相符股票 🐱</div>'; }
-                }).catch((e) => { if (e.name !== 'AbortError') resDiv.innerHTML = '<div style="padding:10px; color:red; text-align:center;">連線失敗，請檢查網路 ❌</div>'; });
+                    } else {
+                        resDiv.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">找不到相符股票 🐱</div>';
+                    }
+                }).catch((e) => { 
+                    if (e.name === 'AbortError') {
+                        console.log('舊搜尋已取消'); 
+                    } else {
+                        resDiv.innerHTML = '<div style="padding:10px; color:red; text-align:center;">連線失敗，請檢查網路 ❌</div>';
+                    }
+                });
         }, 800); 
     }
 
@@ -486,21 +642,29 @@
     function changeCityManually() { 
         const val = document.getElementById('city-select').value;
         if(val === 'auto') getAutoWeather();
-        else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
+        else {
+            const [lat, lon] = val.split(','); 
+            fetchWeather(lat, lon); 
+        }
     }
 
+    // --- 4. 外部資訊 (修復台股大盤不顯示問題 v10.10) ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(r => r.json()).then(d => {
-                document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°";
-                document.getElementById('weather-icon').innerText = getWeatherIcon(d.current_weather.weathercode);
-            });
-            fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`).then(r => r.json()).then(d => {
-                const aqi = d.current.european_aqi;
-                const el = document.getElementById('aqi-val');
-                el.innerText = aqi;
-                el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
-            });
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+                .then(r => r.json()).then(d => {
+                    document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°";
+                    document.getElementById('weather-icon').innerText = getWeatherIcon(d.current_weather.weathercode);
+                });
+            
+            fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
+                .then(r => r.json()).then(d => {
+                    const aqi = d.current.european_aqi;
+                    const el = document.getElementById('aqi-val');
+                    el.innerText = aqi;
+                    el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
+                });
+
             const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
             fetch(jpyUrl).then(r => r.json()).then(d => {
                 if(d.chart?.result) {
@@ -509,48 +673,85 @@
                 }
             }).catch(()=>console.log("匯率無法讀取"));
 
+            // ★★★ v10.10 大盤專屬抓取邏輯 (含雙重保險) ★★★
             const fetchIndex = async () => {
                 try {
+                    // 1. 優先嘗試 GAS
                     const res = await fetch(`${gasUrl}?stock=t00`);
                     const data = await res.json();
                     let p, y;
-                    if (Array.isArray(data) && data.length > 0 && !data[0].error) { p = parseFloat(data[0].z); y = parseFloat(data[0].y); } 
-                    else if (data.msgArray && data.msgArray.length > 0) { p = parseFloat(data.msgArray[0].z); y = parseFloat(data.msgArray[0].y); }
+
+                    // 判斷新舊 GAS 格式
+                    if (Array.isArray(data) && data.length > 0 && !data[0].error) {
+                        p = parseFloat(data[0].z);
+                        y = parseFloat(data[0].y);
+                    } else if (data.msgArray && data.msgArray.length > 0) {
+                        p = parseFloat(data.msgArray[0].z);
+                        y = parseFloat(data.msgArray[0].y);
+                    }
+
                     if (!isNaN(p) && !isNaN(y)) return { p, y };
                     throw new Error("GAS 無資料");
                 } catch (e) {
+                    // 2. 備案：直接抓 Yahoo Chart API (透過 Proxy)
+                    console.log("大盤切換備用來源");
                     const backupUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1d')}`;
                     const res = await fetch(backupUrl);
                     const json = await res.json();
                     if (json.chart && json.chart.result) {
                         const meta = json.chart.result[0].meta;
-                        return { p: meta.regularMarketPrice || meta.chartPreviousClose, y: meta.chartPreviousClose };
+                        return {
+                            p: meta.regularMarketPrice || meta.chartPreviousClose,
+                            y: meta.chartPreviousClose
+                        };
                     }
                     return null;
                 }
             };
+
+            // 執行抓取並更新 UI
             fetchIndex().then(data => {
                 if (data) {
                     const { p, y } = data;
                     const chg = p - y;
                     const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-                    let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
+                    
+                    let sentiment = "盤整觀望 😐";
+                    let sentimentColor = "#888";
                     if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
                     else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
                     else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
+                    
+                    el.innerHTML = `
+                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                            ${p.toLocaleString()}
+                        </div>
+                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                            ${sign}${Math.abs(chg).toFixed(2)}
+                        </div>
+                    `;
+
                     const badge = document.getElementById('sentiment-badge');
-                    badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
+                    badge.style.display = 'block';
+                    badge.innerText = sentiment;
+                    badge.style.color = sentimentColor;
+                    badge.style.borderColor = sentimentColor;
                 }
             });
+
         } catch(e) {}
     }
 
-    function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
-    function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
+    function getAutoWeather() {
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56));
+    }
+    function fetchWeather(lat, lon) {
+          fetchExternalInfo(lat, lon);
+    }
 
     async function fetchNews() {
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
@@ -566,23 +767,57 @@
     }
 
     function updateHoliday() {
-        const holidays = [{name:"跨年",date:"2025-01-01"},{name:"春節",date:"2025-01-29"},{name:"和平紀念",date:"2025-02-28"},{name:"兒童節",date:"2025-04-04"},{name:"勞動節",date:"2025-05-01"},{name:"端午節",date:"2025-05-31"},{name:"中秋節",date:"2025-10-06"},{name:"國慶日",date:"2025-10-10"},{name:"跨年",date:"2026-01-01"},{name:"春節",date:"2026-02-17"},{name:"和平紀念",date:"2026-02-28"}];
+        const holidays = [
+            { name: "跨年", date: "2025-01-01" },
+            { name: "春節", date: "2025-01-29" },
+            { name: "和平紀念", date: "2025-02-28" },
+            { name: "兒童節", date: "2025-04-04" },
+            { name: "勞動節", date: "2025-05-01" },
+            { name: "端午節", date: "2025-05-31" },
+            { name: "中秋節", date: "2025-10-06" },
+            { name: "國慶日", date: "2025-10-10" },
+            { name: "跨年", date: "2026-01-01" },
+            { name: "春節", date: "2026-02-17" },
+            { name: "和平紀念", date: "2026-02-28" }
+        ];
         const now = new Date();
         const next = holidays.find(h => new Date(h.date) > now) || holidays[0];
         const days = Math.ceil((new Date(next.date) - now) / (1000 * 60 * 60 * 24));
         document.getElementById('holiday-countdown').innerText = `📅${next.name}${days}天`;
     }
 
+    // [v10.6] 自動輪播語錄
     function rotateQuotes() {
         const now = new Date();
         const day = now.getDay();
         const h = now.getHours();
         const m = now.getMinutes();
         const totalMin = h * 60 + m;
-        let pool = ["本喵覺得這支會漲！📈","不要追高，會摔下來喵 🙀","鏟屎官，快去賺錢！💰","今天的罐罐有著落了嗎？🐟"];
-        if (day === 0 || day === 6) { pool.push("週末是拿來睡覺的~ 💤"); pool.push("股市沒開，陪我玩！⚽"); } 
-        else if (h >= 9 && totalMin < 810) { pool.push("盯盤好累... 🙀"); pool.push("波動好大，怕怕 📉"); pool.push("衝啊！多頭戰車！🚀"); } 
-        else { pool.push("收盤了，朕要休息了 🌙"); pool.push("明天再戰吧！💪"); }
+        
+        let pool = [
+            "本喵覺得這支會漲！📈",
+            "不要追高，會摔下來喵 🙀",
+            "鏟屎官，快去賺錢！💰",
+            "今天的罐罐有著落了嗎？🐟"
+        ];
+
+        // 週末
+        if (day === 0 || day === 6) {
+            pool.push("週末是拿來睡覺的~ 💤");
+            pool.push("股市沒開，陪我玩！⚽");
+        } 
+        // 盤中 (09:00 - 13:30)
+        else if (h >= 9 && totalMin < 810) { 
+            pool.push("盯盤好累... 🙀");
+            pool.push("波動好大，怕怕 📉");
+            pool.push("衝啊！多頭戰車！🚀");
+        } 
+        // 收盤後
+        else {
+            pool.push("收盤了，朕要休息了 🌙");
+            pool.push("明天再戰吧！💪");
+        }
+
         const el = document.getElementById('cat-quote-text');
         const r = Math.floor(Math.random() * pool.length);
         el.innerText = pool[r];
@@ -594,18 +829,24 @@
         const day = now.getDay(); 
         const dateStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} (${daysArr[day]})`;
         const timeStr = now.toLocaleTimeString('zh-TW', {hour12: false});
+        
         document.getElementById('clock-time').innerHTML = `<div style="font-size:12px; color:#888; margin-bottom:2px;">${dateStr}</div><div style="font-size:16px;">${timeStr}</div>`;
+        
         const twTimer = document.getElementById('market-timer');
         const h = now.getHours();
         const m = now.getMinutes();
         const totalMin = h * 60 + m;
         const closeMin = 13 * 60 + 30; 
+
+        // 判斷：必須是週一(1)到週五(5) 且 時間在 9:00~13:30 之間
         if (day >= 1 && day <= 5 && h >= 9 && totalMin < closeMin) {
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
             twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
-        } else { twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`; }
+        } else {
+            twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`;
+        }
     }
 
     let timeLeft = 60;
@@ -615,15 +856,16 @@
         if (timeLeft < 0) location.reload();
     }, 1000);
 
+    // 啟動輪播
     setInterval(rotateQuotes, 6000);
 
     window.onload = () => {
-        try { app.loadLogo(); } catch(e){}
+        app.loadLogo();
         updateMarketStatus();
         rotateQuotes();
         updateHoliday();
         renderTable();
-        getBatchStockPrices(); 
+        getBatchStockPrices(); // ★★★ 使用高速引擎抓取 ★★★
         fetchExternalInfo();
         fetchNews();
         getAutoWeather();
