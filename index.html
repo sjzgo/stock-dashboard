@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.18 完美終極版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.19 新聞即時版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -346,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.18</div>
+        <div class="version-tag">v10.19</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -682,7 +682,14 @@
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
+                    el.innerHTML = `
+                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                            ${p.toLocaleString()}
+                        </div>
+                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                            ${sign}${Math.abs(chg).toFixed(2)}
+                        </div>
+                    `;
                     const badge = document.getElementById('sentiment-badge');
                     badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
                 }
@@ -690,17 +697,16 @@
         } catch(e) {}
     }
 
-    function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
-    function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
-
+    // [v10.19 新聞修正] 1. 改用 corsproxy.io (速度快不快取) 2. 加上時間參數 t=... 確保每次都是最新的
     async function fetchNews() {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant')}`;
+        const targetUrl = `https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${new Date().getTime()}`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         try {
             const response = await fetch(proxyUrl);
-            const data = await response.json();
+            const text = await response.text();
             const parser = new DOMParser();
-            const xml = parser.parseFromString(data.contents, "text/xml");
-            const items = Array.from(xml.querySelectorAll("item")).slice(0, 20);
+            const xml = parser.parseFromString(text, "text/xml");
+            const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
             document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
             document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
         } catch(e) {}
