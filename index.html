@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.22 新連結修復版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.20 穩定還原版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -346,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.22</div>
+        <div class="version-tag">v10.20</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -368,7 +368,7 @@
     </header>
 
     <div class="dashboard">
-        <div class="card" onclick="window.open('https://time.is/zh-TW/Taipei')" title="點擊查看完整時間與行事曆">
+        <div class="card" onclick="window.open('https://www.timeanddate.com/calendar/?country=75')" title="點擊查看行事曆">
             <h4>現在時間</h4>
             <div class="val" id="clock-time">
                 <div style="font-size:11px; color:#888;">--/--/--</div>
@@ -630,58 +630,71 @@
         else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
     }
 
+    // --- [前端直接抓] 天氣/空氣/匯率/大盤 ---
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
-            const url = `${gasUrl}?mode=dashboard&lat=${lat}&lon=${lon}`;
-            const res = await fetch(url);
-            const data = await res.json();
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(r => r.json()).then(d => {
+                document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°";
+                document.getElementById('weather-icon').innerText = getWeatherIcon(d.current_weather.weathercode);
+            });
+            fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`).then(r => r.json()).then(d => {
+                const aqi = d.current.european_aqi;
+                const el = document.getElementById('aqi-val');
+                el.innerText = aqi;
+                el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
+            });
+            const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
+            fetch(jpyUrl).then(r => r.json()).then(d => {
+                if(d.chart?.result) {
+                   const p = d.chart.result[0].meta.regularMarketPrice;
+                   document.getElementById('jpy-rate').innerText = `1台幣=${p.toFixed(2)}日圓`;
+                }
+            }).catch(()=>console.log("匯率無法讀取"));
 
-            // 1. 天氣
-            if (data.weather) {
-                document.getElementById('weather-val').innerText = Math.round(data.weather.temp) + "°";
-                document.getElementById('weather-icon').innerText = getWeatherIcon(data.weather.code);
-                const elAqi = document.getElementById('aqi-val');
-                elAqi.innerText = data.weather.aqi;
-                elAqi.style.color = data.weather.aqi <= 50 ? "#27ae60" : (data.weather.aqi <= 100 ? "#f39c12" : "#e74c3c");
-            }
-
-            // 2. 匯率
-            if (data.rate && data.rate.jpy) {
-                document.getElementById('jpy-rate').innerText = `1台幣=${parseFloat(data.rate.jpy).toFixed(2)}日圓`;
-            }
-
-            // 3. 大盤
-            if (data.index && data.index.price) {
-                const p = parseFloat(data.index.price);
-                const y = parseFloat(data.index.prev);
-                const chg = p - y;
-                const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-                let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
-                if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
-                else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
-                else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
-                else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
-                
-                const el = document.getElementById('tw-index-val');
-                const colorClass = chg >= 0 ? 'red' : 'green';
-                el.innerHTML = `
-                    <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                        ${p.toLocaleString()}
-                    </div>
-                    <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                        ${sign}${Math.abs(chg).toFixed(2)}
-                    </div>
-                `;
-                const badge = document.getElementById('sentiment-badge');
-                badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
-            }
-        } catch(e) { console.error("Dashboard API error", e); }
+            const fetchIndex = async () => {
+                try {
+                    const res = await fetch(`${gasUrl}?stock=t00`);
+                    const data = await res.json();
+                    let p, y;
+                    if (Array.isArray(data) && data.length > 0 && !data[0].error) { p = parseFloat(data[0].z); y = parseFloat(data[0].y); } 
+                    else if (data.msgArray && data.msgArray.length > 0) { p = parseFloat(data.msgArray[0].z); y = parseFloat(data.msgArray[0].y); }
+                    if (!isNaN(p) && !isNaN(y)) return { p, y };
+                    throw new Error("GAS 無資料");
+                } catch (e) {
+                    const backupUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1d')}`;
+                    const res = await fetch(backupUrl);
+                    const json = await res.json();
+                    if (json.chart && json.chart.result) {
+                        const meta = json.chart.result[0].meta;
+                        return { p: meta.regularMarketPrice || meta.chartPreviousClose, y: meta.chartPreviousClose };
+                    }
+                    return null;
+                }
+            };
+            fetchIndex().then(data => {
+                if (data) {
+                    const { p, y } = data;
+                    const chg = p - y;
+                    const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
+                    let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
+                    if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
+                    else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
+                    else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
+                    else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+                    const el = document.getElementById('tw-index-val');
+                    const colorClass = chg >= 0 ? 'red' : 'green';
+                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
+                    const badge = document.getElementById('sentiment-badge');
+                    badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
+                }
+            });
+        } catch(e) {}
     }
 
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
-    // 新聞模式
+    // 新聞模式 (GAS)
     async function fetchNews() {
         const url = `${gasUrl}?mode=news`;
         try {
@@ -719,7 +732,6 @@
         el.innerText = pool[r];
     }
 
-    // [v10.17] 移除 br，改用 div 控制間距，讓文字不會太低
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
@@ -736,7 +748,6 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            // [v10.17] 這裡修改了排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
@@ -761,7 +772,7 @@
         updateHoliday();
         renderTable();
         getBatchStockPrices(); 
-        fetchExternalInfo();
+        fetchExternalInfo(); 
         fetchNews();
         getAutoWeather();
         initLocalSearch(); 
