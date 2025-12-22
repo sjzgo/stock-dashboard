@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.21 儀表板整合版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.22 新連結修復版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -206,8 +206,10 @@
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
@@ -344,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.21</div>
+        <div class="version-tag">v10.22</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -366,7 +368,7 @@
     </header>
 
     <div class="dashboard">
-        <div class="card" onclick="window.open('https://tools.heho.com.tw/calendar/')" title="點擊查看行事曆">
+        <div class="card" onclick="window.open('https://time.is/zh-TW/Taipei')" title="點擊查看完整時間與行事曆">
             <h4>現在時間</h4>
             <div class="val" id="clock-time">
                 <div style="font-size:11px; color:#888;">--/--/--</div>
@@ -628,7 +630,6 @@
         else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
     }
 
-    // [v10.21] 改用 GAS 儀表板模式，一個請求解決所有外部資訊
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
             const url = `${gasUrl}?mode=dashboard&lat=${lat}&lon=${lon}`;
@@ -680,7 +681,7 @@
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
-    // [v10.20] 新聞模式
+    // 新聞模式
     async function fetchNews() {
         const url = `${gasUrl}?mode=news`;
         try {
@@ -718,6 +719,7 @@
         el.innerText = pool[r];
     }
 
+    // [v10.17] 移除 br，改用 div 控制間距，讓文字不會太低
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
@@ -734,7 +736,7 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            // [v10.17] 緊湊排版
+            // [v10.17] 這裡修改了排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
@@ -759,7 +761,7 @@
         updateHoliday();
         renderTable();
         getBatchStockPrices(); 
-        fetchExternalInfo(); // 這邊現在只發一個請求給 GAS
+        fetchExternalInfo();
         fetchNews();
         getAutoWeather();
         initLocalSearch(); 
