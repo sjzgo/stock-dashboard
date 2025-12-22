@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.24 台大行事曆版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.25 Time.is 時間版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -346,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.24</div>
+        <div class="version-tag">v10.25</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -368,7 +368,7 @@
     </header>
 
     <div class="dashboard">
-        <div class="card" onclick="window.open('https://www.csie.ntu.edu.tw/~b90057/use/calendar/calendar.html')" title="點擊查看行事曆">
+        <div class="card" onclick="window.open('https://time.is/zh_tw/')" title="點擊查看完整時間與行事曆">
             <h4>現在時間</h4>
             <div class="val" id="clock-time">
                 <div style="font-size:11px; color:#888;">--/--/--</div>
@@ -700,8 +700,8 @@
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
+    // 新聞模式 (GAS)
     async function fetchNews() {
-        // [v10.20] 新聞維持 GAS 模式 (最快最穩)
         const url = `${gasUrl}?mode=news`;
         try {
             const response = await fetch(url);
@@ -754,6 +754,7 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
+            // [v10.17] 這裡修改了排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
