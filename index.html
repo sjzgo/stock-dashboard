@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.17 視覺平衡修正版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.18 完美終極版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -192,7 +192,6 @@
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
         
-        /* [v10.17 修改] 增加 padding-bottom 把文字往上推，解決字太低的問題 */
         .card .val { 
             font-size: 14px; 
             font-weight: bold; 
@@ -202,7 +201,7 @@
             flex-direction: column; 
             justify-content: center; 
             flex: 1; 
-            padding-bottom: 4px; /* ★ 關鍵修改：用底部留白把文字頂上去 */
+            padding-bottom: 4px; 
         }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
@@ -347,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.17</div>
+        <div class="version-tag">v10.18</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -683,14 +682,7 @@
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `
-                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                            ${p.toLocaleString()}
-                        </div>
-                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                            ${sign}${Math.abs(chg).toFixed(2)}
-                        </div>
-                    `;
+                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
                     const badge = document.getElementById('sentiment-badge');
                     badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
                 }
@@ -737,7 +729,7 @@
         el.innerText = pool[r];
     }
 
-    // [v10.17] 移除 <br>，改用 div 讓間距更緊湊
+    // [v10.17] 移除 br，改用 div 控制間距，讓文字不會太低
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
@@ -754,11 +746,11 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            // ★ [v10.17] 修改這裡：移除 br，改用 div 控制間距
+            // [v10.17] 這裡修改了排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
-                    <div style="font-size:10px; color:#e74c3c; margin-top:1px;">收盤剩餘 ${lh}時${lm}分</div>
+                    <div style="font-size:12px; font-weight:bold; color:#e74c3c; margin-top:2px;">收盤剩餘 ${lh}時${lm}分</div>
                 </div>`;
         } else { twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`; }
     }
