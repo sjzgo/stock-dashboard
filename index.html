@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.16 搜尋優化版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.17 視覺平衡修正版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -191,12 +191,26 @@
         .card:active { transform: scale(0.96); background-color: #f0f0f0 !important; }
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
-        .card .val { font-size: 14px; font-weight: bold; line-height: 1.15; width: 100%; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+        
+        /* [v10.17 修改] 增加 padding-bottom 把文字往上推，解決字太低的問題 */
+        .card .val { 
+            font-size: 14px; 
+            font-weight: bold; 
+            line-height: 1.15; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            flex: 1; 
+            padding-bottom: 4px; /* ★ 關鍵修改：用底部留白把文字頂上去 */
+        }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
+        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
+        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
@@ -333,7 +347,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.16</div>
+        <div class="version-tag">v10.17</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -437,7 +451,6 @@
             .catch(e => console.log("清單下載失敗", e));
     }
 
-    // [v10.16] 搜尋邏輯優化：加回喵喵動畫，並且依照字數排序 (本尊在上面，權證在下面)
     let searchTimeout;
     function unifiedSearch(val) {
         const resDiv = document.getElementById('search-results');
@@ -446,12 +459,9 @@
         const query = val.trim().toUpperCase();
         if (!query) return;
 
-        // 清除舊的計時器
         clearTimeout(searchTimeout);
 
-        // 設定延遲 (Debounce)，讓使用者輸入完才執行，並顯示可愛的等待畫面
         searchTimeout = setTimeout(() => {
-            // 1. 先顯示可愛的搜尋中畫面
             resDiv.style.display = 'block';
             resDiv.innerHTML = `
                 <div style="padding:15px; text-align:center;">
@@ -463,26 +473,19 @@
                     </div>
                 </div>`;
 
-            // 2. 稍微延遲一下下 (350ms)，讓使用者能看到喵喵 (增加儀式感) 並讓畫面渲染
             setTimeout(() => {
-                // [本地搜尋邏輯]
                 if (allStockList.length > 0) {
-                    // 步驟 A: 找出「所有」符合的結果 (不只前20筆)
                     let results = allStockList.filter(s => 
                         s.id.includes(query) || s.n.indexOf(query) > -1
                     );
 
-                    // 步驟 B: 排序！ (關鍵修改)
-                    // 規則：名字越短的排越前面 (廣達 > 廣宇元大...)
                     results.sort((a, b) => {
                         if (a.n.length !== b.n.length) {
                             return a.n.length - b.n.length;
                         }
-                        // 如果長度一樣，代號短的排前面 (本股代號通常比權證短)
                         return a.id.length - b.id.length;
                     });
 
-                    // 步驟 C: 取前 20 筆
                     results = results.slice(0, 20);
 
                     if (results.length > 0) {
@@ -497,20 +500,18 @@
                     return; 
                 }
 
-                // [備案：網路搜尋] (如果本地清單還沒載入完)
                 fetch(`${gasUrl}?mode=search&q=${encodeURIComponent(query)}`)
                     .then(r => r.json())
                     .then(data => {
                         if(data.length > 0) {
-                            // 網路版也要稍微排一下比較好
                             data.sort((a, b) => a.n.length - b.n.length);
                             resDiv.innerHTML = data.map(s => `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="selectStock('${s.id}', '${s.n}')"><b>${s.n}</b> <small style="color:#666;">${s.id}</small></div>`).join('');
                         } else {
                             resDiv.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">找不到</div>';
                         }
                     });
-            }, 350); // 這裡設定 350ms 的擬人化思考時間
-        }, 500); // 輸入停止 0.5 秒後開始動作
+            }, 350); 
+        }, 500); 
     }
 
     async function getBatchStockPrices() {
@@ -682,7 +683,14 @@
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
+                    el.innerHTML = `
+                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                            ${p.toLocaleString()}
+                        </div>
+                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                            ${sign}${Math.abs(chg).toFixed(2)}
+                        </div>
+                    `;
                     const badge = document.getElementById('sentiment-badge');
                     badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
                 }
@@ -729,6 +737,7 @@
         el.innerText = pool[r];
     }
 
+    // [v10.17] 移除 <br>，改用 div 讓間距更緊湊
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
@@ -745,7 +754,12 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            twTimer.innerHTML = `<span class="red">盤中交易</span><br><span style="font-size:11px; color:#e74c3c;">收盤剩餘 ${lh}時${lm}分</span>`;
+            // ★ [v10.17] 修改這裡：移除 br，改用 div 控制間距
+            twTimer.innerHTML = `
+                <div style="line-height:1.1">
+                    <span class="red">盤中交易</span>
+                    <div style="font-size:10px; color:#e74c3c; margin-top:1px;">收盤剩餘 ${lh}時${lm}分</div>
+                </div>`;
         } else { twTimer.innerHTML = `<span style="color:#7f8c8d;">已收盤</span>`; }
     }
 
