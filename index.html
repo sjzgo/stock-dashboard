@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.19 新聞即時版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.20 全能後端版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -346,7 +346,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.19</div>
+        <div class="version-tag">v10.20</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -368,7 +368,7 @@
     </header>
 
     <div class="dashboard">
-        <div class="card" onclick="window.open('https://www.timeanddate.com/calendar/?country=75')" title="點擊查看行事曆">
+        <div class="card" onclick="window.open('https://tools.heho.com.tw/calendar/')" title="點擊查看行事曆">
             <h4>現在時間</h4>
             <div class="val" id="clock-time">
                 <div style="font-size:11px; color:#888;">--/--/--</div>
@@ -682,14 +682,7 @@
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `
-                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                            ${p.toLocaleString()}
-                        </div>
-                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                            ${sign}${Math.abs(chg).toFixed(2)}
-                        </div>
-                    `;
+                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
                     const badge = document.getElementById('sentiment-badge');
                     badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
                 }
@@ -697,19 +690,23 @@
         } catch(e) {}
     }
 
-    // [v10.19 新聞修正] 1. 改用 corsproxy.io (速度快不快取) 2. 加上時間參數 t=... 確保每次都是最新的
+    // [v10.20] 新聞改用 GAS 後端模式
     async function fetchNews() {
-        const targetUrl = `https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant&t=${new Date().getTime()}`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        // 直接呼叫 GAS 的 news 模式，不經過 corsproxy
+        const url = `${gasUrl}?mode=news`;
         try {
-            const response = await fetch(proxyUrl);
-            const text = await response.text();
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(text, "text/xml");
-            const items = Array.from(xml.querySelectorAll("item")).slice(0, 10);
-            document.getElementById('news-list-container').innerHTML = items.map(i => `<div class="news-item">● <a href="${i.querySelector("link").textContent}" target="_blank">${i.querySelector("title").textContent}</a></div>`).join('');
-            document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
-        } catch(e) {}
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (Array.isArray(data)) {
+                document.getElementById('news-list-container').innerHTML = data.map(i => {
+                    return `<div class="news-item">● <a href="${i.link}" target="_blank">${i.title}</a></div>`;
+                }).join('');
+                document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
+            }
+        } catch(e) {
+            console.error("新聞載入失敗", e);
+        }
     }
 
     function updateHoliday() {
