@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.20 全能後端版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.21 儀表板整合版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -206,10 +206,8 @@
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
         .dashboard .card:nth-child(1) h4 { color: #00838f; }
-        
         .dashboard .card:nth-child(2) { background: #f1f8e9; border-bottom: 3px solid #8bc34a; }
         .dashboard .card:nth-child(2) h4 { color: #33691e; }
-        
         .dashboard .card:nth-child(3) { background: #fffde7; border-bottom: 3px solid #fbc02d; }
         .dashboard .card:nth-child(3) h4 { color: #f57f17; }
 
@@ -346,7 +344,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.20</div>
+        <div class="version-tag">v10.21</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -630,83 +628,71 @@
         else { const [lat, lon] = val.split(','); fetchWeather(lat, lon); }
     }
 
+    // [v10.21] 改用 GAS 儀表板模式，一個請求解決所有外部資訊
     async function fetchExternalInfo(lat = 25.03, lon = 121.56) {
         try {
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(r => r.json()).then(d => {
-                document.getElementById('weather-val').innerText = Math.round(d.current_weather.temperature) + "°";
-                document.getElementById('weather-icon').innerText = getWeatherIcon(d.current_weather.weathercode);
-            });
-            fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`).then(r => r.json()).then(d => {
-                const aqi = d.current.european_aqi;
-                const el = document.getElementById('aqi-val');
-                el.innerText = aqi;
-                el.style.color = aqi <= 50 ? "#27ae60" : (aqi <= 100 ? "#f39c12" : "#e74c3c");
-            });
-            const jpyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/TWDJPY=X?interval=1d&range=1d')}`;
-            fetch(jpyUrl).then(r => r.json()).then(d => {
-                if(d.chart?.result) {
-                   const p = d.chart.result[0].meta.regularMarketPrice;
-                   document.getElementById('jpy-rate').innerText = `1台幣=${p.toFixed(2)}日圓`;
-                }
-            }).catch(()=>console.log("匯率無法讀取"));
+            const url = `${gasUrl}?mode=dashboard&lat=${lat}&lon=${lon}`;
+            const res = await fetch(url);
+            const data = await res.json();
 
-            const fetchIndex = async () => {
-                try {
-                    const res = await fetch(`${gasUrl}?stock=t00`);
-                    const data = await res.json();
-                    let p, y;
-                    if (Array.isArray(data) && data.length > 0 && !data[0].error) { p = parseFloat(data[0].z); y = parseFloat(data[0].y); } 
-                    else if (data.msgArray && data.msgArray.length > 0) { p = parseFloat(data.msgArray[0].z); y = parseFloat(data.msgArray[0].y); }
-                    if (!isNaN(p) && !isNaN(y)) return { p, y };
-                    throw new Error("GAS 無資料");
-                } catch (e) {
-                    const backupUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1d')}`;
-                    const res = await fetch(backupUrl);
-                    const json = await res.json();
-                    if (json.chart && json.chart.result) {
-                        const meta = json.chart.result[0].meta;
-                        return { p: meta.regularMarketPrice || meta.chartPreviousClose, y: meta.chartPreviousClose };
-                    }
-                    return null;
-                }
-            };
-            fetchIndex().then(data => {
-                if (data) {
-                    const { p, y } = data;
-                    const chg = p - y;
-                    const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-                    let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
-                    if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
-                    else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
-                    else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
-                    else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
-                    const el = document.getElementById('tw-index-val');
-                    const colorClass = chg >= 0 ? 'red' : 'green';
-                    el.innerHTML = `<div class="${colorClass}" style="font-size:17px; font-weight:bold;">${p.toLocaleString()}</div><div class="${colorClass}" style="font-size:12px; margin-top:2px;">${sign}${Math.abs(chg).toFixed(2)}</div>`;
-                    const badge = document.getElementById('sentiment-badge');
-                    badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
-                }
-            });
-        } catch(e) {}
+            // 1. 天氣
+            if (data.weather) {
+                document.getElementById('weather-val').innerText = Math.round(data.weather.temp) + "°";
+                document.getElementById('weather-icon').innerText = getWeatherIcon(data.weather.code);
+                const elAqi = document.getElementById('aqi-val');
+                elAqi.innerText = data.weather.aqi;
+                elAqi.style.color = data.weather.aqi <= 50 ? "#27ae60" : (data.weather.aqi <= 100 ? "#f39c12" : "#e74c3c");
+            }
+
+            // 2. 匯率
+            if (data.rate && data.rate.jpy) {
+                document.getElementById('jpy-rate').innerText = `1台幣=${parseFloat(data.rate.jpy).toFixed(2)}日圓`;
+            }
+
+            // 3. 大盤
+            if (data.index && data.index.price) {
+                const p = parseFloat(data.index.price);
+                const y = parseFloat(data.index.prev);
+                const chg = p - y;
+                const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
+                let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
+                if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
+                else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
+                else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
+                else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+                
+                const el = document.getElementById('tw-index-val');
+                const colorClass = chg >= 0 ? 'red' : 'green';
+                el.innerHTML = `
+                    <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
+                        ${p.toLocaleString()}
+                    </div>
+                    <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
+                        ${sign}${Math.abs(chg).toFixed(2)}
+                    </div>
+                `;
+                const badge = document.getElementById('sentiment-badge');
+                badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
+            }
+        } catch(e) { console.error("Dashboard API error", e); }
     }
 
-    // [v10.20] 新聞改用 GAS 後端模式
+    function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
+    function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
+
+    // [v10.20] 新聞模式
     async function fetchNews() {
-        // 直接呼叫 GAS 的 news 模式，不經過 corsproxy
         const url = `${gasUrl}?mode=news`;
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
             if (Array.isArray(data)) {
                 document.getElementById('news-list-container').innerHTML = data.map(i => {
                     return `<div class="news-item">● <a href="${i.link}" target="_blank">${i.title}</a></div>`;
                 }).join('');
                 document.getElementById('last-update-time').innerText = "最後載入: " + new Date().toLocaleTimeString();
             }
-        } catch(e) {
-            console.error("新聞載入失敗", e);
-        }
+        } catch(e) {}
     }
 
     function updateHoliday() {
@@ -732,7 +718,6 @@
         el.innerText = pool[r];
     }
 
-    // [v10.17] 移除 br，改用 div 控制間距，讓文字不會太低
     function updateMarketStatus() {
         const now = new Date();
         const daysArr = ['日', '一', '二', '三', '四', '五', '六'];
@@ -749,7 +734,7 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            // [v10.17] 這裡修改了排版
+            // [v10.17] 緊湊排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
@@ -774,7 +759,7 @@
         updateHoliday();
         renderTable();
         getBatchStockPrices(); 
-        fetchExternalInfo();
+        fetchExternalInfo(); // 這邊現在只發一個請求給 GAS
         fetchNews();
         getAutoWeather();
         initLocalSearch(); 
