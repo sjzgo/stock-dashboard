@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.28 版面微調版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.29 黑寶情緒版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -61,13 +61,11 @@
 
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         
-        /* 溫度與空氣連結樣式 */
         #weather-val { font-weight: bold; color: #f39c12; cursor: pointer; }
         #weather-val:hover { text-decoration: underline; }
         
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         
-        /* [v10.28] 匯率增加連結樣式 */
         #jpy-rate { 
             color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
             background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; 
@@ -105,28 +103,49 @@
             padding: 2px 0;
         }
         
-        @keyframes floatMascot {
-            0% { transform: translateY(2px); }
-            50% { transform: translateY(-2px); }
-            100% { transform: translateY(2px); }
-        }
+        /* [v10.29] 新增動畫與外框樣式 */
+        @keyframes floatMascot { 0% { transform: translateY(2px); } 50% { transform: translateY(-2px); } 100% { transform: translateY(2px); } }
+        @keyframes bounceMascot { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes shakeMascot { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+
         .mascot-container { 
             width: 48px; 
             height: 48px; 
             border-radius: 50%; 
-            border: 3px solid #ff9f43; 
-            overflow: hidden; 
+            border: 3px solid #ff9f43; /* 預設顏色 */
+            overflow: visible; /* 讓徽章可以凸出去 */
             cursor: pointer; 
             background: #fff; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
             flex-shrink: 0; 
-            animation: floatMascot 3s ease-in-out infinite; 
             margin-left: 2px;
+            position: relative; /* 定位徽章 */
+            animation: floatMascot 3s ease-in-out infinite; /* 預設動畫 */
+            transition: border-color 0.5s;
         }
-        .mascot-container:active { transform: scale(0.9); animation: none; }
+        .mascot-container:active { transform: scale(0.9); animation: none !important; }
 
-        .mascot-img { width: 100%; height: 100%; object-fit: cover; }
+        .mascot-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
         
+        /* 情緒徽章 */
+        .mascot-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+            display: none; /* 預設隱藏 */
+        }
+
         .header-text-col { 
             text-align: left; 
             display: flex;
@@ -353,11 +372,12 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.28</div>
+        <div class="version-tag">v10.29</div>
         
         <div class="header-title-row">
-            <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
+            <div class="mascot-container" id="mascot-container" onclick="document.getElementById('file-upload').click()">
                 <img id="mascot-img" class="mascot-img" src="cat.jpg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/616/616430.png'">
+                <div id="mascot-badge" class="mascot-badge"></div>
             </div>
             <input type="file" id="file-upload" style="display:none;" onchange="app.uploadLogo(this)">
             <div class="header-text-col">
@@ -432,6 +452,9 @@
     const gasUrl = "https://script.google.com/macros/s/AKfycbxOaln9DyAI-EhsuTK8qawgX3-5kWMer0OzxONkDLAetks25pV_KuGb2JNeXHByj8zS/exec"; 
     
     let allStockList = [];
+    
+    // [v10.29] 新增變數記錄黑寶是否已被情緒控制
+    let isMascotOverridden = false; 
 
     function getWeatherIcon(code) {
         if (code === 0) return "☀️";
@@ -682,15 +705,47 @@
                     const chg = p - y;
                     const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
                     let sentiment = "盤整观望 😐"; let sentimentColor = "#888";
-                    if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
+                    
+                    // [v10.29] 黑寶情緒控制中心
+                    const mascot = document.getElementById('mascot-container');
+                    const badge = document.getElementById('mascot-badge');
+                    const quote = document.getElementById('cat-quote-text');
+                    
+                    mascot.style.animation = ""; // 重置動畫
+                    isMascotOverridden = false;
+
+                    if (chg > 100) { 
+                        sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; 
+                        // 黑寶興奮模式
+                        mascot.style.borderColor = "#f1c40f"; // 金色
+                        mascot.style.animation = "bounceMascot 0.6s infinite";
+                        badge.style.display = "flex";
+                        badge.innerText = "🤑";
+                        quote.innerText = "多頭戰車開出來！🚀";
+                        isMascotOverridden = true;
+                    }
                     else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
-                    else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
+                    else if (chg < -100) { 
+                        sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; 
+                        // 黑寶驚恐模式
+                        mascot.style.borderColor = "#2ecc71"; // 慘綠
+                        mascot.style.animation = "shakeMascot 0.5s infinite";
+                        badge.style.display = "flex";
+                        badge.innerText = "😱";
+                        quote.innerText = "快去打工補保證金...💸";
+                        isMascotOverridden = true;
+                    }
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+                    else {
+                        // 正常模式
+                        mascot.style.borderColor = "#ff9f43";
+                        mascot.style.animation = "floatMascot 3s ease-in-out infinite";
+                        badge.style.display = "none";
+                    }
                     
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
                     
-                    // [v10.28] 增加 margin-bottom，讓文字往上，避開右下角
                     el.innerHTML = `
                         <div style="margin-bottom:6px;">
                             <div class="${colorClass}" style="font-size:16px; font-weight:bold;">${p.toLocaleString()}</div>
@@ -708,7 +763,6 @@
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
-    // 新聞模式 (GAS)
     async function fetchNews() {
         const url = `${gasUrl}?mode=news`;
         try {
@@ -732,6 +786,9 @@
     }
 
     function rotateQuotes() {
+        // [v10.29] 如果黑寶正在激動，就不要輪播閒聊，以免蓋掉重要台詞
+        if(isMascotOverridden) return;
+
         const now = new Date();
         const day = now.getDay();
         const h = now.getHours();
