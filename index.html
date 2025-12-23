@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.26 版面優化版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.27 版面修復版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -60,7 +60,10 @@
         .info-pill:active { transform: scale(0.95); background: #f0f0f0; }
 
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
-        #weather-val { font-weight: bold; color: #f39c12; }
+        
+        /* [v10.27 修改] 讓溫度可以點擊，變更鼠標樣式 */
+        #weather-val { font-weight: bold; color: #f39c12; cursor: pointer; }
+        #weather-val:hover { text-decoration: underline; }
         
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
         #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
@@ -192,7 +195,6 @@
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
         
-        /* [v10.26 修改] position: relative 讓子元素可以絕對定位 */
         .card .val { 
             font-size: 14px; 
             font-weight: bold; 
@@ -203,7 +205,7 @@
             justify-content: center; 
             flex: 1; 
             padding-bottom: 4px; 
-            position: relative; /* 關鍵：讓右下角標籤定位 */
+            position: relative; 
         }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
@@ -232,8 +234,6 @@
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
         
-        /* [v10.26 移除] sentiment-badge 樣式已不再使用，改為動態插入 */
-
         /* 獨立的美股按鈕 */
         .us-stock-btn {
             padding: 0 10px; 
@@ -331,7 +331,7 @@
                     <option value="24.43,118.32">金門</option><option value="26.15,119.93">連江</option>
                 </select>
                 <span id="weather-icon"></span>
-                <span id="weather-val" style="margin-left:1px;">--°</span>
+                <span id="weather-val" style="margin-left:1px;" onclick="window.open('https://www.cwa.gov.tw/V8/C/')" title="點擊前往中央氣象署">--°</span>
             </div>
             <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
         </div>
@@ -344,7 +344,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.26</div>
+        <div class="version-tag">v10.27</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -388,7 +388,7 @@
             <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
             <div class="input-actions">
                 <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
-                </div>
+            </div>
         </div>
         <button class="us-stock-btn" onclick="window.open('https://tw.stock.yahoo.com/us-market')">🇺🇸 點我看美股</button>
     </div>
@@ -681,15 +681,13 @@
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
                     
-                    // [v10.26] 注入數值並將 sentiment 放在右下角
+                    // [v10.27] 修復文字重疊，上移數字，保留右下角給 sentiment
                     el.innerHTML = `
-                        <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
-                            ${p.toLocaleString()}
+                        <div style="margin-bottom:2px;">
+                            <div class="${colorClass}" style="font-size:16px; font-weight:bold;">${p.toLocaleString()}</div>
+                            <div class="${colorClass}" style="font-size:11px;">${sign}${Math.abs(chg).toFixed(2)}</div>
                         </div>
-                        <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
-                            ${sign}${Math.abs(chg).toFixed(2)}
-                        </div>
-                        <div style="position:absolute; bottom:1px; right:3px; font-size:9px; color:${sentimentColor}; opacity:0.8;">
+                        <div style="position:absolute; bottom:1px; right:3px; font-size:9px; color:${sentimentColor}; font-weight:bold; opacity:0.9;">
                             ${sentiment}
                         </div>
                     `;
@@ -701,7 +699,6 @@
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
-    // 新聞模式 (GAS)
     async function fetchNews() {
         const url = `${gasUrl}?mode=news`;
         try {
@@ -755,7 +752,6 @@
             const leftMin = closeMin - totalMin;
             const lh = Math.floor(leftMin / 60);
             const lm = leftMin % 60;
-            // [v10.17] 這裡修改了排版
             twTimer.innerHTML = `
                 <div style="line-height:1.1">
                     <span class="red">盤中交易</span>
