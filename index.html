@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.25 Time.is 時間版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.26 版面優化版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -192,6 +192,7 @@
 
         .dashboard .card h4 { margin: 0 0 2px 0; font-size: 11px; height: 16px; line-height: 16px; display: flex; align-items: center; justify-content: center; width: 100%; }
         
+        /* [v10.26 修改] position: relative 讓子元素可以絕對定位 */
         .card .val { 
             font-size: 14px; 
             font-weight: bold; 
@@ -202,6 +203,7 @@
             justify-content: center; 
             flex: 1; 
             padding-bottom: 4px; 
+            position: relative; /* 關鍵：讓右下角標籤定位 */
         }
         
         .dashboard .card:nth-child(1) { background: #e0f7fa; border-bottom: 3px solid #00bcd4; }
@@ -230,11 +232,7 @@
         #stock-input { flex: 1; min-width: 0; padding: 6px; border: none; background: transparent; font-size: 14px; outline: none; margin-right: 8px; }
         .input-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
         
-        #sentiment-badge { 
-            font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 12px; 
-            background: #fff; border: 1px solid #ddd; color: #666; 
-            white-space: nowrap; display: none; min-width: 60px; text-align: center; 
-        }
+        /* [v10.26 移除] sentiment-badge 樣式已不再使用，改為動態插入 */
 
         /* 獨立的美股按鈕 */
         .us-stock-btn {
@@ -346,7 +344,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.25</div>
+        <div class="version-tag">v10.26</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -390,8 +388,7 @@
             <input type="text" id="stock-input" placeholder="搜尋股票代號或名稱" autocomplete="off" oninput="unifiedSearch(this.value)">
             <div class="input-actions">
                 <button onclick="addStock()" style="padding:6px 15px; border-radius:6px; border:none; background:#34495e; color:white; cursor:pointer; font-weight:bold; white-space:nowrap;">+ 新增</button>
-                <div id="sentiment-badge"></div>
-            </div>
+                </div>
         </div>
         <button class="us-stock-btn" onclick="window.open('https://tw.stock.yahoo.com/us-market')">🇺🇸 點我看美股</button>
     </div>
@@ -675,13 +672,16 @@
                     const { p, y } = data;
                     const chg = p - y;
                     const sign = chg > 0 ? "▲" : (chg < 0 ? "▼" : "");
-                    let sentiment = "盤整觀望 😐"; let sentimentColor = "#888";
+                    let sentiment = "盤整观望 😐"; let sentimentColor = "#888";
                     if (chg > 100) { sentiment = "多頭狂歡 🔥"; sentimentColor = "#d35400"; }
                     else if (chg > 40) { sentiment = "氣氛樂觀 🚀"; sentimentColor = "#e74c3c"; }
                     else if (chg < -150) { sentiment = "恐慌殺盤 😱"; sentimentColor = "#2c3e50"; }
                     else if (chg < -40) { sentiment = "保守操作 📉"; sentimentColor = "#27ae60"; }
+                    
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
+                    
+                    // [v10.26] 注入數值並將 sentiment 放在右下角
                     el.innerHTML = `
                         <div class="${colorClass}" style="font-size:17px; font-weight:bold;">
                             ${p.toLocaleString()}
@@ -689,9 +689,10 @@
                         <div class="${colorClass}" style="font-size:12px; margin-top:2px;">
                             ${sign}${Math.abs(chg).toFixed(2)}
                         </div>
+                        <div style="position:absolute; bottom:1px; right:3px; font-size:9px; color:${sentimentColor}; opacity:0.8;">
+                            ${sentiment}
+                        </div>
                     `;
-                    const badge = document.getElementById('sentiment-badge');
-                    badge.style.display = 'block'; badge.innerText = sentiment; badge.style.color = sentimentColor; badge.style.borderColor = sentimentColor;
                 }
             });
         } catch(e) {}
