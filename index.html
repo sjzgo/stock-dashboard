@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 喵喵站長資訊看板 (v10.27 版面修復版)</title>
+    <title>📊 喵喵站長資訊看板 (v10.28 版面微調版)</title>
     <style>
         /* --- 全局設定 --- */
         body { 
@@ -61,12 +61,19 @@
 
         #city-select { border: none; background: transparent; font-size: 11px; outline: none; cursor: pointer; font-weight: bold; color: #3498db; padding: 0; margin-right: 2px; }
         
-        /* [v10.27 修改] 讓溫度可以點擊，變更鼠標樣式 */
+        /* 溫度與空氣連結樣式 */
         #weather-val { font-weight: bold; color: #f39c12; cursor: pointer; }
         #weather-val:hover { text-decoration: underline; }
         
         .middle-rate-group { flex: 1 1 auto; display: flex; justify-content: center; min-width: 30px; overflow: hidden; }
-        #jpy-rate { color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; }
+        
+        /* [v10.28] 匯率增加連結樣式 */
+        #jpy-rate { 
+            color: #27ae60; font-weight: bold; font-size: 11px; white-space: nowrap; 
+            background: #ebfbee; padding: 2px 3px; border-radius: 10px; border: 1px solid #c3e6cb; 
+            cursor: pointer; transition: background 0.1s;
+        }
+        #jpy-rate:hover { background: #d4edda; }
         
         .top-right-holiday { flex: 0 0 auto; text-align: right; }
         #holiday-countdown { color: #e67e22; font-weight: bold; font-size: 11px; white-space: nowrap; }
@@ -333,10 +340,12 @@
                 <span id="weather-icon"></span>
                 <span id="weather-val" style="margin-left:1px;" onclick="window.open('https://www.cwa.gov.tw/V8/C/')" title="點擊前往中央氣象署">--°</span>
             </div>
-            <div class="info-pill">空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span></div>
+            <div class="info-pill" onclick="window.open('https://airtw.moenv.gov.tw/')" style="cursor:pointer;" title="點擊前往環境部空氣品質監測網">
+                空氣品質:<span id="aqi-val" style="margin-left:2px; font-weight:bold;">--</span>
+            </div>
         </div>
         <div class="middle-rate-group">
-            <div id="jpy-rate">1台幣=--日圓</div>
+            <div id="jpy-rate" onclick="window.open('https://rate.bot.com.tw/xrt?Lang=zh-TW')" title="點擊前往台灣銀行匯率">1台幣=--日圓</div>
         </div>
         <div class="top-right-holiday">
             <div id="holiday-countdown">📅 載入中...</div>
@@ -344,7 +353,7 @@
     </div>
 
     <header>
-        <div class="version-tag">v10.27</div>
+        <div class="version-tag">v10.28</div>
         
         <div class="header-title-row">
             <div class="mascot-container" onclick="document.getElementById('file-upload').click()">
@@ -681,9 +690,9 @@
                     const el = document.getElementById('tw-index-val');
                     const colorClass = chg >= 0 ? 'red' : 'green';
                     
-                    // [v10.27] 修復文字重疊，上移數字，保留右下角給 sentiment
+                    // [v10.28] 增加 margin-bottom，讓文字往上，避開右下角
                     el.innerHTML = `
-                        <div style="margin-bottom:2px;">
+                        <div style="margin-bottom:6px;">
                             <div class="${colorClass}" style="font-size:16px; font-weight:bold;">${p.toLocaleString()}</div>
                             <div class="${colorClass}" style="font-size:11px;">${sign}${Math.abs(chg).toFixed(2)}</div>
                         </div>
@@ -699,6 +708,7 @@
     function getAutoWeather() { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchWeather(p.coords.latitude, p.coords.longitude), () => fetchWeather(25.03, 121.56)); }
     function fetchWeather(lat, lon) { fetchExternalInfo(lat, lon); }
 
+    // 新聞模式 (GAS)
     async function fetchNews() {
         const url = `${gasUrl}?mode=news`;
         try {
